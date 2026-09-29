@@ -331,6 +331,21 @@ function amountInMonth(l, m){
   return annualTotal(l) / 12;
 }
 function monthlyAverage(l){ return l.active ? annualTotal(l)/12 : 0; }
+/* Résumé d'affichage : ce que la ligne représente vraiment, sans diluer sur les mois où elle n'est pas due.
+   'smoothed'   : provisionnée chaque mois (ex. taxe annuelle) -> une moyenne lissée a du sens
+   'monthly'    : mensuelle sur les 12 mois -> le montant à l'échéance EST le montant mensuel
+   'partial'    : mensuelle sur une partie de l'année seulement -> montant à l'échéance + nb de mois actifs
+   'occurrence' : autre cycle non lissé (ex. trimestriel compté au mois de l'échéance) -> montant à l'échéance */
+function lineSummary(l){
+  if(!(l.amount > 0)) return {mode:'none'};
+  const per = l.amount * (l.cycle.times || 1), annual = annualTotal(l);
+  if(smoothOf(l)) return {mode:'smoothed', monthly:annual/12, annual};
+  if(isMonthlyExact(l)){
+    const months = activeMonthsOf(l);
+    return months.length < 12 ? {mode:'partial', monthly:per, months, annual} : {mode:'monthly', monthly:per, annual};
+  }
+  return {mode:'occurrence', amount:per, annual, cycle:cycleLabel(l.cycle)};
+}
 
 /* ---------- Répartition du budget commun ---------- */
 /* Trouve le niveau L tel que somme(max(0, base_i - L)) = need  (reste à vivre égal) */
@@ -607,7 +622,7 @@ function buildTemplate(adultNames, kidNames){
   return S;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf};
 
 </script>
 <script>
@@ -936,15 +951,24 @@ function listHTML(){
   else if(filtering) html += `<p class="note">Lignes affichées : débits ${money(sumD)} par mois, crédits ${money(sumC)} par mois (moyennes lissées).</p>`;
   return html;
 }
+function summaryNote(sum){
+  switch(sum.mode){
+    case 'smoothed':  return `≈ ${money(sum.monthly)}/mois`;
+    case 'monthly':   return `${money(sum.monthly)}/mois`;
+    case 'partial':   return `${money(sum.monthly)}/mois (${sum.months.length} mois/an)`;
+    case 'occurrence':return `${money(sum.amount)} à l’échéance`;
+    default: return '';
+  }
+}
 function lineRow(l){
   const c = l.cycle, acc = l.accountId ? accName(l.accountId) : '';
   const metas = [cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method), acc, l.ownerId !== 'common' ? memberName(l.ownerId) : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
     .filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('');
-  const zero = l.amount === 0;
+  const zero = l.amount === 0, sum = (zero || !l.active) ? null : lineSummary(l);
   return `<div class="line ${l.active?'':'off'}" data-act="edit-line" data-id="${l.id}" role="button" tabindex="0" aria-label="Modifier ${esc(l.name)}">
     <label class="sw" title="Inclure dans le calcul"><input type="checkbox" data-b="line:${l.id}:active" ${l.active?'checked':''} aria-label="Inclure ${esc(l.name)} dans le calcul"></label>
     <div class="lmain"><span class="lname">${esc(l.name)}</span><i class="dots"></i></div>
-    <div class="amt"><b class="${zero?'todo':l.kind}">${zero ? 'à renseigner' : signed(l.kind, l.amount)}</b>${zero || !l.active ? '' : `<small>≈ ${money(monthlyAverage(l))}/mois</small>`}</div>
+    <div class="amt"><b class="${zero?'todo':l.kind}">${zero ? 'à renseigner' : signed(l.kind, l.amount)}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
     <div class="meta">${metas}</div></div>`;
 }
 
@@ -1136,10 +1160,19 @@ function refreshLineForm(){
   $('#l-start', dlg).textContent = c.unit === 'year' ? 'Mois d’échéance' : 'Mois de la première échéance';
   show('r-months', exact);
   show('r-smooth', (c.unit === 'month' || (c.unit === 'year' && c.every === 1)));
-  const annual = annualTotal(l), avg = annual / 12;
-  $('#f-preview', dlg).innerHTML = l.amount > 0
-    ? `Environ <b>${money(avg)}</b> par mois en moyenne, soit <b>${money(annual)}</b> par an${smoothOf(l) && !exact ? ' (provisionné chaque mois dans le budget)' : ''}.`
-    : 'Renseigner le montant pour voir l’équivalent mensuel.';
+  $('#f-preview', dlg).innerHTML = previewText(lineSummary(l));
+}
+function previewText(sum){
+  switch(sum.mode){
+    case 'smoothed': return `Environ <b>${money(sum.monthly)}</b> par mois en moyenne, soit <b>${money(sum.annual)}</b> par an (provisionné chaque mois dans le budget, même les mois où elle n’est pas due).`;
+    case 'monthly':  return `<b>${money(sum.monthly)}</b> par mois, soit <b>${money(sum.annual)}</b> par an.`;
+    case 'partial': {
+      const list = sum.months.map(m => MONTHS_SHORT[m-1]).join(', ');
+      return `<b>${money(sum.monthly)}</b> par mois, ${sum.months.length} mois sur 12 (${list}), soit <b>${money(sum.annual)}</b> par an. Les autres mois, cette ligne n’apparaît pas dans le budget.`;
+    }
+    case 'occurrence': return `<b>${money(sum.amount)}</b> à chaque échéance (${sum.cycle}), soit <b>${money(sum.annual)}</b> par an.`;
+    default: return 'Renseigner le montant pour voir l’équivalent mensuel.';
+  }
 }
 function saveLine(){
   const l = readLineForm();
