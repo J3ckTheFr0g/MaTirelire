@@ -120,7 +120,8 @@ main > * + *{margin-top:16px}
 .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .who{font-size:1rem;font-weight:700;margin:12px 0 6px}
 .who:first-child{margin-top:0}
-.catrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:6px 0}
+.catrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;width:100%;appearance:none;background:none;border:0;border-radius:8px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.catrow:hover .cn{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .catrow .cn{display:flex;align-items:center;gap:8px}
 .catrow .bar{grid-column:1 / -1;height:6px;background:var(--surface2);border-radius:4px;display:flex;overflow:hidden}
 .catrow .bar i{display:block;height:100%}
@@ -249,6 +250,41 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .advice.sev-good .a-tag{background:var(--credit)}
 .advice h3{font-size:.98rem;font-weight:700}
 .advice p{font-size:.9rem;color:var(--muted);margin-top:2px;line-height:1.4}
+
+/* Barre des mois + icône aujourd'hui */
+.monthbar{display:flex;align-items:center;gap:8px}
+.monthbar .chips{flex:1;min-width:0;position:relative}
+.todaybtn{flex:0 0 auto;display:grid;place-items:center;width:44px;height:40px;border-radius:12px;border:1.5px solid var(--brand);background:var(--surface);color:var(--brand);cursor:pointer;padding:0}
+.todaybtn:hover{background:var(--surface2)}
+.todaybtn[aria-pressed=true]{background:var(--brand);color:var(--on-brand)}
+.chip{position:relative}
+.nowdot{position:absolute;top:2px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--amber)}
+
+/* Compte joint */
+.joint header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.joint .legend dd small{font-weight:500}
+.joint details.how{margin-top:10px}
+.joint details.how summary{cursor:pointer;font-size:.88rem;font-weight:600;color:var(--muted)}
+
+/* Idées à budgéter */
+.ideas{margin-top:8px}
+.advice.sev-idea{border-left-color:var(--brand)}
+.advice.sev-idea .a-tag{background:var(--brand);color:var(--on-brand)}
+.advice .how-set{font-size:.82rem;margin-top:4px}
+.method{background:var(--surface2);border:1px dashed var(--line);border-radius:14px;padding:12px 14px}
+.method h3{font-size:.98rem;font-weight:800;margin-bottom:6px}
+.method ol{margin:0;padding-left:20px;display:grid;gap:5px;font-size:.9rem;color:var(--muted)}
+
+/* Dépenses par catégorie : catégorie dépliable (une seule à la fois) */
+.chev{display:inline-block;width:7px;height:7px;margin-left:4px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(-45deg)}
+.catitem.open .chev{transform:translateY(-1px) rotate(45deg)}
+@media(prefers-reduced-motion:no-preference){.chev{transition:transform .15s ease}}
+.catlines{background:var(--surface2);border-radius:10px;padding:8px 12px;margin:2px 0 8px;gap:5px}
+.catlines li{font-size:.9rem}
+.catlines li > span{min-width:0;overflow-wrap:anywhere}
+
+.provtable th{white-space:normal;vertical-align:bottom;line-height:1.2}
+.provtable th,.provtable td{padding:7px 8px}
 </style>
 </head>
 <body>
@@ -352,28 +388,8 @@ function amountInMonth(l, m){
   return annualTotal(l) / 12;
 }
 function monthlyAverage(l){ return l.active ? annualTotal(l)/12 : 0; }
-/* Provisions : coût/objectif, part déjà mise de côté, prochaine échéance calculée depuis le dernier paiement */
-function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || l.reserved != null || !isMonthlyExact(l))); }
-function provisionInfo(l){
-  const goal = l.goal != null ? l.goal : l.amount * (l.cycle.times || 1);
-  const reserved = l.reserved || 0;
-  let next = null;
-  if(l.lastDate){
-    const d = new Date(l.lastDate + 'T00:00:00');
-    if(!isNaN(d)){
-      const e = l.cycle.every || 1;
-      if(l.cycle.unit === 'day') d.setDate(d.getDate() + e); else if(l.cycle.unit === 'week') d.setDate(d.getDate() + 7*e);
-      else if(l.cycle.unit === 'month') d.setMonth(d.getMonth() + e); else d.setFullYear(d.getFullYear() + e);
-      next = d;
-    }
-  }
-  return {goal, reserved, rest: goal - reserved, next};
-}
-/* Résumé d'affichage : ce que la ligne représente vraiment, sans diluer sur les mois où elle n'est pas due.
-   'smoothed'   : provisionnée chaque mois (ex. taxe annuelle) -> une moyenne lissée a du sens
-   'monthly'    : mensuelle sur les 12 mois -> le montant à l'échéance EST le montant mensuel
-   'partial'    : mensuelle sur une partie de l'année seulement -> montant à l'échéance + nb de mois actifs
-   'occurrence' : autre cycle non lissé (ex. trimestriel compté au mois de l'échéance) -> montant à l'échéance */
+/* Résumé d'affichage : ce que la ligne représente vraiment, sans diluer sur les mois où elle n'est pas due
+   ('smoothed' lissée, 'monthly' mensuelle, 'partial' mensuelle sur une partie de l'année, 'occurrence' à l'échéance) */
 function lineSummary(l){
   if(!(l.amount > 0)) return {mode:'none'};
   const per = l.amount * (l.cycle.times || 1), annual = annualTotal(l);
@@ -460,7 +476,7 @@ function computeMonth(S, m){
 
 /* ---------- Données ---------- */
 function defaultSettings(){
-  return {currency:'EUR', commonAccountId:null, backup:true,
+  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true,
           distribution:{mode:'equal_remainder', includePersonal:false, custom:{}},
           methods: DEFAULT_METHODS.map(x=>({...x}))};
 }
@@ -475,14 +491,18 @@ function normalize(d){
   const st = d.settings || {};
   S.settings = Object.assign(defaultSettings(), st);
   S.settings.distribution = Object.assign(defaultSettings().distribution, st.distribution || {});
+  S.settings.provisionBlock = st.provisionBlock !== false;
+  delete S.settings.provisionStart;   // ancien réglage (point de départ global), remplacé par le calcul ligne par ligne
   if(!Array.isArray(S.settings.methods) || !S.settings.methods.length) S.settings.methods = DEFAULT_METHODS.map(x=>({...x}));
   S.members = arr(d.members).map(x => ({
     id: String(x.id || uid()), name: String(x.name || 'Sans nom'),
     type: MEMBER_TYPES.some(t=>t.id===x.type) ? x.type : 'adult',
     contributes: x.contributes !== undefined ? !!x.contributes : (x.type||'adult') === 'adult',
     pocket: {amount: Math.abs(+((x.pocket||{}).amount)||0), payer: (x.pocket||{}).payer || 'split'},
+    transferDay: Math.min(Math.max(parseInt(x.transferDay) || 1, 1), 31),
   }));
-  S.accounts = arr(d.accounts).map(x => ({id:String(x.id||uid()), name:String(x.name||'Compte'), bank:String(x.bank||''), ownerId:x.ownerId||null}));
+  S.accounts = arr(d.accounts).map(x => ({id:String(x.id||uid()), name:String(x.name||'Compte'), bank:String(x.bank||''), ownerId:x.ownerId||null,
+    balance: (x.balance && /^\d{4}-\d{2}-\d{2}$/.test(String(x.balance.date||'')) && Number.isFinite(+x.balance.amount)) ? {amount:+x.balance.amount, date:String(x.balance.date)} : null}));
   S.categories = arr(d.categories).map((x,i) => ({id:String(x.id||uid()), name:String(x.name||'Catégorie'), color:x.color||CAT_COLORS[i%CAT_COLORS.length]}));
   S.lines = arr(d.lines).map(x => {
     const c = x.cycle || {};
@@ -639,7 +659,7 @@ const TEMPLATE = [
 
 function buildTemplate(adultNames, kidNames){
   const S = emptyState();
-  const mk = (name, type) => ({id:uid(), name, type, contributes:type==='adult', pocket:{amount:0, payer:'split'}});
+  const mk = (name, type) => ({id:uid(), name, type, contributes:type==='adult', pocket:{amount:0, payer:'split'}, transferDay:1});
   adultNames.forEach(n => S.members.push(mk(n, 'adult')));
   kidNames.forEach(n => S.members.push(mk(n, 'child')));
   const joint = {id:uid(), name:'Compte joint', bank:'', ownerId:null};
@@ -660,6 +680,85 @@ function buildTemplate(adultNames, kidNames){
   return S;
 }
 
+
+/* ============================================================
+   PROVISIONS, LIGNE PAR LIGNE (même logique que la feuille Excel d'origine) :
+   - mensualité : coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel)
+   - date de départ : dernier paiement
+   - date de fin : départ + cycle (ligne mensuelle à objectif : départ + objectif ÷ mensualité)
+   - somme en cours : mensualité × mois écoulés depuis le départ, plafonnée au coût
+   ============================================================ */
+const DAY_MS = 86400000;
+function parseISO(s){ const r = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return r ? {y:+r[1], m:+r[2], d:+r[3]} : null; }
+function dimOf(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+function addCycleTo(st, c){
+  const d = new Date(st.y, st.m - 1, st.d);
+  if(c.unit === 'day') d.setDate(d.getDate() + c.every);
+  else if(c.unit === 'week') d.setDate(d.getDate() + 7 * c.every);
+  else if(c.unit === 'month') d.setMonth(d.getMonth() + c.every);
+  else d.setFullYear(d.getFullYear() + c.every);
+  return d;
+}
+function monthsSince(st, now){
+  return Math.max(0, (now.getFullYear() - st.y) * 12 + (now.getMonth() + 1 - st.m) - (now.getDate() < st.d ? 1 : 0));
+}
+function provisionLine(l, now){
+  now = now || new Date();
+  const c = l.cycle, times = c.times || 1;
+  const goal = l.goal != null ? l.goal : l.amount * times;
+  const monthlyGoal = isMonthlyExact(l) && l.goal != null;
+  const mens = isMonthlyExact(l) ? l.amount * times : annualTotal(l) / 12;
+  const st = parseISO(l.lastDate);
+  const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, accrued:0, rest:goal, done:false, overdue:false, noStart:!st};
+  if(!st) return out;
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  out.k = monthsSince(st, now);
+  out.accrued = Math.min(goal, mens * out.k);
+  out.rest = goal - out.accrued;
+  out.done = out.accrued >= goal - 0.005;
+  if(monthlyGoal) out.end = mens > 0 ? addCycleTo(st, {every:Math.ceil(goal / mens - 1e-9), unit:'month'}) : null;
+  else { out.end = addCycleTo(st, c); out.overdue = out.end < today0; }
+  return out;
+}
+/* Lignes concernées par le suivi de provision */
+function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l))); }
+/* Vue compacte pour l'onglet Provisions */
+function provisionInfo(l, now){
+  const p = provisionLine(l, now);
+  return {goal:p.goal, reserved:p.accrued, rest:p.rest, next:p.end, mens:p.mens, k:p.k, start:p.start, done:p.done, overdue:p.overdue, noStart:p.noStart, monthlyGoal:p.monthlyGoal};
+}
+function provisionSummary(S, now){
+  now = now || new Date();
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const rows = provisionCandidates(S).map(l => ({l, p:provisionLine(l, now)}));
+  const counted = rows.filter(r => !r.p.noStart);
+  const sum = f => counted.reduce((a, r) => a + f(r.p), 0);
+  const limit = new Date(today0); limit.setDate(limit.getDate() + 60);
+  const dd = d => ({y:d.getFullYear(), m:d.getMonth() + 1, d:d.getDate()});
+  const upcoming = counted.filter(r => r.p.end && r.p.end >= today0 && r.p.end <= limit && !r.p.done)
+    .sort((a, b) => a.p.end - b.p.end)
+    .map(r => ({name:r.l.name, end:dd(r.p.end), days:Math.round((r.p.end - today0) / DAY_MS), goal:r.p.goal, accrued:r.p.accrued, monthlyGoal:r.p.monthlyGoal}));
+  // prochain virement de provision (jour de virement de chaque contributeur)
+  let nextTransfer = null;
+  for(let off = 0; off < 2; off++){
+    const ref = new Date(today0.getFullYear(), today0.getMonth() + off, 1), y = ref.getFullYear(), m = ref.getMonth() + 1;
+    const R = computeMonth(S, m);
+    S.members.forEach(mb => {
+      if(!mb.contributes || !R.members[mb.id]) return;
+      const share = R.members[mb.id].share; if(!(share > 0.005)) return;
+      const day = Math.min(Math.max(mb.transferDay || 1, 1), dimOf(y, m)), date = new Date(y, m - 1, day);
+      if(date >= today0 && (!nextTransfer || date < nextTransfer._d)) nextTransfer = {name:mb.name, date:dd(date), amount:share, _d:date};
+    });
+    if(nextTransfer) break;
+  }
+  if(nextTransfer) delete nextTransfer._d;
+  return {count:counted.length, accrued:sum(p => p.accrued), goal:sum(p => p.goal), rest:sum(p => p.rest),
+          mens:counted.filter(r => !r.p.done).reduce((a, r) => a + r.p.mens, 0),
+          upcoming, overdue:counted.filter(r => r.p.overdue).map(r => r.l.name),
+          reached:counted.filter(r => r.p.monthlyGoal && r.p.done).map(r => r.l.name),
+          noStart:rows.filter(r => r.p.noStart).map(r => r.l.name), nextTransfer};
+}
+
 /* ============================================================
    CONSEILS : observations calculées à partir des données du foyer.
    Pas d'IA, pas d'appel réseau : uniquement des repères comparés
@@ -676,7 +775,7 @@ function advCatWeight(S, R, words){
   });
   return v;
 }
-function computeAdvice(S){
+function computeAdvice(S, now){
   const out = [];
   const push = (severity, kind, data, action) => out.push({severity, kind, data, action: action || null});
   if(!S.lines.some(l => l.amount > 0)) return out;
@@ -726,17 +825,11 @@ function computeAdvice(S){
     if(spread > 150 && S.settings.distribution.mode !== 'equal_remainder') push('info','equilibre',{spread}, {tab:'foyer'});
   }
 
-  const today = new Date(); today.setHours(0,0,0,0);
-  const late = [], soon = [];
-  provisionCandidates(S).forEach(l => {
-    const p = provisionInfo(l);
-    if(p.next){
-      const days = (p.next - today) / 86400000;
-      if(days < 0) late.push(l); else if(days <= 45 && p.rest > 1) soon.push({l, p, days});
-    }
-  });
-  if(late.length) push('alert','prov-retard',{count:late.length, name:late[0].name}, {tab:'provisions'});
-  if(soon.length) push('info','prov-proche',{count:soon.length, name:soon[0].l.name, rest:soon[0].p.rest, days:Math.round(soon[0].days)}, {tab:'provisions'});
+  const PS = provisionSummary(S, now);
+  if(PS.overdue.length) push('alert','prov-retard',{count:PS.overdue.length, name:PS.overdue[0]}, {tab:'provisions'});
+  if(PS.upcoming.length) push('info','prov-proche',{count:PS.upcoming.length, name:PS.upcoming[0].name, days:PS.upcoming[0].days, goal:PS.upcoming[0].goal, accrued:PS.upcoming[0].accrued}, {tab:'provisions'});
+  if(PS.reached.length) push('info','prov-objectif',{count:PS.reached.length, name:PS.reached[0]}, {tab:'provisions'});
+  if(PS.noStart.length) push('info','prov-sans-date',{count:PS.noStart.length, name:PS.noStart[0]}, {tab:'provisions'});
 
   const nets = []; for(let m = 1; m <= 12; m++) nets.push(computeMonth(S, m).common.net);
   const avgNet = nets.reduce((a,b)=>a+b,0) / 12;
@@ -762,7 +855,7 @@ function computeAdvice(S){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, computeAdvice};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, monthsSince, computeAdvice, advNorm};
 
 </script>
 <script>
@@ -933,6 +1026,7 @@ function render(){
   const y = window.scrollY;
   $('#app').innerHTML = S ? shell() : welcome();
   window.scrollTo(0, y);
+  centerMonthChip();
 }
 function adviceCount(){ return S ? computeAdvice(S).filter(x => x.severity === 'alert' || x.severity === 'warn').length : 0; }
 function shell(){
@@ -961,6 +1055,43 @@ function welcome(){
   </section>`;
 }
 
+/* ----- Compte provisions : somme attendue, calculée ligne par ligne ----- */
+function isoToday(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fmtDay(o){ return new Date(o.y, o.m - 1, o.d).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}); }
+function fmtMonthYear(d){ return d.toLocaleDateString('fr-FR', {month:'long', year:'numeric'}); }
+function dayLabel(d){ return d === 1 ? '1er' : String(d); }
+const provisionOn = () => S.settings.provisionBlock !== false;
+function provisionCardHTML(){
+  const P = provisionSummary(S);
+  const plural = (n, a, b) => n > 1 ? b : a;
+  if(!P.count) return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
+    <p class="hint" style="margin-top:8px">Aucune ligne de provision n’a de date de départ. Renseigne le dernier paiement (Provision et suivi) sur tes dépenses non mensuelles : la somme attendue se calcule alors toute seule.</p>
+    <div style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Ouvrir Provisions</button></div></section>`;
+  const next = P.upcoming.length ? `<h3 class="who">Prochaines échéances (60 jours)</h3><ul class="leaders">${P.upcoming.slice(0, 4).map(u =>
+    `<li><span>${esc(u.name)} <small>${u.monthlyGoal ? 'objectif atteint' : 'fin'} le ${fmtDay(u.end)} · ${money(u.accrued)} sur ${money(u.goal)}</small></span><i class="dots"></i><b>${money(u.goal)}</b></li>`).join('')}</ul>` : '';
+  const tr = P.nextTransfer ? `<div><dt>Prochain virement de provision</dt><dd>${money(P.nextTransfer.amount)} <small class="muted">le ${fmtDay(P.nextTransfer.date)} (${esc(P.nextTransfer.name)})</small></dd></div>` : '';
+  const notes = [
+    P.overdue.length ? `${P.overdue.length} échéance${plural(P.overdue.length, '', 's')} dépassée${plural(P.overdue.length, '', 's')} (${P.overdue.slice(0, 3).join(', ')}${P.overdue.length > 3 ? '…' : ''}) : mets à jour la date du dernier paiement.` : '',
+    P.reached.length ? `Objectif atteint : ${P.reached.slice(0, 3).join(', ')}${P.reached.length > 3 ? '…' : ''}. Pense à arrêter la provision.` : '',
+    P.noStart.length ? `${P.noStart.length} ligne${plural(P.noStart.length, '', 's')} sans date de départ ${plural(P.noStart.length, 'n’est', 'ne sont')} pas comptée${plural(P.noStart.length, '', 's')} (${P.noStart.slice(0, 3).join(', ')}${P.noStart.length > 3 ? '…' : ''}).` : '',
+  ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
+  return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
+    <div class="rest"><b>${money(P.accrued)}</b><span>somme attendue aujourd’hui, sur ${P.count} ligne${plural(P.count, '', 's')} de provision</span></div>
+    <dl class="legend">
+      <div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>
+      <div><dt>Coût total à couvrir</dt><dd>${money(P.goal)}</dd></div>
+      <div><dt>Reste à provisionner</dt><dd>${money(P.rest)}</dd></div>
+      ${tr}
+    </dl>${next}${notes}
+    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Pour chaque dépense qui ne tombe pas tous les mois : mensualité = coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel). La date de départ est le dernier paiement ; la date de fin est le départ plus le cycle (ou plus objectif ÷ mensualité). Somme en cours = mensualité × mois écoulés depuis le départ, plafonnée au coût. Le compte provisions attendu est la somme de toutes les lignes. Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit. Détail ligne par ligne dans l’onglet Provisions.</p></details>
+    <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
+}
+function centerMonthChip(){
+  const box = $('.monthbar .chips'); if(!box) return;
+  const sel = $('.chip[aria-pressed=true]', box); if(!sel) return;
+  box.scrollLeft = Math.max(0, sel.offsetLeft - box.clientWidth / 2 + sel.offsetWidth / 2);
+}
+
 /* ----- Synthèse ----- */
 const MODES = [
   ['equal_remainder','Reste à vivre égal','Chacun garde la même somme une fois le budget commun payé : celui qui gagne plus verse plus.'],
@@ -971,15 +1102,17 @@ const MODES = [
 function viewSynthese(){
   const R = computeMonth(S, U.month), d = S.settings.distribution;
   const title = U.month === 0 ? 'Moyenne mensuelle sur l’année' : cap(MONTHS[U.month-1]);
+  const now = new Date(), realMonth = now.getMonth() + 1;
   const chips = [0,1,2,3,4,5,6,7,8,9,10,11,12].map(m =>
-    `<button class="chip" data-act="month" data-m="${m}" aria-pressed="${U.month===m}">${m===0?'Moyenne':MONTHS_SHORT[m-1]}</button>`).join('');
+    `<button class="chip" data-act="month" data-m="${m}" aria-pressed="${U.month===m}" ${m===realMonth?'title="Mois en cours"':''}>${m===0?'Moyenne':MONTHS_SHORT[m-1]}${m===realMonth?'<i class="nowdot" aria-hidden="true"></i>':''}</button>`).join('');
+  const todayBtn = `<button class="todaybtn" data-act="today" aria-pressed="${U.month===realMonth}" aria-label="Aller au mois en cours (${MONTHS[realMonth-1]})" title="Mois en cours"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text x="12" y="18.3" text-anchor="middle" font-size="7.6" font-weight="800" fill="currentColor" style="font-family:var(--font)">${now.getDate()}</text></svg></button>`;
   const mode = MODES.find(x=>x[0]===d.mode) || MODES[0];
   const cards = S.members.filter(m => R.members[m.id].income > 0 || R.members[m.id].personal > 0 || m.contributes).map(m => memberCard(m, R.members[m.id])).join('');
   const contrib = S.members.filter(m => m.contributes);
   const nothing = !S.lines.some(l => l.amount > 0);
   return `
     ${nothing ? `<div class="banner"><span>La tirelire est vide pour l’instant. Commence par les salaires dans l’onglet Foyer, puis les montants dans l’onglet Budget.</span><button class="btn small" data-act="tab" data-tab="foyer">Ouvrir Foyer</button></div>` : ''}
-    <div class="chips" role="group" aria-label="Période">${chips}</div>
+    <div class="monthbar">${todayBtn}<div class="chips" role="group" aria-label="Période">${chips}</div></div>
     <section class="hero" aria-label="Reste à vivre du foyer">
       <div class="hero-txt"><p class="hero-k">Reste à vivre du foyer, ${esc(title.toLowerCase())}</p><p class="hero-v">${money(R.totals.rest)}</p></div>
       <div class="hero-pig">${piggy(R.totals.rest < -0.005 ? 'worried' : 'happy', 92, 'nocoin')}<p class="bubble">${esc(heroMsg(R))}</p></div>
@@ -990,6 +1123,7 @@ function viewSynthese(){
       </dl>
     </section>
     ${R.unfunded > 0 ? `<div class="banner"><span>Le budget commun (${money(R.unfunded)}) n’est financé par personne : coche « Participe au budget commun » pour au moins un membre dans l’onglet Foyer.</span></div>` : ''}
+    ${provisionOn() ? provisionCardHTML() : ''}
     <section class="card"><h2>Répartition du budget commun</h2>
       <div class="chips wrapchips" role="group" aria-label="Mode de répartition">${MODES.map(([id,l]) =>
         `<button class="chip" data-act="mode" data-mode="${id}" aria-pressed="${d.mode===id}">${l}</button>`).join('')}</div>
@@ -1029,17 +1163,28 @@ function transfersHTML(R, contrib){
     const list = R.transfers[m.id] || [];
     if(!list.length) return '';
     return `<h3 class="who">${esc(m.name)}</h3><ul class="leaders">${list.map(t =>
-      `<li><span>${esc(accName(t.accountId))}${t.common ? '<small>budget commun</small>' : ''}</span><i class="dots"></i><b>${money(t.amount)}</b></li>`).join('')}</ul>`;
+      `<li><span>${esc(accName(t.accountId))}${t.common ? `<small>compte de provision, le ${dayLabel(m.transferDay || 1)}</small>` : ''}</span><i class="dots"></i><b>${money(t.amount)}</b></li>`).join('')}</ul>`;
   }).join('');
   return out || '<p class="hint">Aucun virement à prévoir pour cette période.</p>';
+}
+function catLinesFor(R, catId){
+  return S.lines.filter(l => l.active && l.kind === 'debit' && l.catId === catId)
+    .map(l => ({l, v: R.m === 0 ? annualTotal(l) / 12 : amountInMonth(l, R.m)}))
+    .filter(x => x.v > 0.005).sort((a, b) => b.v - a.v);
 }
 function catBarsHTML(R){
   const rows = S.categories.map(c => ({c, v:R.cats[c.id]})).filter(x => x.v && (x.v.common + x.v.personal) > 0.005)
     .sort((a,b) => (b.v.common+b.v.personal) - (a.v.common+a.v.personal));
   if(!rows.length) return '<p class="hint">Aucune dépense pour cette période.</p>';
   const max = Math.max(...rows.map(r => r.v.common + r.v.personal));
-  return rows.map(({c,v}) => `<div class="catrow"><span class="cn"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)}</span><b>${money(v.common+v.personal)}</b>
-    <div class="bar"><i style="width:${(v.common/max*100).toFixed(1)}%;background:var(--brand)"></i><i style="width:${(v.personal/max*100).toFixed(1)}%;background:var(--slate)"></i></div></div>`).join('') +
+  return rows.map(({c,v}) => {
+    const open = U.openCat === c.id;
+    const lines = open ? `<ul class="leaders catlines">${catLinesFor(R, c.id).map(x =>
+      `<li><span>${esc(x.l.name)}</span><i class="dots"></i><b>${money(x.v)}</b></li>`).join('')}</ul>` : '';
+    return `<div class="catitem ${open ? 'open' : ''}"><button class="catrow" data-act="cat-open" data-id="${esc(c.id)}" aria-expanded="${open}">
+      <span class="cn"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<i class="chev" aria-hidden="true"></i></span><b>${money(v.common+v.personal)}</b>
+      <span class="bar"><i style="width:${(v.common/max*100).toFixed(1)}%;background:var(--brand)"></i><i style="width:${(v.personal/max*100).toFixed(1)}%;background:var(--slate)"></i></span></button>${lines}</div>`;
+  }).join('') +
     `<p class="note" style="margin-top:8px"><span class="sw-dot" style="background:var(--brand)"></span> commun &nbsp; <span class="sw-dot" style="background:var(--slate)"></span> personnel</p>`;
 }
 function yearTableHTML(contrib){
@@ -1058,6 +1203,81 @@ function accountsTableHTML(R){
   ids.sort((a,b) => accName(a).localeCompare(accName(b), 'fr'));
   return `<div class="tw"><table><thead><tr><th>Compte</th><th>Débits</th><th>Crédits</th><th>Solde</th></tr></thead><tbody>${ids.map(id => {
     const a = R.accounts[id]; return `<tr><td>${esc(accName(id))}</td><td class="debit">${money(a.debit)}</td><td class="credit">${money(a.credit)}</td><td>${money(a.credit - a.debit)}</td></tr>`; }).join('')}</tbody></table></div>`;
+}
+
+/* ----- Idées à budgéter (achats qui reviennent tous les N ans) ----- */
+const cyc = (every, unit) => ({every, unit, times:1});
+const CAR = ['auto','voiture','carburant','essence','gazole','diesel'];
+const IDEAS = [
+  {id:'pneus', name:'Pneus de voiture', cat:'Voiture', hints:['voiture','auto','transport'], kw:['pneu'], needs:CAR, amount:400, cycle:cyc(4,'year'), method:'cb', life:'3 à 5 ans (environ 40 000 km)', tip:'Jeu de 4 pneus posés : 300 à 600 € selon le modèle.'},
+  {id:'batterie', name:'Batterie de voiture', cat:'Voiture', hints:['voiture','auto','transport'], kw:['batterie'], needs:CAR, amount:150, cycle:cyc(5,'year'), method:'cb', life:'4 à 6 ans', tip:'Elle lâche souvent en hiver : mieux vaut l’avoir provisionnée.'},
+  {id:'freins', name:'Plaquettes et disques de frein', cat:'Voiture', hints:['voiture','auto','transport'], kw:['frein','plaquette'], needs:CAR, amount:350, cycle:cyc(4,'year'), method:'cb', life:'50 000 à 70 000 km pour les plaquettes', tip:'Les disques se changent en général une fois sur deux.'},
+  {id:'revision', name:'Révision annuelle de la voiture', cat:'Voiture', hints:['voiture','auto','transport'], kw:['revision','vidange'], needs:CAR, amount:250, cycle:cyc(1,'year'), method:'cb', life:'chaque année ou tous les 15 000 à 20 000 km', tip:'Selon le constructeur et le type de moteur.'},
+  {id:'ct', name:'Contrôle technique', cat:'Voiture', hints:['voiture','auto','transport'], kw:['controle technique'], needs:CAR, amount:80, cycle:cyc(2,'year'), method:'cb', life:'tous les 2 ans', tip:'Premier contrôle au bout de 4 ans pour un véhicule neuf.'},
+  {id:'aspirateur', name:'Aspirateur', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['aspirateur'], amount:250, cycle:cyc(8,'year'), method:'cb', life:'7 à 10 ans (robot : 4 à 6 ans)', tip:'Prends la moyenne de la durée de vie estimée : ici 8 ans.'},
+  {id:'lavelinge', name:'Lave-linge', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['lave linge'], amount:500, cycle:cyc(10,'year'), method:'cb', life:'8 à 12 ans'},
+  {id:'lavevaisselle', name:'Lave-vaisselle', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['lave vaisselle'], amount:450, cycle:cyc(10,'year'), method:'cb', life:'8 à 12 ans'},
+  {id:'frigo', name:'Réfrigérateur et congélateur', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['frigo','refrigerateur','congelateur'], amount:600, cycle:cyc(12,'year'), method:'cb', life:'10 à 15 ans'},
+  {id:'four', name:'Four et plaques de cuisson', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['four','cuisson'], amount:500, cycle:cyc(12,'year'), method:'cb', life:'10 à 15 ans'},
+  {id:'petit', name:'Petit électroménager', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['petit electromenager','bouilloire','cafetiere','robot'], amount:150, cycle:cyc(4,'year'), method:'cb', life:'3 à 6 ans', tip:'Bouilloire, grille-pain, robot, cafetière…'},
+  {id:'matelas', name:'Matelas et literie', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['matelas','literie'], amount:500, cycle:cyc(10,'year'), method:'cb', life:'8 à 10 ans', tip:'À multiplier par le nombre de lits.'},
+  {id:'peinture', name:'Rafraîchir une pièce (peinture, sols)', cat:'Intérieur', hints:['interieur','maison','domicile','logement'], kw:['peinture','rafraichir'], amount:800, cycle:cyc(10,'year'), method:'cb', life:'8 à 12 ans'},
+  {id:'chaudiere', name:'Remplacement de la chaudière', cat:'Domicile', hints:['domicile','logement','maison'], kw:['remplacement (de )?(la )?chaudiere'], needs:['chaudiere','gaz','chauffage'], amount:4500, cycle:cyc(15,'year'), method:'virement', life:'15 à 20 ans', tip:'L’entretien annuel se budgète à part.'},
+  {id:'tv', name:'Téléviseur', cat:'Multimédia', hints:['multimedia','interieur'], kw:['tv','television','televiseur'], amount:450, cycle:cyc(8,'year'), method:'cb', life:'7 à 10 ans'},
+  {id:'ordi', name:'Ordinateur', cat:'Multimédia', hints:['multimedia','interieur'], kw:['ordinateur','laptop','pc'], amount:800, cycle:cyc(5,'year'), method:'cb', life:'4 à 6 ans'},
+  {id:'phone', name:'Smartphone', cat:'Multimédia', hints:['multimedia','interieur'], kw:['smartphone','iphone','telephone'], amount:400, cycle:cyc(3,'year'), method:'cb', life:'3 à 4 ans', tip:'À multiplier par le nombre de personnes du foyer.'},
+  {id:'lunettes', name:'Lunettes ou lentilles (reste à charge)', cat:'Santé', hints:['sante'], kw:['lunette','lentille','optique'], amount:200, cycle:cyc(2,'year'), method:'cb', life:'renouvellement tous les 2 ans environ', tip:'Seul le reste à charge après la mutuelle compte.'},
+  {id:'dentaire', name:'Soins non remboursés (dentaire…)', cat:'Santé', hints:['sante'], kw:['non rembourse','dentaire','dentiste'], amount:300, cycle:cyc(1,'year'), method:'cb', life:'chaque année', tip:'Un budget annuel évite les mauvaises surprises.'},
+  {id:'rentree', name:'Rentrée scolaire', cat:'Enfants', hints:['enfant','ecole'], kw:['rentree','fourniture'], kids:true, amount:150, cycle:cyc(1,'year'), method:'cb', life:'chaque rentrée', tip:'Compte environ 100 à 200 € par enfant.'},
+  {id:'vetements', name:'Vêtements et chaussures des enfants', cat:'Enfants', hints:['enfant','ecole'], kw:['vetement','chaussure'], kids:true, amount:400, cycle:cyc(1,'year'), method:'cb', life:'chaque année, ils grandissent vite'},
+  {id:'cadeaux', name:'Cadeaux et fêtes (anniversaires, Noël)', cat:'Loisirs', hints:['loisir','plaisir'], kw:['cadeau','fete','noel','anniversaire'], amount:600, cycle:cyc(1,'year'), method:'cb', life:'chaque année'},
+  {id:'vacances', name:'Vacances', cat:'Loisirs', hints:['loisir','vacance','plaisir'], kw:['vacance'], amount:2000, cycle:cyc(1,'year'), method:'virement', life:'chaque année'},
+  {id:'imprevus', name:'Fonds d’imprévus', cat:'Épargne', hints:['epargne'], kw:['imprevu','precaution'], amount:50, cycle:cyc(1,'month'), method:'virement', life:null, tip:'Vise à terme l’équivalent de 3 mois de dépenses essentielles.'},
+];
+const kwMatch = (n, k) => new RegExp('(^| )' + k + '(s|x)?( |$)').test(n);
+const ideaPresent = i => S.lines.some(l => { const n = advNorm(l.name); return i.kw.some(k => kwMatch(n, k)); });
+function ideaRelevant(i){
+  if(i.kids && !S.members.some(m => m.type === 'child' || m.type === 'teen')) return false;
+  if(i.needs){
+    const pool = S.lines.map(l => advNorm(l.name)).concat(S.categories.map(c => advNorm(c.name)));
+    if(!i.needs.some(k => pool.some(n => n.includes(k)))) return false;
+  }
+  return true;
+}
+function ideaCat(i){
+  const hit = S.categories.find(c => i.hints.some(h => advNorm(c.name).includes(h)));
+  if(hit) return hit.id;
+  const before = S.categories.length, c = ensureCategory(S, i.cat);
+  if(S.categories.length > before) U.tempCat = c.id;
+  return c.id;
+}
+function ideaPerMonth(i){ return annualTotal({amount:i.amount, cycle:i.cycle, months:null, active:true}) / 12; }
+function everyText(c){
+  if(c.unit === 'year') return c.every === 1 ? 'par an' : `tous les ${c.every} ans`;
+  if(c.unit === 'month') return c.every === 1 ? 'par mois' : `tous les ${c.every} mois`;
+  return cycleLabel(c).toLowerCase();
+}
+function ideasSection(){
+  const all = IDEAS.filter(i => ideaRelevant(i) && !ideaPresent(i));
+  const shown = U.ideasAll ? all : all.slice(0, 4);
+  const method = `<article class="method"><h3>Comment provisionner un achat qui revient tous les N ans</h3>
+    <ol><li>Estime le prix d’achat et la durée de vie. Exemple : 4 pneus à ${money(400,0)}, à refaire tous les 4 ans.</li>
+    <li>Divise le prix par la durée en mois : ${money(400,0)} ÷ 48 mois ≈ <b>${money(400/48)}</b> à mettre de côté chaque mois.</li>
+    <li>Crée la ligne dans Budget : montant ${money(400,0)}, cycle « Tous les 4 ans » (pour 7, 8 ou 12 ans, choisis « Personnalisé »). Laisse la prise en compte sur « Automatique » : MaTirelire met ${money(400/48)} par mois dans le budget, même les mois sans dépense.</li>
+    <li>Note la date du dernier achat (Provision et suivi) : l’onglet Provisions affiche alors la prochaine échéance et ce qu’il reste à mettre de côté.</li></ol></article>`;
+  const cards = shown.map(i => {
+    const monthly = i.cycle.unit === 'month' && i.cycle.every === 1;
+    const ex = monthly ? `Exemple : ${money(i.amount,0)} par mois.` : `Exemple : ${money(i.amount,0)} ${everyText(i.cycle)} ≈ <b>${money(ideaPerMonth(i))}/mois</b> à mettre de côté.`;
+    const custom = presetIdOf(i.cycle) === 'custom' ? ' (Personnalisé)' : '';
+    return `<article class="advice sev-idea"><div class="a-h"><span class="a-tag">Idée</span><h3>${esc(i.name)}</h3></div>
+      <p>${i.life ? `Durée de vie estimée : ${esc(i.life)}. ` : ''}${ex}${i.tip ? ` ${esc(i.tip)}` : ''}</p>
+      <p class="how-set">Dans MaTirelire : montant ${money(i.amount,0)}, cycle « ${esc(cycleLabel(i.cycle))} »${custom}.</p>
+      <div style="margin-top:8px"><button class="btn small" data-act="add-idea" data-id="${i.id}">Ajouter au budget</button></div></article>`;
+  }).join('');
+  const more = all.length > 4 ? `<div style="margin-top:10px"><button class="btn small" data-act="ideas-all">${U.ideasAll ? 'Voir moins' : `Voir les ${all.length - 4} autres idées`}</button></div>` : '';
+  return `<section class="sect ideas"><h2>Pense à budgéter</h2>
+    <p class="hint" style="margin-bottom:10px">Les gros achats ne préviennent pas. Les lisser sur leur durée de vie évite le coup dur. Montants indicatifs : adapte-les à ta situation.</p>
+    ${method}${all.length ? `<div class="advice-list" style="margin-top:10px">${cards}</div>${more}` : '<p class="hint" style="margin-top:10px">Tu as déjà pensé à l’essentiel : rien à ajouter pour l’instant.</p>'}</section>`;
 }
 
 /* ----- Conseils (analyse locale, sans IA) ----- */
@@ -1082,9 +1302,13 @@ const ADVICE_META = {
   'equilibre': d => ({title:'Reste à vivre inégal entre les membres',
     text:`L’écart de reste à vivre entre les membres qui participent au budget commun est d’environ ${money(d.spread)} par mois avec le mode actuel. Le mode « Reste à vivre égal », dans l’onglet Foyer, resserre cet écart.`}),
   'prov-retard': d => ({title:'Échéance de provision dépassée',
-    text:`« ${esc(d.name)} » a une échéance dépassée d’après le dernier paiement renseigné${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''}.`}),
+    text:`« ${esc(d.name)} » a dépassé sa date de fin${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''} : si la dépense est réglée, mets à jour sa date de départ (dernier paiement) dans l’onglet Provisions.`}),
   'prov-proche': d => ({title:'Échéance de provision proche',
-    text:`« ${esc(d.name)} » revient dans environ ${d.days} jour${d.days>1?'s':''} et il reste ${money(d.rest)} à mettre de côté${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''}.`}),
+    text:`« ${esc(d.name)} » arrive à échéance dans ${d.days} jour${d.days>1?'s':''} : ${money(d.accrued)} provisionnés sur ${money(d.goal)}${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''} d’ici 60 jours)`:''}.`}),
+  'prov-objectif': d => ({title:'Objectif de provision atteint',
+    text:`« ${esc(d.name)} »${d.count>1?` et ${d.count-1} autre ligne${d.count>2?'s':''} ont`:' a'} atteint leur objectif : tu peux arrêter la provision mensuelle.`}),
+  'prov-sans-date': d => ({title:'Provisions sans date de départ',
+    text:`${d.count} ligne${d.count>1?'s':''} de provision (dont « ${esc(d.name)} ») ${d.count>1?'n’ont':'n’a'} pas de date de dernier paiement : ${d.count>1?'elles ne sont':'elle n’est'} pas comptée${d.count>1?'s':''} dans le compte provisions.`}),
   'pic-saisonnier': d => ({title:`Pic de dépenses en ${MONTHS[d.month-1]}`,
     text:`Le budget commun y atteint ${money(d.value)}, contre ${money(d.avg)} en moyenne sur l’année${d.lineName?`, notamment à cause de « ${esc(d.lineName)} »`:''}.${d.lineName?' Cocher « Provisionner chaque mois » sur cette ligne peut lisser la dépense.':''}`}),
   'non-finance': d => ({title:'Budget commun sans financement',
@@ -1098,7 +1322,7 @@ const ADVICE_META = {
 };
 function viewConseils(){
   const items = computeAdvice(S);
-  if(!items.length) return `<section class="card"><div class="conseils-head">${piggy('happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">Complète quelques montants dans l’onglet Budget : les conseils s’affinent à partir de tes vrais chiffres.</p></div></div></section>`;
+  if(!items.length) return `<section class="card"><div class="conseils-head">${piggy('happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">Complète quelques montants dans l’onglet Budget : les conseils s’affinent à partir de tes vrais chiffres.</p></div></div></section>${ideasSection()}`;
   const order = {alert:0, warn:1, info:2, good:3};
   items.sort((a,b) => order[a.severity] - order[b.severity]);
   const n = items.filter(x => x.severity === 'alert' || x.severity === 'warn').length;
@@ -1110,8 +1334,9 @@ function viewConseils(){
       <p>${meta.text}</p></article>`;
   }).join('');
   return `<section class="sect"><div class="conseils-head">${piggy(n?'worried':'happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">${n ? `${n} point${n>1?'s':''} à regarder en priorité.` : 'Tout est plutôt sain, d’après tes chiffres actuels.'}</p></div></div>
-    <div class="advice-list">${cards}</div>
-    <p class="note" style="margin-top:10px">Ces repères sont indicatifs (comparaisons courantes), pas un conseil financier personnalisé ni professionnel. Aucune donnée ne quitte cet appareil pour produire cette analyse.</p></section>`;
+    <div class="advice-list">${cards}</div></section>
+    ${ideasSection()}
+    <p class="note">Ces repères sont indicatifs (comparaisons courantes), pas un conseil financier personnalisé ni professionnel. Aucune donnée ne quitte cet appareil pour produire cette analyse.</p>`;
 }
 
 /* ----- Budget : liste des lignes ----- */
@@ -1182,6 +1407,8 @@ function viewFoyer(){
         ${m.type !== 'child' ? `<label class="field">Revenu net mensuel (salaire)<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:salary" value="${sal ? sal.amount : ''}"></label>` : ''}
         <label class="check" style="align-self:end;min-height:40px"><input type="checkbox" data-b="member:${m.id}:contributes" ${m.contributes?'checked':''}> Participe au budget commun</label>
       </div>
+      ${m.contributes && provisionOn() ? `<div class="grid2"><label class="field">Jour du virement vers le compte de provision<input class="inp" type="number" min="1" max="31" step="1" inputmode="numeric" data-b="member:${m.id}:transferDay" value="${m.transferDay || 1}"></label>
+        <p class="note" style="align-self:end">Sert à afficher le prochain virement de provision dans la Synthèse (par défaut le 1er du mois).</p></div>` : ''}
       ${m.type !== 'adult' ? `<div class="grid2">
         <label class="field">Argent de poche reçu par mois<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:pocketAmount" value="${m.pocket.amount || ''}"></label>
         <label class="field">Versé par<select class="inp" data-b="member:${m.id}:pocketPayer">${payerOpts(m)}</select></label></div>` : ''}
@@ -1203,33 +1430,38 @@ function viewFoyer(){
 const provInfo = provisionInfo;
 const provLines = () => provisionCandidates(S);
 function nextText(p){
-  if(!p.next) return '<span class="muted">à renseigner</span>';
-  const late = p.next < new Date(new Date().setHours(0,0,0,0));
-  return `<span class="${late?'debit':''}">${p.next.toLocaleDateString('fr-FR', {month:'short', year:'numeric'})}${late?' (dépassée)':''}</span>`;
+  if(p.noStart) return '<span class="muted">à renseigner</span>';
+  if(p.monthlyGoal && p.done) return '<span class="credit">objectif atteint</span>';
+  if(!p.next) return '<span class="muted">—</span>';
+  return `<span class="${p.overdue ? 'debit' : ''}">${p.next.toLocaleDateString('fr-FR', {month:'short', year:'numeric'})}${p.overdue ? ' (dépassée)' : ''}</span>`;
+}
+const dashIf = (p, v) => p.noStart ? '<span class="muted">—</span>' : money(v);
+function provTotals(){
+  return provLines().reduce((a, l) => { const p = provInfo(l); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; if(!p.done) a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, mens:0});
 }
 function viewProvisions(){
-  const lines = provLines();
-  const tot = lines.reduce((a,l) => { const p = provInfo(l); a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; a.month += monthlyAverage(l); return a; }, {goal:0,res:0,rest:0,month:0});
+  const lines = provLines(), tot = provTotals();
   const rows = lines.map(l => { const p = provInfo(l); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}</small></td>
+    <td data-cell="mens:${l.id}">${money(p.mens)}</td>
     <td data-cell="goal:${l.id}">${money(p.goal)}</td>
-    <td><input class="inp" style="width:110px;text-align:right" type="number" step="0.01" inputmode="decimal" data-b="prov:${l.id}:reserved" value="${l.reserved ?? ''}" placeholder="0" aria-label="Provisionné pour ${esc(l.name)}"></td>
-    <td data-cell="rest:${l.id}" class="${p.rest>0.005?'debit':'credit'}">${money(p.rest)}</td>
-    <td><input class="inp" style="width:150px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Dernier paiement de ${esc(l.name)}"></td>
+    <td data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
+    <td data-cell="rest:${l.id}" class="${!p.noStart && p.rest > 0.005 ? 'debit' : 'credit'}">${dashIf(p, p.rest)}</td>
+    <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
     <td data-cell="next:${l.id}">${nextText(p)}</td></tr>`; }).join('');
   return `<section class="card"><h2>Provisions</h2>
-    <p class="hint" style="margin-bottom:10px">Pour chaque dépense qui ne tombe pas tous les mois : combien elle coûte, combien est déjà mis de côté et quand elle revient. Le montant mensuel à provisionner est déjà compris dans le budget.</p>
-    ${lines.length ? `<div class="tw"><table><thead><tr><th>Ligne</th><th>Coût ou objectif</th><th>Déjà provisionné</th><th>Reste à mettre de côté</th><th>Dernier paiement</th><th>Prochaine échéance</th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td>Total</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}</td><td colspan="2">Provision mensuelle : ${money(tot.month)}</td></tr></tfoot></table></div>`
+    <p class="hint" style="margin-bottom:10px">Pour chaque dépense qui ne tombe pas tous les mois : la mensualité mise de côté, le coût, la somme en cours (mensualité × mois écoulés depuis la date de départ), ce qu’il reste à provisionner et la date de fin. Quand tu règles une dépense, mets à jour sa date de départ.</p>
+    ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste à provisionner</th><th>Date de départ</th><th>Date de fin</th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}</td><td colspan="2"></td></tr></tfoot></table></div>`
       : '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>'}</section>`;
 }
 function patchProv(id){
   const l = S.lines.find(x => x.id === id); if(!l) return;
   const p = provInfo(l), set = (k, html) => { const el = $(`[data-cell="${k}"]`); if(el) el.innerHTML = html; };
-  set(`goal:${id}`, money(p.goal));
-  const r = $(`[data-cell="rest:${id}"]`); if(r){ r.textContent = money(p.rest); r.className = p.rest > 0.005 ? 'debit' : 'credit'; }
+  set(`mens:${id}`, money(p.mens)); set(`goal:${id}`, money(p.goal)); set(`sum:${id}`, dashIf(p, p.reserved));
+  const r = $(`[data-cell="rest:${id}"]`); if(r){ r.innerHTML = dashIf(p, p.rest); r.className = !p.noStart && p.rest > 0.005 ? 'debit' : 'credit'; }
   set(`next:${id}`, nextText(p));
-  const tot = provLines().reduce((a,x) => { const q = provInfo(x); a.goal += q.goal; a.res += q.reserved; a.rest += q.rest; return a; }, {goal:0,res:0,rest:0});
-  set('tot:goal', money(tot.goal)); set('tot:res', money(tot.res)); set('tot:rest', money(tot.rest));
+  const tot = provTotals();
+  set('tot:mens', money(tot.mens)); set('tot:goal', money(tot.goal)); set('tot:res', money(tot.res)); set('tot:rest', money(tot.rest));
 }
 
 /* ----- Réglages ----- */
@@ -1253,20 +1485,24 @@ function viewReglages(){
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Garder une copie de secours dans ce navigateur (elle ne quitte jamais l’appareil)</label>
       <div class="toolbar"><button class="btn danger small" data-act="reset-template">Repartir d’un modèle vierge</button><button class="btn danger small" data-act="forget">Fermer et effacer de ce navigateur</button></div>
     </div></section>
-    <section class="card"><h2>Comptes</h2><p class="hint" style="margin-bottom:10px">Le compte commun reçoit les virements de chacun pour le budget commun.</p>
-      <label class="field" style="margin-bottom:12px">Compte du budget commun<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
+    <section class="card"><h2>Comptes</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun pour le budget commun et règle les dépenses.</p>
+      <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
       <div class="rowlist">${accounts}</div><div style="margin-top:10px"><button class="btn" data-act="add-acc">Ajouter un compte</button></div></section>
+    <section class="card"><h2>Compte provisions</h2><div class="form">
+      <label class="check"><input type="checkbox" data-b="set:_:provisionBlock" ${provisionOn() ? 'checked' : ''}> Afficher le bloc « Compte provisions » dans la Synthèse</label>
+      <p class="note">${provisionOn() ? 'Le bloc additionne les provisions de toutes les lignes (mensualité × mois écoulés depuis leur date de départ). Il ne dépend pas d’un solde bancaire.' : 'Le bloc est masqué dans la Synthèse, ainsi que le champ « jour de virement » dans Foyer.'}</p>
+    </div></section>
     <section class="card"><h2>Catégories</h2><div class="rowlist">${cats}</div><div style="margin-top:10px"><button class="btn" data-act="add-cat">Ajouter une catégorie</button></div></section>
     <section class="card"><h2>Moyens de paiement</h2><div class="rowlist">${methods}</div><div style="margin-top:10px"><button class="btn" data-act="add-method">Ajouter un moyen de paiement</button></div></section>
     <section class="card"><h2>Devise</h2><label class="field">Devise d’affichage<select class="inp" style="max-width:260px" data-b="set:_:currency">${[['EUR','Euro (€)'],['CHF','Franc suisse (CHF)'],['USD','Dollar US ($)'],['GBP','Livre sterling (£)'],['CAD','Dollar canadien (CA$)']].map(([v,l]) => `<option value="${v}" ${S.settings.currency===v?'selected':''}>${l}</option>`).join('')}</select></label></section>`;
 }
 
 /* ---------- Éditeur de ligne ---------- */
-function openLine(id, catId){
+function openLine(id, catId, prefill){
   let l = id ? S.lines.find(x => x.id === id) : null;
   if(l && l.auto === 'pocket'){ toast('Cette ligne est gérée depuis l’onglet Foyer.'); U.tab = 'foyer'; render(); return; }
   const isNew = !l;
-  if(!l) l = newLine(S, {catId: catId || (S.categories[0]||{}).id});
+  if(!l) l = newLine(S, Object.assign({catId: catId || (S.categories[0]||{}).id}, prefill || {}));
   U.editing = {isNew, id: l.id};
   const dlg = $('#dlg');
   dlg.innerHTML = lineFormHTML(JSON.parse(JSON.stringify(l)), isNew);
@@ -1302,10 +1538,9 @@ function lineFormHTML(l, isNew){
       <label class="field">Compte cible<select class="inp" id="f-account">${opt('','— aucun —', !l.accountId)}${S.accounts.map(a => opt(a.id, a.name + (a.bank ? ' (' + a.bank + ')' : ''), l.accountId===a.id)).join('')}</select></label>
     </div>
     <label class="field" id="r-smooth">Prise en compte dans le budget<select class="inp" id="f-smooth">${opt('auto','Automatique (recommandé)', l.smooth===null)}${opt('yes','Provisionner chaque mois (lissé)', l.smooth===true)}${opt('no','Compter le mois de l’échéance', l.smooth===false)}</select></label>
-    <details ${l.goal!=null||l.reserved!=null||l.lastDate?'open':''}><summary style="cursor:pointer;font-weight:600">Provision et suivi (facultatif)</summary>
+    <details ${l.goal!=null||l.lastDate?'open':''}><summary style="cursor:pointer;font-weight:600">Provision et suivi (facultatif)</summary>
       <div class="grid2" style="margin-top:10px"><label class="field">Objectif ou coût total<input class="inp" id="f-goal" type="number" step="0.01" min="0" inputmode="decimal" value="${l.goal ?? ''}" placeholder="Par défaut : le montant"></label>
-        <label class="field">Déjà provisionné<input class="inp" id="f-reserved" type="number" step="0.01" inputmode="decimal" value="${l.reserved ?? ''}" placeholder="0"></label>
-        <label class="field">Dernier paiement<input class="inp" id="f-last" type="date" value="${esc(l.lastDate||'')}"></label></div></details>
+        <label class="field">Date de départ (dernier paiement)<input class="inp" id="f-last" type="date" value="${esc(l.lastDate||'')}"></label></div></details>
     <label class="field">Note<textarea class="inp" id="f-note" rows="2">${esc(l.note)}</textarea></label>
     <label class="check"><input type="checkbox" id="f-active" ${l.active?'checked':''}> Inclure dans le calcul</label>
     <div class="preview" id="f-preview" aria-live="polite"></div>
@@ -1328,7 +1563,7 @@ function readLineForm(){
     amount:Math.abs(num(g('f-amount').value)), cycle, day:parseInt(g('f-day').value) || null, startMonth:parseInt(g('f-start').value) || null, months,
     method:g('f-method').value || null, accountId:g('f-account').value || null, ownerId:g('f-owner').value,
     active:g('f-active').checked, smooth: sm === 'yes' ? true : sm === 'no' ? false : null,
-    goal:g('f-goal').value !== '' ? Math.abs(num(g('f-goal').value)) : null, reserved:g('f-reserved').value !== '' ? num(g('f-reserved').value) : null,
+    goal:g('f-goal').value !== '' ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null,
     lastDate:g('f-last').value || null, note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null,
   };
 }
@@ -1390,6 +1625,13 @@ document.addEventListener('click', async e => {
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
     case 'tab': U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
+    case 'add-idea': {
+      const idea = IDEAS.find(x => x.id === id); if(!idea) break;
+      openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
+      break; }
+    case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
+    case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
+    case 'today': U.month = new Date().getMonth() + 1; render(); break;
     case 'advice': {
       const it = computeAdvice(S).find(x => x.kind === t.dataset.kind); if(!it || !it.action) break;
       const act = it.action;
@@ -1421,7 +1663,7 @@ document.addEventListener('click', async e => {
     case 'dismiss': U.notice = null; render(); break;
     case 'add-member': {
       const type = t.dataset.type, n = S.members.filter(m => m.type === type).length + 1;
-      const m = {id:uid(), name: type === 'adult' ? `Adulte ${n}` : `Enfant ${n}`, type, contributes:type === 'adult', pocket:{amount:0, payer:'split'}};
+      const m = {id:uid(), name: type === 'adult' ? `Adulte ${n}` : `Enfant ${n}`, type, contributes:type === 'adult', pocket:{amount:0, payer:'split'}, transferDay:1};
       S.members.push(m);
       if(type === 'adult') S.accounts.push({id:uid(), name:`Compte de ${m.name}`, bank:'', ownerId:m.id});
       syncAllPockets(S); touch(); break; }
@@ -1499,6 +1741,7 @@ function onBind(el, b){
     if(f === 'name'){ const old = m.name; m.name = String(v).trim() || 'Sans nom'; const sl = salaryLine(S, id); if(sl && sl.name === `Salaire net – ${old}`) sl.name = `Salaire net – ${m.name}`; syncAllPockets(S); touch(false); }
     else if(f === 'type'){ m.type = v; m.contributes = v === 'adult'; syncAllPockets(S); touch(); }
     else if(f === 'contributes'){ m.contributes = v; syncAllPockets(S); touch(); }
+    else if(f === 'transferDay'){ m.transferDay = Math.min(Math.max(parseInt(v) || 1, 1), 31); touch(false); }
     else if(f === 'salary'){ setSalary(S, id, num(v)); touch(false); }
     else if(f === 'pocketAmount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, id); touch(false); }
     else if(f === 'pocketPayer'){ m.pocket.payer = v; syncPocket(S, id); touch(false); }
@@ -1509,19 +1752,27 @@ function onBind(el, b){
     touch();
   }
   else if(k === 'distc'){ S.settings.distribution.custom[id] = Math.max(0, num(v)); touch(false); }
-  else if(k === 'set'){ if(f === 'backup' && !v){ try{ localStorage.removeItem(LS_KEY); }catch{} } S.settings[f] = f === 'commonAccountId' ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' ? true : false); }
-  else if(k === 'acc'){ const a = accById(id); if(a){ a[f] = f === 'ownerId' ? (v || null) : String(v).trim(); touch(f === 'ownerId'); } }
+  else if(k === 'set'){ if(f === 'backup' && !v){ try{ localStorage.removeItem(LS_KEY); }catch{} } S.settings[f] = f === 'commonAccountId' ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' || f === 'provisionBlock' ? true : false); }
+  else if(k === 'acc'){
+    const a = accById(id); if(!a) return;
+    a[f] = f === 'ownerId' ? (v || null) : String(v).trim(); touch(f === 'ownerId');
+  }
   else if(k === 'cat'){ const c = S.categories.find(x => x.id === id); if(c){ c[f] = f === 'name' ? (String(v).trim() || 'Sans nom') : v; touch(false); } }
   else if(k === 'method'){ const m = S.settings.methods.find(x => x.id === id); if(m){ m.label = String(v).trim() || 'Sans nom'; touch(false); } }
   else if(k === 'prov'){
     const l = S.lines.find(x => x.id === id); if(!l) return;
-    if(f === 'reserved') l.reserved = v === '' ? null : num(v); else if(f === 'lastDate') l.lastDate = v || null;
+    if(f === 'lastDate') l.lastDate = v || null;
     touch(false); patchProv(id);
   }
 }
 document.addEventListener('DOMContentLoaded', () => {
   const dlg = $('#dlg');
   dlg.addEventListener('click', e => { if(e.target === dlg) dlg.close(); });
+  dlg.addEventListener('close', () => {
+    if(!U.tempCat) return;
+    const id = U.tempCat; U.tempCat = null;
+    if(S && !S.lines.some(l => l.catId === id)) S.categories = S.categories.filter(c => c.id !== id);
+  });
   init();
 });
 window.addEventListener('beforeunload', e => { if(S && U.dirty && !U.fileHandle && !S.settings.backup){ e.preventDefault(); e.returnValue = ''; } });
