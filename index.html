@@ -47,8 +47,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .status{display:block;font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 .status.warn{color:var(--debit)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:25}
-nav.tabs .wrap{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px 8px}
-nav.tabs button{background:none;border:0;border-radius:999px;padding:10px 4px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px}
+nav.tabs button{position:relative;background:none;border:0;border-radius:999px;padding:9px 2px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.2}
+.navdot{position:absolute;top:2px;right:8px;background:var(--debit);color:#fff;font-size:.62rem;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 nav.tabs button[aria-current=page]{background:var(--brand);color:var(--on-brand)}
 @media(min-width:760px){
   body{padding-bottom:40px}
@@ -228,6 +229,26 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
   @keyframes bounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-6px)}}
   .hero-pig .pig:hover .pig-body{animation:bounce .5s ease-out}
 }
+
+/* Conseils */
+.conseils-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.conseils-head .pig{flex:0 0 auto}
+.advice-list{display:grid;gap:10px}
+.advice{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:12px;padding:12px 14px}
+.advice.sev-alert{border-left-color:var(--debit)}
+.advice.sev-warn{border-left-color:var(--amber)}
+.advice.sev-info{border-left-color:var(--slate)}
+.advice.sev-good{border-left-color:var(--credit)}
+.advice.click{cursor:pointer}
+.advice.click:hover{background:var(--surface2)}
+.advice .a-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:3px}
+.advice .a-tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
+.advice.sev-alert .a-tag{background:var(--debit)}
+.advice.sev-warn .a-tag{background:#B5760F}
+.advice.sev-info .a-tag{background:var(--slate)}
+.advice.sev-good .a-tag{background:var(--credit)}
+.advice h3{font-size:.98rem;font-weight:700}
+.advice p{font-size:.9rem;color:var(--muted);margin-top:2px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -331,6 +352,23 @@ function amountInMonth(l, m){
   return annualTotal(l) / 12;
 }
 function monthlyAverage(l){ return l.active ? annualTotal(l)/12 : 0; }
+/* Provisions : coût/objectif, part déjà mise de côté, prochaine échéance calculée depuis le dernier paiement */
+function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || l.reserved != null || !isMonthlyExact(l))); }
+function provisionInfo(l){
+  const goal = l.goal != null ? l.goal : l.amount * (l.cycle.times || 1);
+  const reserved = l.reserved || 0;
+  let next = null;
+  if(l.lastDate){
+    const d = new Date(l.lastDate + 'T00:00:00');
+    if(!isNaN(d)){
+      const e = l.cycle.every || 1;
+      if(l.cycle.unit === 'day') d.setDate(d.getDate() + e); else if(l.cycle.unit === 'week') d.setDate(d.getDate() + 7*e);
+      else if(l.cycle.unit === 'month') d.setMonth(d.getMonth() + e); else d.setFullYear(d.getFullYear() + e);
+      next = d;
+    }
+  }
+  return {goal, reserved, rest: goal - reserved, next};
+}
 /* Résumé d'affichage : ce que la ligne représente vraiment, sans diluer sur les mois où elle n'est pas due.
    'smoothed'   : provisionnée chaque mois (ex. taxe annuelle) -> une moyenne lissée a du sens
    'monthly'    : mensuelle sur les 12 mois -> le montant à l'échéance EST le montant mensuel
@@ -622,7 +660,109 @@ function buildTemplate(adultNames, kidNames){
   return S;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf};
+/* ============================================================
+   CONSEILS : observations calculées à partir des données du foyer.
+   Pas d'IA, pas d'appel réseau : uniquement des repères comparés
+   aux propres chiffres du foyer. Chaque item renvoie des données
+   brutes (kind + data) ; la mise en phrase (avec la devise choisie)
+   se fait côté interface.
+   ============================================================ */
+function advNorm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+function advCatWeight(S, R, words){
+  let v = 0;
+  S.categories.forEach(c => {
+    const n = advNorm(c.name);
+    if(words.some(w => n.includes(w))){ const x = R.cats[c.id]; if(x) v += x.common + x.personal; }
+  });
+  return v;
+}
+function computeAdvice(S){
+  const out = [];
+  const push = (severity, kind, data, action) => out.push({severity, kind, data, action: action || null});
+  if(!S.lines.some(l => l.amount > 0)) return out;
+
+  const R = computeMonth(S, 0); // moyenne mensuelle sur l'année
+  const income = R.totals.income;
+
+  if(income > 0){
+    const logement = advCatWeight(S, R, ['logement','domicile','loyer','immobilier','maison']);
+    if(logement > 0){
+      const pc = logement / income;
+      if(pc > 0.36) push('alert','ratio-logement',{pc, amount:logement, income}, {tab:'budget'});
+      else if(pc > 0.33) push('warn','ratio-logement',{pc, amount:logement, income}, {tab:'budget'});
+    }
+    const alim = advCatWeight(S, R, ['aliment','course','nourriture']);
+    if(alim > 0){
+      const pc = alim / income;
+      if(pc > 0.22) push('warn','ratio-alimentation',{pc, amount:alim, income}, {tab:'budget'});
+    }
+    const ep = advCatWeight(S, R, ['epargne','livret','placement']);
+    const pcE = ep / income;
+    if(ep <= 0.005) push('warn','epargne-absente',{income}, {tab:'budget'});
+    else if(pcE < 0.10) push('info','epargne-faible',{pc:pcE, amount:ep, income}, {tab:'budget'});
+    else push('good','epargne-ok',{pc:pcE, amount:ep, income});
+  }
+
+  const todo = S.lines.filter(l => l.active && l.amount === 0);
+  if(todo.length) push('warn','todo',{count:todo.length, names:todo.slice(0,4).map(l=>l.name)}, {tab:'budget', todo:true});
+
+  const incomplete = S.lines.filter(l => l.active && l.amount > 0 && (!l.accountId || !l.method));
+  if(incomplete.length) push('info','incomplete',{count:incomplete.length}, {tab:'budget', lineId:incomplete[0].id});
+
+  const dups = [];
+  for(let i = 0; i < S.lines.length; i++){
+    const l = S.lines[i]; if(!l.active || !l.amount) continue;
+    for(let j = i+1; j < S.lines.length; j++){
+      const o = S.lines[j]; if(!o.active || !o.amount) continue;
+      if(o.catId === l.catId && o.kind === l.kind && o.ownerId === l.ownerId && Math.abs(o.amount - l.amount) < 0.01) dups.push([l,o]);
+    }
+  }
+  if(dups.length) push('warn','doublons',{count:dups.length, a:dups[0][0].name, b:dups[0][1].name, amount:dups[0][0].amount}, {tab:'budget', lineId:dups[0][0].id});
+
+  const contrib = S.members.filter(m => m.contributes && R.members[m.id] && R.members[m.id].income > 0);
+  if(contrib.length >= 2){
+    const rests = contrib.map(m => R.members[m.id].rest);
+    const spread = Math.max(...rests) - Math.min(...rests);
+    if(spread > 150 && S.settings.distribution.mode !== 'equal_remainder') push('info','equilibre',{spread}, {tab:'foyer'});
+  }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const late = [], soon = [];
+  provisionCandidates(S).forEach(l => {
+    const p = provisionInfo(l);
+    if(p.next){
+      const days = (p.next - today) / 86400000;
+      if(days < 0) late.push(l); else if(days <= 45 && p.rest > 1) soon.push({l, p, days});
+    }
+  });
+  if(late.length) push('alert','prov-retard',{count:late.length, name:late[0].name}, {tab:'provisions'});
+  if(soon.length) push('info','prov-proche',{count:soon.length, name:soon[0].l.name, rest:soon[0].p.rest, days:Math.round(soon[0].days)}, {tab:'provisions'});
+
+  const nets = []; for(let m = 1; m <= 12; m++) nets.push(computeMonth(S, m).common.net);
+  const avgNet = nets.reduce((a,b)=>a+b,0) / 12;
+  let peakM = 0, peakEcart = 0;
+  nets.forEach((v,idx) => { if(v - avgNet > peakEcart){ peakEcart = v - avgNet; peakM = idx+1; } });
+  if(avgNet > 0 && peakEcart > Math.max(120, avgNet*0.35)){
+    const cause = S.lines.find(l => l.active && l.amount > 0 && l.kind === 'debit' && !smoothOf(l) && amountInMonth(l, peakM) > 0 && !(isMonthlyExact(l) && activeMonthsOf(l).length === 12));
+    push('info','pic-saisonnier',{month:peakM, value:nets[peakM-1], avg:avgNet, lineName: cause ? cause.name : null},
+      cause ? {tab:'budget', lineId:cause.id} : {tab:'synthese', month:peakM});
+  }
+
+  if(R.unfunded > 0.5) push('alert','non-finance',{amount:R.unfunded}, {tab:'foyer'});
+
+  let incomeAnnual = 0, restAnnual = 0;
+  for(let m = 1; m <= 12; m++){ const Rm = computeMonth(S, m); incomeAnnual += Rm.totals.income; restAnnual += Rm.totals.rest; }
+  if(incomeAnnual > 0){
+    const pc = restAnnual / incomeAnnual;
+    if(restAnnual < 0) push('alert','annuel-negatif',{restAnnual}, {tab:'synthese', month:0});
+    else if(pc < 0.05) push('info','annuel-serre',{restAnnual, pc}, {tab:'synthese', month:0});
+    else push('good','annuel-ok',{restAnnual, pc});
+  }
+
+  return out;
+}
+
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, computeAdvice};
 
 </script>
 <script>
@@ -788,17 +928,19 @@ function statusHTML(){
 function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHTML(); }
 
 /* ---------- Rendu ---------- */
-const TABS = [['synthese','Synthèse'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
+const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
   $('#app').innerHTML = S ? shell() : welcome();
   window.scrollTo(0, y);
 }
+function adviceCount(){ return S ? computeAdvice(S).filter(x => x.severity === 'alert' || x.severity === 'warn').length : 0; }
 function shell(){
-  const views = {synthese:viewSynthese, budget:viewBudget, foyer:viewFoyer, provisions:viewProvisions, reglages:viewReglages};
+  const views = {synthese:viewSynthese, conseils:viewConseils, budget:viewBudget, foyer:viewFoyer, provisions:viewProvisions, reglages:viewReglages};
+  const n = adviceCount();
   return `<header class="top"><div class="wrap topin"><h1 class="brand">${piggy('happy', 40)}<span>MaTirelire</span></h1><div class="topact">${statusHTML()}</div></div>
     <nav class="tabs" aria-label="Sections"><div class="wrap">${TABS.map(([id,l]) =>
-      `<button data-act="tab" data-tab="${id}" ${U.tab===id?'aria-current="page"':''}>${l}</button>`).join('')}</div></nav></header>
+      `<button data-act="tab" data-tab="${id}" ${U.tab===id?'aria-current="page"':''}>${l}${id==='conseils'&&n?`<span class="navdot">${n}</span>`:''}</button>`).join('')}</div></nav></header>
     <main class="wrap" id="main">${bannerHTML()}${views[U.tab]()}</main>
     <footer class="foot wrap">${piggy('happy', 28, 'nocoin')}<span>MaTirelire garde tes sous chez toi : rien ne quitte cet appareil.</span></footer>`;
 }
@@ -918,6 +1060,60 @@ function accountsTableHTML(R){
     const a = R.accounts[id]; return `<tr><td>${esc(accName(id))}</td><td class="debit">${money(a.debit)}</td><td class="credit">${money(a.credit)}</td><td>${money(a.credit - a.debit)}</td></tr>`; }).join('')}</tbody></table></div>`;
 }
 
+/* ----- Conseils (analyse locale, sans IA) ----- */
+const SEV_LABEL = {alert:'À corriger', warn:'À surveiller', info:'Info', good:'Ça va bien'};
+const ADVICE_META = {
+  'ratio-logement': (d,sev) => ({title: sev==='alert' ? 'Logement : part très élevée des revenus' : 'Logement : à surveiller',
+    text:`Le logement représente ${Math.round(d.pc*100)}\u202f% des revenus du foyer en moyenne (${money(d.amount)} sur ${money(d.income)}), au-dessus du repère souvent cité autour de 33\u202f%.`}),
+  'ratio-alimentation': d => ({title:'Alimentation : au-dessus des repères usuels',
+    text:`L’alimentation représente ${Math.round(d.pc*100)}\u202f% des revenus en moyenne (${money(d.amount)} sur ${money(d.income)}). Le repère souvent cité est de 15 à 20\u202f%.`}),
+  'epargne-absente': () => ({title:'Aucune ligne d’épargne active',
+    text:`Aucune catégorie « Épargne » avec un montant actif n’a été repérée. Mettre un peu de côté chaque mois, même modestement, limite les mauvaises surprises.`}),
+  'epargne-faible': d => ({title:'Capacité d’épargne limitée',
+    text:`L’épargne représente environ ${Math.round(d.pc*100)}\u202f% des revenus en moyenne (${money(d.amount)}). Le repère souvent cité est de 10 à 20\u202f%.`}),
+  'epargne-ok': d => ({title:'Épargne régulière',
+    text:`L’épargne représente environ ${Math.round(d.pc*100)}\u202f% des revenus en moyenne (${money(d.amount)}) : plutôt solide.`}),
+  'todo': d => ({title:'Lignes sans montant',
+    text:`${d.count} ligne${d.count>1?'s':''} active${d.count>1?'s':''} n’${d.count>1?'ont':'a'} pas encore de montant (${d.names.map(esc).join(', ')}${d.count>d.names.length?'…':''}) : tant qu’elles sont à 0\u202f€, elles ne comptent pas dans le budget.`}),
+  'incomplete': d => ({title:'Lignes à préciser',
+    text:`${d.count} ligne${d.count>1?'s':''} n’${d.count>1?'ont':'a'} pas de compte cible ou de moyen de paiement renseigné, ce qui limite l’utilité des virements suggérés.`}),
+  'doublons': d => ({title:'Doublons possibles',
+    text:`« ${esc(d.a)} » et « ${esc(d.b)} » partagent le même montant (${money(d.amount)}) dans la même catégorie${d.count>1?`, et ${d.count-1} autre paire${d.count>2?'s':''} similaire${d.count>2?'s':''}`:''} : à vérifier qu’il ne s’agit pas de la même dépense comptée deux fois.`}),
+  'equilibre': d => ({title:'Reste à vivre inégal entre les membres',
+    text:`L’écart de reste à vivre entre les membres qui participent au budget commun est d’environ ${money(d.spread)} par mois avec le mode actuel. Le mode « Reste à vivre égal », dans l’onglet Foyer, resserre cet écart.`}),
+  'prov-retard': d => ({title:'Échéance de provision dépassée',
+    text:`« ${esc(d.name)} » a une échéance dépassée d’après le dernier paiement renseigné${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''}.`}),
+  'prov-proche': d => ({title:'Échéance de provision proche',
+    text:`« ${esc(d.name)} » revient dans environ ${d.days} jour${d.days>1?'s':''} et il reste ${money(d.rest)} à mettre de côté${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''}.`}),
+  'pic-saisonnier': d => ({title:`Pic de dépenses en ${MONTHS[d.month-1]}`,
+    text:`Le budget commun y atteint ${money(d.value)}, contre ${money(d.avg)} en moyenne sur l’année${d.lineName?`, notamment à cause de « ${esc(d.lineName)} »`:''}.${d.lineName?' Cocher « Provisionner chaque mois » sur cette ligne peut lisser la dépense.':''}`}),
+  'non-finance': d => ({title:'Budget commun sans financement',
+    text:`${money(d.amount)} de budget commun ne sont financés par personne : coche « Participe au budget commun » pour au moins un membre dans l’onglet Foyer.`}),
+  'annuel-negatif': d => ({title:'Le foyer dépense plus qu’il ne gagne',
+    text:`Sur l’année, le reste à vivre cumulé du foyer est négatif (${money(d.restAnnual)}) : les dépenses enregistrées dépassent les revenus enregistrés.`}),
+  'annuel-serre': d => ({title:'Marge annuelle serrée',
+    text:`Sur l’année, il resterait environ ${money(d.restAnnual)} au foyer une fois le budget commun et les dépenses personnelles couverts, soit ${Math.round(d.pc*100)}\u202f% des revenus.`}),
+  'annuel-ok': d => ({title:'Marge annuelle confortable',
+    text:`Sur l’année, il resterait environ ${money(d.restAnnual)} au foyer une fois le budget commun et les dépenses personnelles couverts, soit ${Math.round(d.pc*100)}\u202f% des revenus.`}),
+};
+function viewConseils(){
+  const items = computeAdvice(S);
+  if(!items.length) return `<section class="card"><div class="conseils-head">${piggy('happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">Complète quelques montants dans l’onglet Budget : les conseils s’affinent à partir de tes vrais chiffres.</p></div></div></section>`;
+  const order = {alert:0, warn:1, info:2, good:3};
+  items.sort((a,b) => order[a.severity] - order[b.severity]);
+  const n = items.filter(x => x.severity === 'alert' || x.severity === 'warn').length;
+  const cards = items.map(it => {
+    const meta = (ADVICE_META[it.kind] || (() => ({title:it.kind, text:''})))(it.data, it.severity);
+    const clickable = !!(it.action && (it.action.tab));
+    return `<article class="advice sev-${it.severity} ${clickable?'click':''}" ${clickable?`data-act="advice" data-kind="${esc(it.kind)}"`:''} ${clickable?'role="button" tabindex="0"':''}>
+      <div class="a-h"><span class="a-tag">${SEV_LABEL[it.severity]}</span><h3>${esc(meta.title)}</h3></div>
+      <p>${meta.text}</p></article>`;
+  }).join('');
+  return `<section class="sect"><div class="conseils-head">${piggy(n?'worried':'happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">${n ? `${n} point${n>1?'s':''} à regarder en priorité.` : 'Tout est plutôt sain, d’après tes chiffres actuels.'}</p></div></div>
+    <div class="advice-list">${cards}</div>
+    <p class="note" style="margin-top:10px">Ces repères sont indicatifs (comparaisons courantes), pas un conseil financier personnalisé ni professionnel. Aucune donnée ne quitte cet appareil pour produire cette analyse.</p></section>`;
+}
+
 /* ----- Budget : liste des lignes ----- */
 function viewBudget(){
   const owners = [['all','Tout le monde'],['common','Commun'],...S.members.map(m => [m.id, m.name])];
@@ -1004,22 +1200,8 @@ function viewFoyer(){
 }
 
 /* ----- Provisions ----- */
-function provInfo(l){
-  const goal = l.goal != null ? l.goal : l.amount * (l.cycle.times || 1);
-  const reserved = l.reserved || 0;
-  let next = null;
-  if(l.lastDate){
-    const d = new Date(l.lastDate + 'T00:00:00');
-    if(!isNaN(d)){
-      const e = l.cycle.every || 1;
-      if(l.cycle.unit === 'day') d.setDate(d.getDate() + e); else if(l.cycle.unit === 'week') d.setDate(d.getDate() + 7*e);
-      else if(l.cycle.unit === 'month') d.setMonth(d.getMonth() + e); else d.setFullYear(d.getFullYear() + e);
-      next = d;
-    }
-  }
-  return {goal, reserved, rest: goal - reserved, next};
-}
-const provLines = () => S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || l.reserved != null || !isMonthlyExact(l)));
+const provInfo = provisionInfo;
+const provLines = () => provisionCandidates(S);
 function nextText(p){
   if(!p.next) return '<span class="muted">à renseigner</span>';
   const late = p.next < new Date(new Date().setHours(0,0,0,0));
@@ -1208,6 +1390,13 @@ document.addEventListener('click', async e => {
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
     case 'tab': U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
+    case 'advice': {
+      const it = computeAdvice(S).find(x => x.kind === t.dataset.kind); if(!it || !it.action) break;
+      const act = it.action;
+      U.tab = act.tab; if(act.todo) U.todo = true; if(act.month != null) U.month = act.month;
+      render(); window.scrollTo(0,0);
+      if(act.lineId) openLine(act.lineId);
+      break; }
     case 'month': U.month = +t.dataset.m; render(); break;
     case 'mode': S.settings.distribution.mode = t.dataset.mode; touch(); break;
     case 'todo': U.todo = !U.todo; t.setAttribute('aria-pressed', U.todo); $('#list').innerHTML = listHTML(); break;
@@ -1273,6 +1462,7 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('keydown', e => {
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.line[data-act="edit-line"]')){ e.preventDefault(); openLine(e.target.dataset.id); }
+  if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.advice.click')){ e.preventDefault(); e.target.click(); }
 });
 document.addEventListener('input', e => {
   if(e.target.id === 'q'){ U.q = e.target.value; $('#list').innerHTML = listHTML(); return; }
