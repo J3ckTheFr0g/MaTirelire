@@ -85,7 +85,17 @@ main > * + *{margin-top:16px}
 .hero-k{font-size:.95rem;opacity:.85}
 .hero-v{font-size:clamp(2.1rem,7vw,3rem);font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hero-pig{grid-area:pig;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:170px}
-.bubble{font-size:.78rem;line-height:1.25;text-align:center;background:#fff;color:#2A2233;border-radius:14px;padding:6px 9px;position:relative}
+.bubble{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;min-height:4.6em;border:0;font:inherit;font-size:.78rem;line-height:1.25;text-align:center;background:#fff;color:#2A2233;border-radius:14px;padding:8px 10px;position:relative;cursor:pointer}
+.bubble .txt{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.bubble .go{font-weight:800;font-size:1rem;line-height:1}
+.bubble.adv,.bubble.note{box-shadow:inset 0 0 0 2px var(--slate)}
+.bubble.sev-alert{box-shadow:inset 0 0 0 2px var(--debit)}
+.bubble.sev-warn{box-shadow:inset 0 0 0 2px var(--amber)}
+.bubble.sev-info{box-shadow:inset 0 0 0 2px var(--slate)}
+.bubble.sev-good{box-shadow:inset 0 0 0 2px var(--credit)}
+.bubble:hover{filter:brightness(.97)}
+.bubble:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){.hero-pig{transition:opacity .18s ease}.hero-pig.swap{opacity:0}}
 .bubble::before{content:"";position:absolute;left:50%;top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#fff}
 .hero-d{grid-area:dl;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 18px;margin:8px 0 0;border-top:2px dotted rgba(255,255,255,.4);padding-top:12px}
 .hero-d dt{font-size:.82rem;opacity:.8}
@@ -285,6 +295,26 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 
 .provtable th{white-space:normal;vertical-align:bottom;line-height:1.2}
 .provtable th,.provtable td{padding:7px 8px}
+
+/* Compte provisions : trajectoire, objectif, aide */
+.spark{width:100%;height:auto;display:block;margin-top:4px}
+.spark-area{fill:var(--brand);opacity:.14}
+.spark-line{fill:none;stroke:var(--brand);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.spark-dot{fill:var(--brand)}
+.spark-txt{font-size:10px;fill:var(--muted);font-family:var(--font)}
+.spark-txt.strong{font-weight:700;fill:var(--ink)}
+.waterfall .total{border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.waterfall .total dt{color:var(--ink);font-weight:700}
+.waterfall .total dd{font-size:1.05rem}
+.legend small{font-weight:500}
+.dueList li{align-items:center}
+.dueList .paid{flex:0 0 auto;margin-left:4px}
+.qbtn{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:4px;border-radius:50%;border:1.5px solid var(--brand);background:var(--surface);color:var(--brand);font-weight:800;font-size:.8rem;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
+.qbtn:hover{background:var(--brand);color:var(--on-brand)}
+.help h3{font-size:.98rem;font-weight:800;margin-top:4px}
+.help h3 small{font-weight:500;color:var(--muted)}
+.help p{color:var(--ink)}
+.help ul{margin:0;padding-left:20px;display:grid;gap:6px}
 </style>
 </head>
 <body>
@@ -500,6 +530,7 @@ function normalize(d){
     contributes: x.contributes !== undefined ? !!x.contributes : (x.type||'adult') === 'adult',
     pocket: {amount: Math.abs(+((x.pocket||{}).amount)||0), payer: (x.pocket||{}).payer || 'split'},
     transferDay: Math.min(Math.max(parseInt(x.transferDay) || 1, 1), 31),
+    transferNext: !!x.transferNext,
   }));
   S.accounts = arr(d.accounts).map(x => ({id:String(x.id||uid()), name:String(x.name||'Compte'), bank:String(x.bank||''), ownerId:x.ownerId||null,
     balance: (x.balance && /^\d{4}-\d{2}-\d{2}$/.test(String(x.balance.date||'')) && Number.isFinite(+x.balance.amount)) ? {amount:+x.balance.amount, date:String(x.balance.date)} : null}));
@@ -659,7 +690,7 @@ const TEMPLATE = [
 
 function buildTemplate(adultNames, kidNames){
   const S = emptyState();
-  const mk = (name, type) => ({id:uid(), name, type, contributes:type==='adult', pocket:{amount:0, payer:'split'}, transferDay:1});
+  const mk = (name, type) => ({id:uid(), name, type, contributes:type==='adult', pocket:{amount:0, payer:'split'}, transferDay:1, transferNext:false});
   adultNames.forEach(n => S.members.push(mk(n, 'adult')));
   kidNames.forEach(n => S.members.push(mk(n, 'child')));
   const joint = {id:uid(), name:'Compte joint', bank:'', ownerId:null};
@@ -685,12 +716,18 @@ function buildTemplate(adultNames, kidNames){
    PROVISIONS, LIGNE PAR LIGNE (même logique que la feuille Excel d'origine) :
    - mensualité : coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel)
    - date de départ : dernier paiement
-   - date de fin : départ + cycle (ligne mensuelle à objectif : départ + objectif ÷ mensualité)
-   - somme en cours : mensualité × mois écoulés depuis le départ, plafonnée au coût
+   - date de fin : départ + cycle (ligne mensuelle à objectif : date de la n-ième mensualité reçue)
+   - somme en cours : mensualité × nombre de mensualités reçues depuis le départ, arrondie à l'euro
+     inférieur (comme l'Excel). Jamais plafonnée : au-delà du coût, c'est un dépassement d'objectif,
+     qui continue d'augmenter tant que la ligne n'est pas « Payée ».
+   - une mensualité est « reçue » quand le virement de chaque contributeur est arrivé :
+     jour de versement (1-31, 31 = dernier jour) et mois financé (même mois / mois suivant)
    ============================================================ */
 const DAY_MS = 86400000;
 function parseISO(s){ const r = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return r ? {y:+r[1], m:+r[2], d:+r[3]} : null; }
 function dimOf(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+const dateOf = o => new Date(o.y, o.m - 1, o.d);
+const objOf = d => ({y:d.getFullYear(), m:d.getMonth() + 1, d:d.getDate()});
 function addCycleTo(st, c){
   const d = new Date(st.y, st.m - 1, st.d);
   if(c.unit === 'day') d.setDate(d.getDate() + c.every);
@@ -699,64 +736,132 @@ function addCycleTo(st, c){
   else d.setFullYear(d.getFullYear() + c.every);
   return d;
 }
-function monthsSince(st, now){
-  return Math.max(0, (now.getFullYear() - st.y) * 12 + (now.getMonth() + 1 - st.m) - (now.getDate() < st.d ? 1 : 0));
+/* Horloge des virements : quand arrive chaque mensualité ? */
+function provisionClock(S){
+  const contrib = S.members.filter(m => m.contributes);
+  const flags = {};
+  const shareOf = (mm, id) => {
+    if(!flags[mm]){ const R = computeMonth(S, mm); flags[mm] = {}; S.members.forEach(x => { flags[mm][x.id] = R.members[x.id] ? R.members[x.id].share : 0; }); }
+    return flags[mm][id] || 0;
+  };
+  // date du virement de mb qui finance le mois (y, m)
+  const T = (mb, y, m) => {
+    let yy = y, mm = m;
+    if(mb.transferNext){ mm -= 1; if(mm < 1){ mm = 12; yy -= 1; } }
+    return new Date(yy, mm - 1, Math.min(Math.max(mb.transferDay || 1, 1), dimOf(yy, mm)));
+  };
+  // date à laquelle la mensualité du mois financé (y, m) est complète : dernier virement arrivé
+  const dateFor = (y, m) => {
+    let best = null;
+    contrib.forEach(mb => { if(shareOf(m, mb.id) > 0.005){ const d = T(mb, y, m); if(!best || d > best) best = d; } });
+    return best || new Date(y, m - 1, 1);
+  };
+  const monthAt = i => ({y:Math.floor(i / 12), m:i % 12 + 1});
+  const events = (a, b) => {                       // mensualités reçues dans l'intervalle ]a, b]
+    const out = [], i0 = a.getFullYear() * 12 + a.getMonth() - 2, i1 = b.getFullYear() * 12 + b.getMonth() + 2;
+    for(let i = i0; i <= i1; i++){ const {y, m} = monthAt(i), d = dateFor(y, m); if(d > a && d <= b) out.push({date:d, y, m}); }
+    return out;
+  };
+  const nthAfter = (a, n) => {                     // date de la n-ième mensualité reçue après a
+    const i0 = a.getFullYear() * 12 + a.getMonth() - 2; let c = 0;
+    for(let i = i0; i < i0 + 1200; i++){ const {y, m} = monthAt(i), d = dateFor(y, m); if(d > a && ++c >= n) return d; }
+    return null;
+  };
+  return {T, dateFor, events, nthAfter, count:(a, b) => events(a, b).length, contrib, shareOf};
 }
-function provisionLine(l, now){
+function provisionLine(l, now, clock){
   now = now || new Date();
   const c = l.cycle, times = c.times || 1;
   const goal = l.goal != null ? l.goal : l.amount * times;
   const monthlyGoal = isMonthlyExact(l) && l.goal != null;
   const mens = isMonthlyExact(l) ? l.amount * times : annualTotal(l) / 12;
   const st = parseISO(l.lastDate);
-  const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, accrued:0, rest:goal, done:false, overdue:false, noStart:!st};
+  const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, exact:0, accrued:0, rest:goal, over:0, done:false, overdue:false, noStart:!st};
   if(!st) return out;
-  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  out.k = monthsSince(st, now);
-  out.accrued = Math.min(goal, mens * out.k);
-  out.rest = goal - out.accrued;
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), s = dateOf(st);
+  out.k = clock.count(s, today0);
+  out.exact = mens * out.k;
+  out.accrued = Math.floor(out.exact + 1e-6);
+  out.rest = Math.max(0, goal - out.accrued);
+  out.over = Math.max(0, Math.floor(out.exact - goal + 1e-6));
   out.done = out.accrued >= goal - 0.005;
-  if(monthlyGoal) out.end = mens > 0 ? addCycleTo(st, {every:Math.ceil(goal / mens - 1e-9), unit:'month'}) : null;
+  if(monthlyGoal) out.end = mens > 0 ? clock.nthAfter(s, Math.max(1, Math.ceil(goal / mens - 1e-9))) : null;
   else { out.end = addCycleTo(st, c); out.overdue = out.end < today0; }
   return out;
 }
 /* Lignes concernées par le suivi de provision */
 function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l))); }
 /* Vue compacte pour l'onglet Provisions */
-function provisionInfo(l, now){
-  const p = provisionLine(l, now);
-  return {goal:p.goal, reserved:p.accrued, rest:p.rest, next:p.end, mens:p.mens, k:p.k, start:p.start, done:p.done, overdue:p.overdue, noStart:p.noStart, monthlyGoal:p.monthlyGoal};
+function provisionInfo(l, now, clock){
+  const p = provisionLine(l, now, clock);
+  return {goal:p.goal, reserved:p.accrued, rest:p.rest, over:p.over, next:p.end, mens:p.mens, k:p.k, start:p.start, done:p.done, overdue:p.overdue, noStart:p.noStart, monthlyGoal:p.monthlyGoal};
+}
+/* Projection du compte provisions à la fin de chacun des n prochains mois.
+   Hypothèse : chaque dépense est payée à sa date de fin (une échéance déjà dépassée est supposée payée
+   aujourd'hui), le suivi repart alors de cette date et le surplus éventuel reste sur le compte.
+   Une ligne à objectif dont la date est déjà passée n'est jamais supposée payée : elle continue d'augmenter. */
+function projectProvisions(counted, clock, today0, n){
+  const items = counted.map(r => ({name:r.l.name, mens:r.p.mens, goal:r.p.goal, mg:r.p.monthlyGoal, c:r.l.cycle, start:dateOf(r.p.start), base:0}));
+  const endOf = it => it.mg
+    ? (it.mens > 0 ? clock.nthAfter(it.start, Math.max(1, Math.ceil(it.goal / it.mens - 1e-9))) : null)
+    : addCycleTo(objOf(it.start), it.c);
+  const out = [];
+  for(let i = 0; i < n; i++){
+    const D = new Date(today0.getFullYear(), today0.getMonth() + i + 1, 0);
+    let bal = 0, deb = 0; const list = [];
+    items.forEach(it => {
+      for(let guard = 0; guard < 80; guard++){
+        const end = endOf(it);
+        if(!end || end > D || (it.mg && end < today0)) break;
+        const pay = end < today0 ? today0 : end;
+        it.base = it.base + it.mens * clock.count(it.start, pay) - it.goal;
+        it.start = pay; deb += it.goal; list.push({name:it.name, goal:it.goal, date:objOf(pay)});
+      }
+      bal += it.base + it.mens * clock.count(it.start, D);
+    });
+    out.push({y:D.getFullYear(), m:D.getMonth() + 1, exact:bal, debitTotal:deb, debits:list});
+  }
+  return out;
 }
 function provisionSummary(S, now){
   now = now || new Date();
+  const clock = provisionClock(S);
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const rows = provisionCandidates(S).map(l => ({l, p:provisionLine(l, now)}));
+  const monthEnd = new Date(today0.getFullYear(), today0.getMonth() + 1, 0);
+  const rows = provisionCandidates(S).map(l => ({l, p:provisionLine(l, now, clock)}));
   const counted = rows.filter(r => !r.p.noStart);
   const sum = f => counted.reduce((a, r) => a + f(r.p), 0);
-  const limit = new Date(today0); limit.setDate(limit.getDate() + 60);
-  const dd = d => ({y:d.getFullYear(), m:d.getMonth() + 1, d:d.getDate()});
-  const upcoming = counted.filter(r => r.p.end && r.p.end >= today0 && r.p.end <= limit && !r.p.done)
+  const accrued = sum(p => p.accrued), exactToday = sum(p => p.exact), delta = exactToday - accrued;
+  const mensAll = sum(p => p.mens);
+  const dueNow = counted.filter(r => r.p.end && (r.p.overdue || (r.p.end >= today0 && r.p.end <= monthEnd)))
     .sort((a, b) => a.p.end - b.p.end)
-    .map(r => ({name:r.l.name, end:dd(r.p.end), days:Math.round((r.p.end - today0) / DAY_MS), goal:r.p.goal, accrued:r.p.accrued, monthlyGoal:r.p.monthlyGoal}));
-  // prochain virement de provision (jour de virement de chaque contributeur)
+    .map(r => ({id:r.l.id, name:r.l.name, end:objOf(r.p.end), goal:r.p.goal, accrued:r.p.accrued, over:r.p.over, overdue:r.p.overdue}));
+  const limit = new Date(today0); limit.setDate(limit.getDate() + 60);
+  const upcoming = counted.filter(r => r.p.end && r.p.end >= today0 && r.p.end <= limit)
+    .sort((a, b) => a.p.end - b.p.end)
+    .map(r => ({name:r.l.name, end:objOf(r.p.end), days:Math.round((r.p.end - today0) / DAY_MS), goal:r.p.goal, accrued:r.p.accrued, monthlyGoal:r.p.monthlyGoal}));
+  const proj = projectProvisions(counted, clock, today0, 12).map(x => ({...x, balance:x.exact - delta}));
+  const evs = clock.events(today0, monthEnd);
+  const curY = today0.getFullYear(), curM = today0.getMonth() + 1;
+  const incoming = evs.length * mensAll;
+  const incomingNext = evs.filter(e => !(e.y === curY && e.m === curM)).length * mensAll;
+  const debits = proj.length ? proj[0].debitTotal : 0;
+  // prochain virement de provision (contributeur le plus proche), avec le mois qu'il finance
   let nextTransfer = null;
-  for(let off = 0; off < 2; off++){
-    const ref = new Date(today0.getFullYear(), today0.getMonth() + off, 1), y = ref.getFullYear(), m = ref.getMonth() + 1;
-    const R = computeMonth(S, m);
-    S.members.forEach(mb => {
-      if(!mb.contributes || !R.members[mb.id]) return;
-      const share = R.members[mb.id].share; if(!(share > 0.005)) return;
-      const day = Math.min(Math.max(mb.transferDay || 1, 1), dimOf(y, m)), date = new Date(y, m - 1, day);
-      if(date >= today0 && (!nextTransfer || date < nextTransfer._d)) nextTransfer = {name:mb.name, date:dd(date), amount:share, _d:date};
-    });
-    if(nextTransfer) break;
-  }
+  clock.contrib.forEach(mb => {
+    for(let off = -1; off <= 2; off++){
+      const ref = new Date(curY, today0.getMonth() + off, 1), y = ref.getFullYear(), m = ref.getMonth() + 1;
+      const share = clock.shareOf(m, mb.id); if(!(share > 0.005)) continue;
+      const d = clock.T(mb, y, m);
+      if(d >= today0 && (!nextTransfer || d < nextTransfer._d)) nextTransfer = {name:mb.name, date:objOf(d), amount:share, forMonth:{y, m}, _d:d};
+    }
+  });
   if(nextTransfer) delete nextTransfer._d;
-  return {count:counted.length, accrued:sum(p => p.accrued), goal:sum(p => p.goal), rest:sum(p => p.rest),
-          mens:counted.filter(r => !r.p.done).reduce((a, r) => a + r.p.mens, 0),
-          upcoming, overdue:counted.filter(r => r.p.overdue).map(r => r.l.name),
-          reached:counted.filter(r => r.p.monthlyGoal && r.p.done).map(r => r.l.name),
-          noStart:rows.filter(r => r.p.noStart).map(r => r.l.name), nextTransfer};
+  const overRows = counted.filter(r => r.p.over >= 1).sort((a, b) => b.p.over - a.p.over);
+  return {count:counted.length, accrued, goal:sum(p => p.goal), rest:sum(p => p.rest), over:overRows.reduce((a, r) => a + r.p.over, 0),
+          overList:overRows.map(r => ({name:r.l.name, over:r.p.over})), mens:mensAll,
+          dueNow, upcoming, debits, incoming, incomingNext, eom:proj.length ? proj[0].balance : accrued, proj,
+          overdue:counted.filter(r => r.p.overdue).map(r => r.l.name), noStart:rows.filter(r => r.p.noStart).map(r => r.l.name), nextTransfer};
 }
 
 /* ============================================================
@@ -828,7 +933,7 @@ function computeAdvice(S, now){
   const PS = provisionSummary(S, now);
   if(PS.overdue.length) push('alert','prov-retard',{count:PS.overdue.length, name:PS.overdue[0]}, {tab:'provisions'});
   if(PS.upcoming.length) push('info','prov-proche',{count:PS.upcoming.length, name:PS.upcoming[0].name, days:PS.upcoming[0].days, goal:PS.upcoming[0].goal, accrued:PS.upcoming[0].accrued}, {tab:'provisions'});
-  if(PS.reached.length) push('info','prov-objectif',{count:PS.reached.length, name:PS.reached[0]}, {tab:'provisions'});
+  if(PS.over >= 1) push('info','prov-depassement',{total:PS.over, count:PS.overList.length, name:PS.overList[0].name}, {tab:'provisions'});
   if(PS.noStart.length) push('info','prov-sans-date',{count:PS.noStart.length, name:PS.noStart[0]}, {tab:'provisions'});
 
   const nets = []; for(let m = 1; m <= 12; m++) nets.push(computeMonth(S, m).common.net);
@@ -855,7 +960,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, monthsSince, computeAdvice, advNorm};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm};
 
 </script>
 <script>
@@ -1055,36 +1160,78 @@ function welcome(){
   </section>`;
 }
 
-/* ----- Compte provisions : somme attendue, calculée ligne par ligne ----- */
+/* ----- Compte provisions : état à J, objectif (provision restante) et trajectoire ----- */
 function isoToday(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function fmtDay(o){ return new Date(o.y, o.m - 1, o.d).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}); }
-function fmtMonthYear(d){ return d.toLocaleDateString('fr-FR', {month:'long', year:'numeric'}); }
 function dayLabel(d){ return d === 1 ? '1er' : String(d); }
 const provisionOn = () => S.settings.provisionBlock !== false;
+function sparkHTML(proj){
+  const vals = proj.map(x => x.balance), n = vals.length;
+  const min = Math.min(...vals), max = Math.max(...vals), W = 320, H = 112, pl = 8, pr = 8, pt = 16, pb = 32, rng = (max - min) || 1;
+  const X = i => pl + (W - pl - pr) * i / (n - 1), Y = v => pt + (H - pt - pb) * (1 - (v - min) / rng);
+  const pts = vals.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
+  const imin = vals.indexOf(min), imax = vals.indexOf(max);
+  const anchor = i => i > n - 3 ? 'end' : i < 2 ? 'start' : 'middle';
+  const lab = (i, up) => `<circle class="spark-dot" cx="${X(i).toFixed(1)}" cy="${Y(vals[i]).toFixed(1)}" r="3.2"/><text class="spark-txt strong" x="${X(i).toFixed(1)}" y="${(Y(vals[i]) + (up ? -7 : 14)).toFixed(1)}" text-anchor="${anchor(i)}">${esc(money(vals[i], 0))}</text>`;
+  const ticks = [0, 3, 6, 9, 11].filter(i => i < n).map(i => `<text class="spark-txt" x="${X(i).toFixed(1)}" y="${H - 4}" text-anchor="${anchor(i)}">${MONTHS_SHORT[proj[i].m - 1]}</text>`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Solde attendu du compte provisions à la fin de chacun des 12 prochains mois : de ${esc(money(min, 0))} à ${esc(money(max, 0))}">
+    <path class="spark-area" d="M${X(0).toFixed(1)},${H - pb} L${pts.join(' L')} L${X(n-1).toFixed(1)},${H - pb} Z"/><polyline class="spark-line" points="${pts.join(' ')}"/>
+    ${lab(imax, true)}${imin !== imax ? lab(imin, false) : ''}${ticks}</svg>`;
+}
 function provisionCardHTML(){
-  const P = provisionSummary(S);
+  const P = provisionSummary(S), now = new Date();
   const plural = (n, a, b) => n > 1 ? b : a;
+  const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
   if(!P.count) return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
     <p class="hint" style="margin-top:8px">Aucune ligne de provision n’a de date de départ. Renseigne le dernier paiement (Provision et suivi) sur tes dépenses non mensuelles : la somme attendue se calcule alors toute seule.</p>
     <div style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Ouvrir Provisions</button></div></section>`;
-  const next = P.upcoming.length ? `<h3 class="who">Prochaines échéances (60 jours)</h3><ul class="leaders">${P.upcoming.slice(0, 4).map(u =>
-    `<li><span>${esc(u.name)} <small>${u.monthlyGoal ? 'objectif atteint' : 'fin'} le ${fmtDay(u.end)} · ${money(u.accrued)} sur ${money(u.goal)}</small></span><i class="dots"></i><b>${money(u.goal)}</b></li>`).join('')}</ul>` : '';
-  const tr = P.nextTransfer ? `<div><dt>Prochain virement de provision</dt><dd>${money(P.nextTransfer.amount)} <small class="muted">le ${fmtDay(P.nextTransfer.date)} (${esc(P.nextTransfer.name)})</small></dd></div>` : '';
+  const monthName = MONTHS[now.getMonth()], nextName = MONTHS[(now.getMonth() + 1) % 12];
+  const over = P.over >= 1 ? `<p class="note" style="margin-top:4px">dont <b>${money(P.over)}</b> de dépassement d’objectif (${P.overList.slice(0, 3).map(o => esc(o.name)).join(', ')}${P.overList.length > 3 ? '…' : ''}), disponible pour l’épargne.</p>` : '';
+  const due = P.dueNow.length ? `<h3 class="who">À débiter ce mois-ci</h3><ul class="leaders dueList">${P.dueNow.map(d =>
+    `<li><span>${esc(d.name)} <small>${d.overdue ? 'échéance dépassée' : `le ${fmtDay(d.end)}`}</small></span><i class="dots"></i><b class="debit">−${money(d.goal)}</b><button class="btn small paid" data-act="paid" data-id="${esc(d.id)}" aria-label="Marquer ${esc(d.name)} comme payé">Payé</button></li>`).join('')}</ul>` : '';
+  const flow = `<h3 class="who">Objectif : provision restante fin ${monthName}</h3><dl class="legend waterfall">
+      <div><dt>Aujourd’hui</dt><dd>${money(P.accrued)}</dd></div>
+      <div><dt>Mensualités à recevoir${P.incomingNext > 0.005 ? ` <small>dont ${money(P.incomingNext)} pour ${nextName}</small>` : ''}</dt><dd class="credit">+${money(P.incoming)}</dd></div>
+      <div><dt>Débits du mois</dt><dd class="debit">−${money(P.debits)}</dd></div>
+      <div class="total"><dt>Fin ${monthName}</dt><dd>${money(P.eom)}</dd></div></dl>`;
+  const vals = P.proj.map(x => x.balance), hi = P.proj[vals.indexOf(Math.max(...vals))], lo = P.proj[vals.indexOf(Math.min(...vals))];
+  const traj = `<h3 class="who">Trajectoire sur 12 mois</h3>${sparkHTML(P.proj)}
+    <p class="note" style="margin-top:2px">Point haut ${money(hi.balance, 0)} (${MONTHS_SHORT[hi.m - 1]} ${hi.y}) · point bas ${money(lo.balance, 0)} (${MONTHS_SHORT[lo.m - 1]} ${lo.y}).</p>
+    <details class="how"><summary>Mois par mois</summary><ul class="leaders" style="margin-top:8px">${P.proj.map(x =>
+      `<li><span>${cap1(MONTHS[x.m - 1])} ${x.y}${x.debitTotal > 0.005 ? ` <small>−${money(x.debitTotal)} : ${x.debits.slice(0, 3).map(d => esc(d.name)).join(', ')}${x.debits.length > 3 ? '…' : ''}</small>` : ''}</span><i class="dots"></i><b>${money(x.balance, 0)}</b></li>`).join('')}</ul>
+      <p class="note" style="margin-top:6px">Hypothèse : chaque dépense est payée à sa date de fin, puis le suivi repart de zéro. Une ligne à objectif déjà atteinte continue d’augmenter.</p></details>`;
+  const tr = P.nextTransfer ? `<div><dt>Prochain virement de provision</dt><dd>${money(P.nextTransfer.amount)} <small class="muted">le ${fmtDay(P.nextTransfer.date)}${P.nextTransfer.forMonth.m !== P.nextTransfer.date.m ? `, pour ${MONTHS[P.nextTransfer.forMonth.m - 1]}` : ''} (${esc(P.nextTransfer.name)})</small></dd></div>` : '';
   const notes = [
-    P.overdue.length ? `${P.overdue.length} échéance${plural(P.overdue.length, '', 's')} dépassée${plural(P.overdue.length, '', 's')} (${P.overdue.slice(0, 3).join(', ')}${P.overdue.length > 3 ? '…' : ''}) : mets à jour la date du dernier paiement.` : '',
-    P.reached.length ? `Objectif atteint : ${P.reached.slice(0, 3).join(', ')}${P.reached.length > 3 ? '…' : ''}. Pense à arrêter la provision.` : '',
+    P.overdue.length ? `${P.overdue.length} échéance${plural(P.overdue.length, '', 's')} dépassée${plural(P.overdue.length, '', 's')} (${P.overdue.slice(0, 3).join(', ')}${P.overdue.length > 3 ? '…' : ''}) : appuie sur « Payé » si c’est réglé.` : '',
     P.noStart.length ? `${P.noStart.length} ligne${plural(P.noStart.length, '', 's')} sans date de départ ${plural(P.noStart.length, 'n’est', 'ne sont')} pas comptée${plural(P.noStart.length, '', 's')} (${P.noStart.slice(0, 3).join(', ')}${P.noStart.length > 3 ? '…' : ''}).` : '',
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
   return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
-    <div class="rest"><b>${money(P.accrued)}</b><span>somme attendue aujourd’hui, sur ${P.count} ligne${plural(P.count, '', 's')} de provision</span></div>
-    <dl class="legend">
-      <div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>
-      <div><dt>Coût total à couvrir</dt><dd>${money(P.goal)}</dd></div>
-      <div><dt>Reste à provisionner</dt><dd>${money(P.rest)}</dd></div>
-      ${tr}
-    </dl>${next}${notes}
-    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Pour chaque dépense qui ne tombe pas tous les mois : mensualité = coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel). La date de départ est le dernier paiement ; la date de fin est le départ plus le cycle (ou plus objectif ÷ mensualité). Somme en cours = mensualité × mois écoulés depuis le départ, plafonnée au coût. Le compte provisions attendu est la somme de toutes les lignes. Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit. Détail ligne par ligne dans l’onglet Provisions.</p></details>
+    <div class="rest"><b>${money(P.accrued)}</b><span>état du compte au ${fmtDay(objOf(now))}, sur ${P.count} ligne${plural(P.count, '', 's')} de provision (lignes à débiter ce mois-ci comprises)</span></div>${over}
+    ${due}${flow}${traj}
+    <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
+    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Pour chaque dépense qui ne tombe pas tous les mois : mensualité = coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel). La date de départ est le dernier paiement ; la date de fin est le départ plus le cycle. Somme en cours = mensualité × nombre de mensualités reçues depuis le départ, arrondie à l’euro inférieur, comme dans ton Excel. Elle n’est jamais plafonnée : au-delà du coût, c’est un dépassement d’objectif, qui augmente jusqu’à ce que tu appuies sur « Payé ». Une mensualité compte dès que le virement de chaque contributeur est arrivé (jour et mois financé réglés dans Foyer). Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit.</p></details>
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
+}
+function openTransferHelp(){
+  const dlg = $('#dlg'); U.editing = null;
+  dlg.innerHTML = `<div class="dlg-h"><h2>Ce versement compte pour…</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div>
+   <div class="dlg-b form help">
+    <p>Tu choisis le <b>jour</b> où ton salaire arrive (de 1 à 31 ; 31 veut dire « dernier jour du mois »), puis le <b>mois que ce versement finance</b>.</p>
+    <h3>Le mois en cours <small>(par défaut)</small></h3>
+    <p>Le salaire reçu le 5 octobre finance le budget d’octobre.</p>
+    <h3>Le mois suivant</h3>
+    <p>Le salaire reçu le 28 octobre (ou le 30, le 31, le 15… n’importe quel jour) finance le budget de <b>novembre</b>. C’est le cas quand ton salaire arrive en fin de mois pour payer le mois d’après.</p>
+    <h3>Ce que ça change</h3>
+    <ul>
+      <li><b>Budget</b> (Synthèse, reste à vivre) : le salaire saisi compte toujours dans le mois qu’il finance, quel que soit son jour d’arrivée.</li>
+      <li><b>Compte provisions</b> : la mensualité est comptée sur le compte dès que le versement arrive (le 28 octobre dans l’exemple), mais attribuée à novembre.</li>
+      <li><b>Prochain virement</b> et <b>trajectoire</b> : les dates tiennent compte de ce décalage.</li>
+      <li><b>Plusieurs contributeurs</b> : une mensualité est comptée quand tous les versements sont arrivés.</li>
+    </ul>
+    <p class="note">Ce jour est aussi celui du virement vers le compte de provision. Si ton salaire et ton virement n’arrivent pas le même jour, saisis le jour du virement.</p>
+   </div>
+   <div class="dlg-f"><span></span><div class="r"><button class="btn primary" data-act="close-dlg">Compris</button></div></div>`;
+  dlg.showModal();
 }
 function centerMonthChip(){
   const box = $('.monthbar .chips'); if(!box) return;
@@ -1100,7 +1247,9 @@ const MODES = [
   ['custom','Pourcentages','Les pourcentages se règlent dans l’onglet Foyer.'],
 ];
 function viewSynthese(){
+  U.bubbleIdx = U.bubbleIdx || 0;
   const R = computeMonth(S, U.month), d = S.settings.distribution;
+  U.bubbleList = bubbleMessages(R); U.bubbleRest = R.totals.rest;
   const title = U.month === 0 ? 'Moyenne mensuelle sur l’année' : cap(MONTHS[U.month-1]);
   const now = new Date(), realMonth = now.getMonth() + 1;
   const chips = [0,1,2,3,4,5,6,7,8,9,10,11,12].map(m =>
@@ -1115,7 +1264,7 @@ function viewSynthese(){
     <div class="monthbar">${todayBtn}<div class="chips" role="group" aria-label="Période">${chips}</div></div>
     <section class="hero" aria-label="Reste à vivre du foyer">
       <div class="hero-txt"><p class="hero-k">Reste à vivre du foyer, ${esc(title.toLowerCase())}</p><p class="hero-v">${money(R.totals.rest)}</p></div>
-      <div class="hero-pig">${piggy(R.totals.rest < -0.005 ? 'worried' : 'happy', 92, 'nocoin')}<p class="bubble">${esc(heroMsg(R))}</p></div>
+      <div class="hero-pig" data-mood="${bubbleMood()}">${bubbleHTML()}</div>
       <dl class="hero-d">
         <div><dt>Revenus</dt><dd>${money(R.totals.income)}</dd></div>
         <div><dt>Budget commun à financer</dt><dd>${money(R.common.net)}</dd></div>
@@ -1138,6 +1287,67 @@ function viewSynthese(){
     <section class="card"><h2>Sur l’année</h2><p class="hint" style="margin-bottom:8px">Les lignes payées à un rythme non mensuel sont provisionnées chaque mois ; les lignes limitées à certains mois n’apparaissent que ces mois-là.</p>${yearTableHTML(contrib)}</section>
     <section class="card"><h2>Par compte, ${esc(title.toLowerCase())}</h2>${accountsTableHTML(R)}</section>`;
 }
+/* ----- Bulle du cochon : conseils cliquables en alternance avec des phrases drôles ----- */
+const JOKES = [
+  'Je ne mange que des pièces, pas des factures.',
+  'Un cochon bien nourri, c’est un budget bien tenu.',
+  'Jamais deux sans trois… pièces dans la fente.',
+  'Je ne boude pas : j’attends ton prochain virement.',
+  'Pas de panique, je garde les sous au chaud.',
+  'Mon secret pour économiser ? Ne jamais lâcher un centime.',
+  'Groin groin ! Ça sent bon la bonne gestion.',
+  'Les petits ruisseaux font les grosses tirelires.',
+  'Je suis tout rose, mais tes comptes sont au vert.',
+  'Une pièce de côté, et le cochon sourit.',
+  'Chut… ce que j’ai dans le ventre ne se dépense pas.',
+  'J’ai un fond, et je compte bien le remplir.',
+  'Un cochon qui compte, c’est un cochon qui compte !',
+  'Même un cochon fait la chasse aux abonnements oubliés.',
+  'Pas de gaspi : je recycle même les centimes.',
+];
+const reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function bubbleMessages(R){
+  const order = {alert:0, warn:1, info:2, good:3};
+  const adv = computeAdvice(S).sort((a, b) => order[a.severity] - order[b.severity])
+    .map(it => ({type:'advice', kind:it.kind, severity:it.severity, go:!!(it.action && it.action.tab), text:((ADVICE_META[it.kind] || (() => ({title:''})))(it.data, it.severity)).title}))
+    .filter(m => m.text);
+  const jokes = [{type:'joke', text:heroMsg(R)}, ...JOKES.map(text => ({type:'joke', text}))];
+  const out = [];
+  if(!adv.length) return jokes;
+  adv.forEach((m, i) => { out.push(m); out.push(jokes[i % jokes.length]); });
+  return out;
+}
+function bubbleCurrent(){ const L = U.bubbleList || []; return L.length ? L[(U.bubbleIdx || 0) % L.length] : null; }
+function bubbleMood(){
+  const m = bubbleCurrent();
+  return ((m && m.type === 'advice' && m.severity === 'alert') || (U.bubbleRest || 0) < -0.005) ? 'worried' : 'happy';
+}
+function bubbleHTML(){
+  const m = bubbleCurrent(); if(!m) return '';
+  const label = m.type === 'advice' ? (m.go ? `Conseil : ${m.text}. Ouvrir.` : `Conseil : ${m.text}. Appuyer pour le suivant.`) : `Message du cochon : ${m.text}. Appuyer pour le suivant.`;
+  return `${piggy(bubbleMood(), 92, 'nocoin')}<button type="button" class="bubble ${m.type === 'advice' ? (m.go ? 'adv ' : 'note ') + 'sev-' + m.severity : 'joke'}" data-act="bubble" aria-label="${esc(label)}"><span class="txt">${esc(m.text)}</span>${m.go ? '<span class="go" aria-hidden="true">›</span>' : ''}</button>`;
+}
+function swapBubble(){
+  const box = $('.hero-pig'); if(!box) return;
+  const apply = () => { box.dataset.mood = bubbleMood(); box.innerHTML = bubbleHTML(); };
+  if(reducedMotion()){ apply(); return; }
+  box.classList.add('swap');
+  setTimeout(() => { apply(); box.classList.remove('swap'); }, 180);
+}
+function bubbleTick(){
+  if(!S || U.tab !== 'synthese' || document.hidden || reducedMotion()) return;
+  if(U.bubbleHover || U.bubbleFocus || Date.now() < (U.bubbleHold || 0) || ($('#dlg') && $('#dlg').open)) return;
+  if(!U.bubbleList || U.bubbleList.length < 2) return;
+  U.bubbleIdx = (U.bubbleIdx || 0) + 1; swapBubble();
+}
+function goAdvice(kind){
+  const it = computeAdvice(S).find(x => x.kind === kind); if(!it || !it.action) return;
+  const act = it.action;
+  U.tab = act.tab; if(act.todo) U.todo = true; if(act.month != null) U.month = act.month;
+  render(); window.scrollTo(0, 0);
+  if(act.lineId) openLine(act.lineId);
+}
+
 function heroMsg(R){
   const inc = R.totals.income;
   if(inc <= 0) return 'Groin ! Dis-moi ce qui rentre et je fais les comptes.';
@@ -1163,7 +1373,7 @@ function transfersHTML(R, contrib){
     const list = R.transfers[m.id] || [];
     if(!list.length) return '';
     return `<h3 class="who">${esc(m.name)}</h3><ul class="leaders">${list.map(t =>
-      `<li><span>${esc(accName(t.accountId))}${t.common ? `<small>compte de provision, le ${dayLabel(m.transferDay || 1)}</small>` : ''}</span><i class="dots"></i><b>${money(t.amount)}</b></li>`).join('')}</ul>`;
+      `<li><span>${esc(accName(t.accountId))}${t.common ? `<small>compte de provision, le ${dayLabel(m.transferDay || 1)}${m.transferNext ? ', pour le mois suivant' : ''}</small>` : ''}</span><i class="dots"></i><b>${money(t.amount)}</b></li>`).join('')}</ul>`;
   }).join('');
   return out || '<p class="hint">Aucun virement à prévoir pour cette période.</p>';
 }
@@ -1302,11 +1512,11 @@ const ADVICE_META = {
   'equilibre': d => ({title:'Reste à vivre inégal entre les membres',
     text:`L’écart de reste à vivre entre les membres qui participent au budget commun est d’environ ${money(d.spread)} par mois avec le mode actuel. Le mode « Reste à vivre égal », dans l’onglet Foyer, resserre cet écart.`}),
   'prov-retard': d => ({title:'Échéance de provision dépassée',
-    text:`« ${esc(d.name)} » a dépassé sa date de fin${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''} : si la dépense est réglée, mets à jour sa date de départ (dernier paiement) dans l’onglet Provisions.`}),
+    text:`« ${esc(d.name)} » a dépassé sa date de fin${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''})`:''} : si la dépense est réglée, appuie sur « Payé » dans l’onglet Provisions.`}),
   'prov-proche': d => ({title:'Échéance de provision proche',
     text:`« ${esc(d.name)} » arrive à échéance dans ${d.days} jour${d.days>1?'s':''} : ${money(d.accrued)} provisionnés sur ${money(d.goal)}${d.count>1?` (et ${d.count-1} autre ligne${d.count>2?'s':''} d’ici 60 jours)`:''}.`}),
-  'prov-objectif': d => ({title:'Objectif de provision atteint',
-    text:`« ${esc(d.name)} »${d.count>1?` et ${d.count-1} autre ligne${d.count>2?'s':''} ont`:' a'} atteint leur objectif : tu peux arrêter la provision mensuelle.`}),
+  'prov-depassement': d => ({title:'Dépassement d’objectif disponible',
+    text:`${money(d.total)} dépassent leur objectif${d.count>1?` sur ${d.count} lignes`:''} (dont « ${esc(d.name)} »). La provision continue tant que la ligne n’est pas « Payée » : tu peux reprendre ce surplus en épargne.`}),
   'prov-sans-date': d => ({title:'Provisions sans date de départ',
     text:`${d.count} ligne${d.count>1?'s':''} de provision (dont « ${esc(d.name)} ») ${d.count>1?'n’ont':'n’a'} pas de date de dernier paiement : ${d.count>1?'elles ne sont':'elle n’est'} pas comptée${d.count>1?'s':''} dans le compte provisions.`}),
   'pic-saisonnier': d => ({title:`Pic de dépenses en ${MONTHS[d.month-1]}`,
@@ -1407,8 +1617,10 @@ function viewFoyer(){
         ${m.type !== 'child' ? `<label class="field">Revenu net mensuel (salaire)<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:salary" value="${sal ? sal.amount : ''}"></label>` : ''}
         <label class="check" style="align-self:end;min-height:40px"><input type="checkbox" data-b="member:${m.id}:contributes" ${m.contributes?'checked':''}> Participe au budget commun</label>
       </div>
-      ${m.contributes && provisionOn() ? `<div class="grid2"><label class="field">Jour du virement vers le compte de provision<input class="inp" type="number" min="1" max="31" step="1" inputmode="numeric" data-b="member:${m.id}:transferDay" value="${m.transferDay || 1}"></label>
-        <p class="note" style="align-self:end">Sert à afficher le prochain virement de provision dans la Synthèse (par défaut le 1er du mois).</p></div>` : ''}
+      ${m.contributes && provisionOn() ? `<div class="grid2"><label class="field">Date de versement du salaire (jour du mois)<input class="inp" type="number" min="1" max="31" step="1" inputmode="numeric" data-b="member:${m.id}:transferDay" value="${m.transferDay || 1}"></label>
+        <div class="field"><span>Ce versement compte pour <button type="button" class="qbtn" data-act="help-transfer" aria-label="Comment ça marche ?" title="Comment ça marche ?">?</button></span>
+          <select class="inp" data-b="member:${m.id}:transferNext"><option value="same" ${m.transferNext ? '' : 'selected'}>Le mois en cours</option><option value="next" ${m.transferNext ? 'selected' : ''}>Le mois suivant</option></select></div></div>
+        <p class="note">C’est aussi le jour du virement vers le compte de provision (31 = dernier jour du mois).</p>` : ''}
       ${m.type !== 'adult' ? `<div class="grid2">
         <label class="field">Argent de poche reçu par mois<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:pocketAmount" value="${m.pocket.amount || ''}"></label>
         <label class="field">Versé par<select class="inp" data-b="member:${m.id}:pocketPayer">${payerOpts(m)}</select></label></div>` : ''}
@@ -1427,7 +1639,7 @@ function viewFoyer(){
 }
 
 /* ----- Provisions ----- */
-const provInfo = provisionInfo;
+const provInfo = (l, now, clk) => provisionInfo(l, now, clk || provisionClock(S));
 const provLines = () => provisionCandidates(S);
 function nextText(p){
   if(p.noStart) return '<span class="muted">à renseigner</span>';
@@ -1436,32 +1648,37 @@ function nextText(p){
   return `<span class="${p.overdue ? 'debit' : ''}">${p.next.toLocaleDateString('fr-FR', {month:'short', year:'numeric'})}${p.overdue ? ' (dépassée)' : ''}</span>`;
 }
 const dashIf = (p, v) => p.noStart ? '<span class="muted">—</span>' : money(v);
-function provTotals(){
-  return provLines().reduce((a, l) => { const p = provInfo(l); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; if(!p.done) a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, mens:0});
+const restCell = p => p.noStart ? '<span class="muted">—</span>' : (p.over >= 1 ? `<span class="credit">+${money(p.over)}</span> <small class="muted">dépassement</small>` : money(p.rest));
+const restClass = p => !p.noStart && p.over < 1 && p.rest > 0.005 ? 'debit' : 'credit';
+function provTotals(clk){
+  clk = clk || provisionClock(S);
+  return provLines().reduce((a, l) => { const p = provInfo(l, undefined, clk); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; a.over += p.over; a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, over:0, mens:0});
 }
 function viewProvisions(){
-  const lines = provLines(), tot = provTotals();
-  const rows = lines.map(l => { const p = provInfo(l); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}</small></td>
+  const lines = provLines(), clk = provisionClock(S), tot = provTotals(clk);
+  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}</small></td>
     <td data-cell="mens:${l.id}">${money(p.mens)}</td>
     <td data-cell="goal:${l.id}">${money(p.goal)}</td>
     <td data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
-    <td data-cell="rest:${l.id}" class="${!p.noStart && p.rest > 0.005 ? 'debit' : 'credit'}">${dashIf(p, p.rest)}</td>
+    <td data-cell="rest:${l.id}" class="${restClass(p)}">${restCell(p)}</td>
     <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
-    <td data-cell="next:${l.id}">${nextText(p)}</td></tr>`; }).join('');
+    <td data-cell="next:${l.id}">${nextText(p)}</td>
+    <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="Marquer ${esc(l.name)} comme payé">Payé</button></td></tr>`; }).join('');
   return `<section class="card"><h2>Provisions</h2>
-    <p class="hint" style="margin-bottom:10px">Pour chaque dépense qui ne tombe pas tous les mois : la mensualité mise de côté, le coût, la somme en cours (mensualité × mois écoulés depuis la date de départ), ce qu’il reste à provisionner et la date de fin. Quand tu règles une dépense, mets à jour sa date de départ.</p>
-    ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste à provisionner</th><th>Date de départ</th><th>Date de fin</th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}</td><td colspan="2"></td></tr></tfoot></table></div>`
+    <p class="hint" style="margin-bottom:10px">Pour chaque dépense qui ne tombe pas tous les mois : la mensualité mise de côté, le coût, la somme en cours (mensualités reçues depuis la date de départ, arrondie à l’euro inférieur), ce qu’il reste à provisionner ou le dépassement d’objectif, et la date de fin. La somme n’est jamais plafonnée : elle augmente jusqu’à ce que tu appuies sur « Payé », qui remet la date de départ à aujourd’hui.</p>
+    ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}</td><td colspan="3"></td></tr></tfoot></table></div>`
       : '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>'}</section>`;
 }
 function patchProv(id){
   const l = S.lines.find(x => x.id === id); if(!l) return;
-  const p = provInfo(l), set = (k, html) => { const el = $(`[data-cell="${k}"]`); if(el) el.innerHTML = html; };
+  const clk = provisionClock(S), p = provInfo(l, undefined, clk), set = (k, html) => { const el = $(`[data-cell="${k}"]`); if(el) el.innerHTML = html; };
   set(`mens:${id}`, money(p.mens)); set(`goal:${id}`, money(p.goal)); set(`sum:${id}`, dashIf(p, p.reserved));
-  const r = $(`[data-cell="rest:${id}"]`); if(r){ r.innerHTML = dashIf(p, p.rest); r.className = !p.noStart && p.rest > 0.005 ? 'debit' : 'credit'; }
+  const r = $(`[data-cell="rest:${id}"]`); if(r){ r.innerHTML = restCell(p); r.className = restClass(p); }
   set(`next:${id}`, nextText(p));
-  const tot = provTotals();
-  set('tot:mens', money(tot.mens)); set('tot:goal', money(tot.goal)); set('tot:res', money(tot.res)); set('tot:rest', money(tot.rest));
+  const tot = provTotals(clk);
+  set('tot:mens', money(tot.mens)); set('tot:goal', money(tot.goal)); set('tot:res', money(tot.res));
+  set('tot:rest', `${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}`);
 }
 
 /* ----- Réglages ----- */
@@ -1490,7 +1707,7 @@ function viewReglages(){
       <div class="rowlist">${accounts}</div><div style="margin-top:10px"><button class="btn" data-act="add-acc">Ajouter un compte</button></div></section>
     <section class="card"><h2>Compte provisions</h2><div class="form">
       <label class="check"><input type="checkbox" data-b="set:_:provisionBlock" ${provisionOn() ? 'checked' : ''}> Afficher le bloc « Compte provisions » dans la Synthèse</label>
-      <p class="note">${provisionOn() ? 'Le bloc additionne les provisions de toutes les lignes (mensualité × mois écoulés depuis leur date de départ). Il ne dépend pas d’un solde bancaire.' : 'Le bloc est masqué dans la Synthèse, ainsi que le champ « jour de virement » dans Foyer.'}</p>
+      <p class="note">${provisionOn() ? 'Le bloc additionne les provisions de toutes les lignes (mensualité × mensualités reçues depuis leur date de départ). Il ne dépend pas d’un solde bancaire.' : 'Le bloc est masqué dans la Synthèse, ainsi que les réglages de versement du salaire dans Foyer.'}</p>
     </div></section>
     <section class="card"><h2>Catégories</h2><div class="rowlist">${cats}</div><div style="margin-top:10px"><button class="btn" data-act="add-cat">Ajouter une catégorie</button></div></section>
     <section class="card"><h2>Moyens de paiement</h2><div class="rowlist">${methods}</div><div style="margin-top:10px"><button class="btn" data-act="add-method">Ajouter un moyen de paiement</button></div></section>
@@ -1624,20 +1841,25 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, id = t.dataset.id;
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
-    case 'tab': U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
+    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese' && reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
     case 'add-idea': {
       const idea = IDEAS.find(x => x.id === id); if(!idea) break;
       openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
       break; }
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
+    case 'help-transfer': openTransferHelp(); break;
+    case 'paid': {
+      const l = S.lines.find(x => x.id === id); if(!l) break;
+      const p = provInfo(l, undefined, provisionClock(S));
+      if(p.over >= 1 && !confirm(`« ${l.name} » a un dépassement d’objectif de ${money(p.over)}. En marquant la ligne comme payée, ce dépassement ne sera plus suivi : pense à le reprendre en épargne si besoin. Continuer ?`)) break;
+      l.lastDate = isoToday(); touch(); toast('Marqué comme payé : le suivi repart de zéro'); break; }
     case 'today': U.month = new Date().getMonth() + 1; render(); break;
-    case 'advice': {
-      const it = computeAdvice(S).find(x => x.kind === t.dataset.kind); if(!it || !it.action) break;
-      const act = it.action;
-      U.tab = act.tab; if(act.todo) U.todo = true; if(act.month != null) U.month = act.month;
-      render(); window.scrollTo(0,0);
-      if(act.lineId) openLine(act.lineId);
+    case 'advice': goAdvice(t.dataset.kind); break;
+    case 'bubble': {
+      const m = bubbleCurrent(); if(!m) break;
+      if(m.type === 'advice' && m.go) goAdvice(m.kind);
+      else { U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleHold = Date.now() + 10000; swapBubble(); }
       break; }
     case 'month': U.month = +t.dataset.m; render(); break;
     case 'mode': S.settings.distribution.mode = t.dataset.mode; touch(); break;
@@ -1663,7 +1885,7 @@ document.addEventListener('click', async e => {
     case 'dismiss': U.notice = null; render(); break;
     case 'add-member': {
       const type = t.dataset.type, n = S.members.filter(m => m.type === type).length + 1;
-      const m = {id:uid(), name: type === 'adult' ? `Adulte ${n}` : `Enfant ${n}`, type, contributes:type === 'adult', pocket:{amount:0, payer:'split'}, transferDay:1};
+      const m = {id:uid(), name: type === 'adult' ? `Adulte ${n}` : `Enfant ${n}`, type, contributes:type === 'adult', pocket:{amount:0, payer:'split'}, transferDay:1, transferNext:false};
       S.members.push(m);
       if(type === 'adult') S.accounts.push({id:uid(), name:`Compte de ${m.name}`, bank:'', ownerId:m.id});
       syncAllPockets(S); touch(); break; }
@@ -1742,6 +1964,7 @@ function onBind(el, b){
     else if(f === 'type'){ m.type = v; m.contributes = v === 'adult'; syncAllPockets(S); touch(); }
     else if(f === 'contributes'){ m.contributes = v; syncAllPockets(S); touch(); }
     else if(f === 'transferDay'){ m.transferDay = Math.min(Math.max(parseInt(v) || 1, 1), 31); touch(false); }
+    else if(f === 'transferNext'){ m.transferNext = v === 'next'; touch(false); }
     else if(f === 'salary'){ setSalary(S, id, num(v)); touch(false); }
     else if(f === 'pocketAmount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, id); touch(false); }
     else if(f === 'pocketPayer'){ m.pocket.payer = v; syncPocket(S, id); touch(false); }
@@ -1765,6 +1988,19 @@ function onBind(el, b){
     touch(false); patchProv(id);
   }
 }
+/* Bulle : pause au survol (souris), au focus et après un appui tactile */
+(function(){
+  const canHover = !!(window.matchMedia && matchMedia('(hover: hover)').matches);
+  const inBox = e => e.target.closest && e.target.closest('.hero-pig');
+  if(canHover){
+    document.addEventListener('mouseover', e => { if(inBox(e)) U.bubbleHover = true; });
+    document.addEventListener('mouseout', e => { if(inBox(e) && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.hero-pig'))) U.bubbleHover = false; });
+  }
+  document.addEventListener('focusin', e => { if(inBox(e)) U.bubbleFocus = true; });
+  document.addEventListener('focusout', e => { if(inBox(e)) U.bubbleFocus = false; });
+  document.addEventListener('pointerdown', e => { if(e.pointerType === 'touch' && inBox(e)) U.bubbleHold = Date.now() + 10000; });
+  setInterval(bubbleTick, 8000);
+})();
 document.addEventListener('DOMContentLoaded', () => {
   const dlg = $('#dlg');
   dlg.addEventListener('click', e => { if(e.target === dlg) dlg.close(); });
