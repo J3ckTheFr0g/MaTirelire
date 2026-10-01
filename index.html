@@ -1247,7 +1247,7 @@ const MODES = [
   ['custom','Pourcentages','Les pourcentages se règlent dans l’onglet Foyer.'],
 ];
 function viewSynthese(){
-  U.bubbleIdx = U.bubbleIdx || 0;
+  U.bubbleIdx = U.bubbleIdx || 0; if(!U.bubbleChanged) U.bubbleChanged = Date.now();
   const R = computeMonth(S, U.month), d = S.settings.distribution;
   U.bubbleList = bubbleMessages(R); U.bubbleRest = R.totals.rest;
   const title = U.month === 0 ? 'Moyenne mensuelle sur l’année' : cap(MONTHS[U.month-1]);
@@ -1305,6 +1305,7 @@ const JOKES = [
   'Même un cochon fait la chasse aux abonnements oubliés.',
   'Pas de gaspi : je recycle même les centimes.',
 ];
+const BUBBLE_MS = 60000;   // au moins une minute entre deux messages
 const reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function bubbleMessages(R){
   const order = {alert:0, warn:1, info:2, good:3};
@@ -1329,6 +1330,7 @@ function bubbleHTML(){
 }
 function swapBubble(){
   const box = $('.hero-pig'); if(!box) return;
+  U.bubbleChanged = Date.now();
   const apply = () => { box.dataset.mood = bubbleMood(); box.innerHTML = bubbleHTML(); };
   if(reducedMotion()){ apply(); return; }
   box.classList.add('swap');
@@ -1338,6 +1340,7 @@ function bubbleTick(){
   if(!S || U.tab !== 'synthese' || document.hidden || reducedMotion()) return;
   if(U.bubbleHover || U.bubbleFocus || Date.now() < (U.bubbleHold || 0) || ($('#dlg') && $('#dlg').open)) return;
   if(!U.bubbleList || U.bubbleList.length < 2) return;
+  if(Date.now() - (U.bubbleChanged || 0) < BUBBLE_MS) return;
   U.bubbleIdx = (U.bubbleIdx || 0) + 1; swapBubble();
 }
 function goAdvice(kind){
@@ -1841,7 +1844,7 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, id = t.dataset.id;
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
-    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese' && reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
+    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese'){ if(reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleChanged = Date.now(); } U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
     case 'add-idea': {
       const idea = IDEAS.find(x => x.id === id); if(!idea) break;
       openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
@@ -1999,7 +2002,7 @@ function onBind(el, b){
   document.addEventListener('focusin', e => { if(inBox(e)) U.bubbleFocus = true; });
   document.addEventListener('focusout', e => { if(inBox(e)) U.bubbleFocus = false; });
   document.addEventListener('pointerdown', e => { if(e.pointerType === 'touch' && inBox(e)) U.bubbleHold = Date.now() + 10000; });
-  setInterval(bubbleTick, 8000);
+  setInterval(bubbleTick, 3000);
 })();
 document.addEventListener('DOMContentLoaded', () => {
   const dlg = $('#dlg');
