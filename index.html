@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MaTirelire">
 <meta name="description" content="MaTirelire : le budget du foyer, sans prise de tête. Vos données restent dans un fichier JSON sur votre appareil.">
 <title>MaTirelire – le budget du foyer</title>
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('matirelire:look')||'{}'),r=document.documentElement,s=l.skin||'tirelire',m=l.mode||'auto',d=s==='minuit'||m==='dark'||(m==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);r.dataset.skin=s;r.dataset.theme=d?'dark':'light';r.dataset.mascot=l.mascot||'pig'}catch(e){}})()</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2215%22 fill=%22%231E6B66%22/%3E%3Cg transform=%22translate%28-1 6%29 scale%28.4%29%22%3E%3Cg class=%22pig-coin%22%3E%3Ccircle cx=%2275%22 cy=%2226%22 r=%2214%22 fill=%22%23F5B82E%22 stroke=%22%23D08C0F%22 stroke-width=%223%22/%3E%3Ccircle cx=%2275%22 cy=%2226%22 r=%228%22 fill=%22none%22 stroke=%22%23D08C0F%22 stroke-width=%222%22/%3E%3Cpath d=%22M69 21q3-3 8-2%22 stroke=%22%23FFE08A%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg class=%22pig-body%22%3E%3Cpath d=%22M28 82C14 79 12 64 23 63c8-1 9 8 2 9%22 fill=%22none%22 stroke=%22%23EE8FA9%22 stroke-width=%225%22 stroke-linecap=%22round%22/%3E%3Crect x=%2240%22 y=%22106%22 width=%2217%22 height=%2222%22 rx=%228%22 fill=%22%23EE8FA9%22/%3E%3Crect x=%2294%22 y=%22106%22 width=%2217%22 height=%2222%22 rx=%228%22 fill=%22%23EE8FA9%22/%3E%3Cellipse cx=%2278%22 cy=%2284%22 rx=%2252%22 ry=%2238%22 fill=%22%23F7A8BC%22/%3E%3Cellipse cx=%2266%22 cy=%2268%22 rx=%2224%22 ry=%2210%22 fill=%22%23FCCBD8%22 opacity=%22.75%22 transform=%22rotate%28-8 66 68%29%22/%3E%3Cpath d=%22M93 52l11-21 13 27z%22 fill=%22%23EE8FA9%22 stroke=%22%23EE8FA9%22 stroke-width=%224%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M99 50l5-10 6 13z%22 fill=%22%23F7A8BC%22/%3E%3Crect x=%2258%22 y=%2247%22 width=%2234%22 height=%228%22 rx=%224%22 fill=%22%23A63A5B%22/%3E%3Cellipse cx=%22128%22 cy=%2286%22 rx=%2215%22 ry=%2213%22 fill=%22%23EE8FA9%22/%3E%3Cellipse cx=%22123%22 cy=%2286%22 rx=%222.4%22 ry=%223.8%22 fill=%22%23A63A5B%22/%3E%3Cellipse cx=%22133%22 cy=%2286%22 rx=%222.4%22 ry=%223.8%22 fill=%22%23A63A5B%22/%3E%3Ccircle cx=%22103%22 cy=%2289%22 r=%226.5%22 fill=%22%23F27C9D%22 opacity=%22.55%22/%3E%3Ccircle cx=%22110%22 cy=%2272%22 r=%224.2%22 fill=%22%232A2233%22/%3E%3Ccircle cx=%22111.4%22 cy=%2270.6%22 r=%221.4%22 fill=%22%23fff%22/%3E%3Cpath d=%22M112 101q8 6 16 0%22 stroke=%22%23A63A5B%22 stroke-width=%222.6%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
@@ -16,13 +17,9 @@
   --bg:#FFF3F0; --surface:#FFFFFF; --surface2:#FFF9F7; --ink:#15302E; --muted:#587170; --line:#EBDAD6;
   --brand:#1E6B66; --brand-strong:#14504C; --on-brand:#FFFFFF;
   --amber:#E2A02A; --amber-soft:#FBEED0; --debit:#AF3F2B; --credit:#2A7A4B; --slate:#5F7F9E; --focus:#2B7FFF;
+  --hero:#1E6B66; --hero-ink:#FFFFFF; --warn-ink:#8F6200; --solid-debit:#AF3F2B; --solid-credit:#2A7A4B; --solid-slate:#4F6F8E; --solid-warn:#8F6200;
   --radius:18px; --pig:#F7A8BC; --pig-strong:#EE8FA9; --display:ui-rounded,"SF Pro Rounded","Nunito","Varela Round","Arial Rounded MT Bold","Avenir Next",system-ui,sans-serif; --shadow:0 2px 0 rgba(238,143,169,.18);
   --font:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
-}
-@media (prefers-color-scheme:dark){
-  :root{ --bg:#0E1A19; --surface:#152524; --surface2:#1B2E2D; --ink:#E6F0EE; --muted:#93AAA7; --line:#2A403E;
-    --brand:#4DB6AC; --brand-strong:#7FD1C8; --on-brand:#06201E; --amber:#F0B441; --amber-soft:#3A2F14;
-    --debit:#F08A73; --credit:#6FCB93; --slate:#8FB0CF; --shadow:none; --pig:#4A2338; --pig-strong:#F7A8BC; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;overflow-x:clip;touch-action:manipulation}
@@ -50,7 +47,7 @@ input,select,textarea{font-size:16px}   /* sous 16 px, Safari iPhone zoome et d�
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:25}
 nav.tabs .wrap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px 6px}
 nav.tabs button{position:relative;background:none;border:0;border-radius:999px;padding:9px 2px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.2}
-.navdot{position:absolute;top:2px;right:8px;background:var(--debit);color:#fff;font-size:.62rem;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.navdot{position:absolute;top:2px;right:8px;background:var(--solid-debit);color:#fff;font-size:.62rem;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 nav.tabs button[aria-current=page]{background:var(--brand);color:var(--on-brand)}
 @media(min-width:760px){
   body{padding-bottom:40px}
@@ -81,7 +78,7 @@ main > * + *{margin-top:16px}
 .wrapchips{flex-wrap:wrap;overflow:visible}
 
 /* Synthèse : encart principal */
-.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--brand);color:#fff;border-radius:var(--radius);padding:18px;overflow:hidden}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--hero);color:var(--hero-ink);border-radius:var(--radius);padding:18px;overflow:hidden}
 .hero-txt{grid-area:txt;align-self:center}
 .hero-k{font-size:.95rem;opacity:.85}
 .hero-v{font-size:clamp(1.7rem,7.4vw,3rem);font-weight:800;letter-spacing:-.02em;line-height:1.1}
@@ -102,7 +99,6 @@ main > * + *{margin-top:16px}
 .hero-d dt{font-size:.82rem;opacity:.8}
 .hero-d dd{margin:0;font-size:1.1rem;font-weight:750}
 @media(min-width:560px){.hero{grid-template-columns:minmax(0,1fr) 190px;padding:22px 26px}.hero-pig .pig{width:120px;height:auto}}
-@media(prefers-color-scheme:dark){.hero{background:#1B3A38;color:#E6F0EE}}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px}
 .mcard h3{font-size:1.05rem}
@@ -171,8 +167,7 @@ tfoot td{font-weight:700;border-bottom:0}
 .line .amt small{font-size:.78rem;color:var(--muted)}
 .line .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:4px 6px;font-size:.8rem;color:var(--muted)}
 .line .meta span{border:1px solid var(--line);border-radius:6px;padding:0 6px;background:var(--surface)}
-.line .todo{color:#B57A0C;font-weight:700}
-@media(prefers-color-scheme:dark){.line .todo{color:var(--amber)}}
+.line .todo{color:var(--warn-ink);font-weight:700}
 .sw input{width:20px;height:20px;accent-color:var(--brand)}
 .empty{padding:14px;color:var(--muted);font-size:.92rem}
 
@@ -257,10 +252,10 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .advice.click:hover{background:var(--surface2)}
 .advice .a-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:3px}
 .advice .a-tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:2px 8px;border-radius:999px;color:#fff;white-space:nowrap}
-.advice.sev-alert .a-tag{background:var(--debit)}
-.advice.sev-warn .a-tag{background:#B5760F}
-.advice.sev-info .a-tag{background:var(--slate)}
-.advice.sev-good .a-tag{background:var(--credit)}
+.advice.sev-alert .a-tag{background:var(--solid-debit)}
+.advice.sev-warn .a-tag{background:var(--solid-warn)}
+.advice.sev-info .a-tag{background:var(--solid-slate)}
+.advice.sev-good .a-tag{background:var(--solid-credit)}
 .advice h3{font-size:.98rem;font-weight:700}
 .advice p{font-size:.9rem;color:var(--muted);margin-top:2px;line-height:1.4}
 
@@ -336,8 +331,8 @@ details.method[open] summary{margin-bottom:6px}
 .ibtn::after{content:'';position:absolute;inset:-12px}
 .ibtn:hover,.ibtn[aria-expanded=true]{opacity:1;color:var(--brand)}
 .ibtn:focus-visible{outline:2px solid var(--focus);outline-offset:3px;opacity:1}
-.ibtn.light{color:#fff;opacity:.78}
-.ibtn.light:hover,.ibtn.light[aria-expanded=true]{opacity:1;color:#fff}
+.ibtn.light{color:var(--hero-ink);opacity:.78}
+.ibtn.light:hover,.ibtn.light[aria-expanded=true]{opacity:1;color:var(--hero-ink)}
 .pop{position:absolute;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,48,46,.2);font-size:.88rem;line-height:1.42;--ax:50%}
 .pop::before{content:'';position:absolute;top:-7px;left:var(--ax);margin-left:-6px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg);border-top-left-radius:3px}
 .pop.up::before{top:auto;bottom:-7px;transform:rotate(225deg)}
@@ -359,7 +354,7 @@ details.method[open] summary{margin-bottom:6px}
 .wz-steps li span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--line);font-size:.78rem}
 .wz-steps li[aria-current=step]{color:var(--on-brand);background:var(--brand);border-color:var(--brand)}
 .wz-steps li[aria-current=step] span{background:rgba(255,255,255,.22);border-color:transparent;color:var(--on-brand)}
-.wz-steps li.done span{background:var(--credit);border-color:var(--credit);color:#fff}
+.wz-steps li.done span{background:var(--solid-credit);border-color:var(--solid-credit);color:#fff}
 .wz-body{display:grid;gap:12px}
 .wz-body h1{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;line-height:1.15}
 .wz-card{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
@@ -406,6 +401,38 @@ details.method[open] summary{margin-bottom:6px}
 @media(max-width:420px){nav.tabs button{font-size:.62rem;letter-spacing:-.01em;padding-left:0;padding-right:0}}
 
 @media(max-width:340px){nav.tabs button{font-size:.6rem}}
+
+.potacts{display:flex;gap:8px;flex-wrap:wrap}
+.dueList li .btn.paid{min-width:44px}
+
+.dueList li{flex-wrap:wrap;row-gap:4px}
+.dueList li > span:first-child{flex:1 1 130px;min-width:0}
+.dueList li .dots{flex:1 1 12px;min-width:8px}
+.dueList li .paid{margin-left:auto}
+
+/* Apparence : choix du skin et de la mascotte */
+.look-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(104px,100%),1fr));gap:10px}
+.look-tile{display:grid;gap:6px;justify-items:center;padding:10px 6px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font-weight:600;font-size:.85rem;text-align:center;min-width:0}
+.look-tile[aria-pressed=true]{border-color:var(--brand);background:var(--surface2);box-shadow:0 0 0 2px var(--brand) inset}
+.look-tile .sw3{display:flex;gap:4px}
+.look-tile .sw3 i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
+.look-tile .mpic{width:64px;height:56px;border-radius:12px;background:var(--hero);display:grid;place-items:center;overflow:hidden}
+.look-tile .mpic svg{width:60px;height:auto}
+.look-tile small{font-weight:500;color:var(--muted);font-size:.74rem;line-height:1.2}
+
+/* ===== Skins (généré depuis skins.py) ===== */
+:root[data-skin=tirelire]{--bg:#FFF3F0;--surface:#FFFFFF;--surface2:#FFF9F7;--ink:#15302E;--muted:#587170;--line:#EBDAD6;--brand:#1E6B66;--brand-strong:#14504C;--on-brand:#FFFFFF;--amber:#E2A02A;--amber-soft:#FBEED0;--debit:#AF3F2B;--credit:#2A7A4B;--slate:#5F7F9E;--focus:#2B7FFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 2px 0 rgba(238,143,169,.18);--hero:#1E6B66;--hero-ink:#FFFFFF;--warn-ink:#8F6200;--solid-debit:#AF3F2B;--solid-credit:#2A7A4B;--solid-slate:#4F6F8E;--solid-warn:#8F6200}
+:root[data-skin=tirelire][data-theme=dark]{--bg:#0E1A19;--surface:#152524;--surface2:#1B2E2D;--ink:#E6F0EE;--muted:#93AAA7;--line:#2A403E;--brand:#4DB6AC;--brand-strong:#7FD1C8;--on-brand:#06201E;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#F08A73;--credit:#6FCB93;--slate:#8FB0CF;--focus:#2B7FFF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1B3A38;--hero-ink:#E6F0EE;--warn-ink:#F0B441;--solid-debit:#B8402B;--solid-credit:#23724A;--solid-slate:#4F6F8E;--solid-warn:#8F6200}
+:root[data-skin=ocean]{--bg:#EEF4FA;--surface:#FFFFFF;--surface2:#F5F9FD;--ink:#12263A;--muted:#4C6782;--line:#D3DEEA;--brand:#1D5FA6;--brand-strong:#154A85;--on-brand:#FFFFFF;--amber:#D9962B;--amber-soft:#FBEFD5;--debit:#B03A2E;--credit:#1F7A4D;--slate:#4A78A8;--focus:#2B7FFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 2px 0 rgba(29,95,166,.12);--hero:#1D5FA6;--hero-ink:#FFFFFF;--warn-ink:#8F6200;--solid-debit:#B03A2E;--solid-credit:#1F7A4D;--solid-slate:#456F9E;--solid-warn:#8F6200}
+:root[data-skin=ocean][data-theme=dark]{--bg:#0C1826;--surface:#132336;--surface2:#182B42;--ink:#E4EEF9;--muted:#93ABC4;--line:#26405B;--brand:#6AAEF0;--brand-strong:#9CC8F6;--on-brand:#0A1B2E;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#F28B7D;--credit:#6FD3A0;--slate:#8FB0D8;--focus:#5AA0FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#163A63;--hero-ink:#E4EEF9;--warn-ink:#F0B441;--solid-debit:#B53A2D;--solid-credit:#1F7A4D;--solid-slate:#456F9E;--solid-warn:#8F6200}
+:root[data-skin=foret]{--bg:#F1F5EC;--surface:#FFFFFF;--surface2:#F7FAF3;--ink:#1B2A1A;--muted:#516A4D;--line:#D6DFC9;--brand:#2F6B3A;--brand-strong:#22522B;--on-brand:#FFFFFF;--amber:#D9962B;--amber-soft:#F7EDCF;--debit:#A8412A;--credit:#2A7A3E;--slate:#5F7F6A;--focus:#2B7FFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 2px 0 rgba(47,107,58,.12);--hero:#2F6B3A;--hero-ink:#FFFFFF;--warn-ink:#8F6200;--solid-debit:#A8412A;--solid-credit:#2A7A3E;--solid-slate:#4F6F5A;--solid-warn:#8F6200}
+:root[data-skin=foret][data-theme=dark]{--bg:#0F1A12;--surface:#172619;--surface2:#1D2F20;--ink:#E6F1E4;--muted:#9CB59A;--line:#2B4430;--brand:#6CC17A;--brand-strong:#9ADBA5;--on-brand:#07200D;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#F09A80;--credit:#7ED69A;--slate:#90B49A;--focus:#5AA0FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1F3D26;--hero-ink:#E6F1E4;--warn-ink:#F0B441;--solid-debit:#B54A2F;--solid-credit:#23724A;--solid-slate:#4F6F5A;--solid-warn:#8F6200}
+:root[data-skin=pastel]{--bg:#FAF4FF;--surface:#FFFFFF;--surface2:#FDF9FF;--ink:#2B2340;--muted:#645880;--line:#E6DAF2;--brand:#6D4FB0;--brand-strong:#543B8F;--on-brand:#FFFFFF;--amber:#E0A030;--amber-soft:#FBEED0;--debit:#B2395A;--credit:#2E7D5B;--slate:#7A74B0;--focus:#2B7FFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 2px 0 rgba(109,79,176,.14);--hero:#6D4FB0;--hero-ink:#FFFFFF;--warn-ink:#8F6200;--solid-debit:#B2395A;--solid-credit:#2E7D5B;--solid-slate:#6A64A0;--solid-warn:#8F6200}
+:root[data-skin=pastel][data-theme=dark]{--bg:#17121F;--surface:#211A2E;--surface2:#281F38;--ink:#F0EAFB;--muted:#AFA3C8;--line:#3A2F52;--brand:#B79CF0;--brand-strong:#D2C0F7;--on-brand:#1B1030;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#F28BA8;--credit:#78D5A8;--slate:#A8A0D8;--focus:#5AA0FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#3A2A66;--hero-ink:#F0EAFB;--warn-ink:#F0B441;--solid-debit:#B2395A;--solid-credit:#2E7D5B;--solid-slate:#6A64A0;--solid-warn:#8F6200}
+:root[data-skin=minuit][data-theme=dark]{--bg:#090E1C;--surface:#111830;--surface2:#172040;--ink:#E8EDFB;--muted:#9AA7CC;--line:#25315C;--brand:#7C9CFF;--brand-strong:#A9BEFF;--on-brand:#0A1230;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#FF8F85;--credit:#6FE3A8;--slate:#93A8E0;--focus:#5AA0FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1A2760;--hero-ink:#E8EDFB;--warn-ink:#F0B441;--solid-debit:#B83A3A;--solid-credit:#1F7A4D;--solid-slate:#4F66A8;--solid-warn:#8F6200}
+:root[data-skin=contraste]{--bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F2F2F2;--ink:#000000;--muted:#333333;--line:#5A5A5A;--brand:#0B3D91;--brand-strong:#08306F;--on-brand:#FFFFFF;--amber:#8A5A00;--amber-soft:#FFF0C2;--debit:#A00018;--credit:#005A1E;--slate:#1F4E79;--focus:#0000FF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:none;--hero:#0B3D91;--hero-ink:#FFFFFF;--warn-ink:#6B4500;--solid-debit:#A00018;--solid-credit:#005A1E;--solid-slate:#1F4E79;--solid-warn:#6B4500}
+:root[data-skin=contraste][data-theme=dark]{--bg:#000000;--surface:#000000;--surface2:#161616;--ink:#FFFFFF;--muted:#E0E0E0;--line:#B0B0B0;--brand:#FFD400;--brand-strong:#FFE55C;--on-brand:#000000;--amber:#FFD400;--amber-soft:#332B00;--debit:#FF8A80;--credit:#7CFFB0;--slate:#9CC9FF;--focus:#00E5FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1A1A1A;--hero-ink:#FFFFFF;--warn-ink:#FFD400;--solid-debit:#C62828;--solid-credit:#00692A;--solid-slate:#1F5F99;--solid-warn:#7A5200}
+:root[data-theme=dark]{color-scheme:dark}
 </style>
 </head>
 <body>
@@ -454,6 +481,8 @@ const DEFAULT_METHODS = [
 ];
 const CAT_COLORS = ['#1E6B66','#AF3F2B','#5F7F9E','#C68A1E','#7A5C99','#3F8F5B','#B5536F','#4E6E3B','#8A6B4F','#3D7FA3','#9A7B2F','#6B6F8E'];
 
+const SKINS = ['tirelire', 'ocean', 'foret', 'pastel', 'minuit', 'contraste'];
+const MASCOT_IDS = ['pig', 'toucan', 'squirrel', 'owl', 'fox'];
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
 /* ---------- Cycles ---------- */
@@ -613,11 +642,11 @@ function computeMonth(S, m){
 
 /* ---------- Données ---------- */
 function defaultSettings(){
-  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false,
+  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false, skin:'tirelire', mode:'auto', mascot:'pig',
           distribution:{mode:'equal_remainder', includePersonal:false, custom:{}},
           methods: DEFAULT_METHODS.map(x=>({...x}))};
 }
-function emptyState(){ return {app:'budget-foyer', version:1, settings:defaultSettings(), members:[], accounts:[], categories:[], lines:[], spends:[]}; }
+function emptyState(){ return {app:'budget-foyer', version:1, settings:defaultSettings(), members:[], accounts:[], categories:[], lines:[], spends:[], pot:[]}; }
 const arr = x => Array.isArray(x) ? x : [];
 
 function normalize(d){
@@ -630,6 +659,9 @@ function normalize(d){
   S.settings.distribution = Object.assign(defaultSettings().distribution, st.distribution || {});
   S.settings.provisionBlock = st.provisionBlock !== false;
   S.settings.envGuideHidden = !!st.envGuideHidden;
+  if(!SKINS.includes(S.settings.skin)) S.settings.skin = 'tirelire';
+  if(!['auto', 'light', 'dark'].includes(S.settings.mode)) S.settings.mode = 'auto';
+  if(!MASCOT_IDS.includes(S.settings.mascot)) S.settings.mascot = 'pig';
   delete S.settings.provisionStart;   // ancien réglage (point de départ global), remplacé par le calcul ligne par ligne
   if(!Array.isArray(S.settings.methods) || !S.settings.methods.length) S.settings.methods = DEFAULT_METHODS.map(x=>({...x}));
   S.members = arr(d.members).map(x => ({
@@ -659,7 +691,8 @@ function normalize(d){
       goal: x.goal != null && x.goal !== '' ? Math.abs(+x.goal)||null : null,
       reserved: x.reserved != null && x.reserved !== '' ? +x.reserved : null,
       lastDate: x.lastDate || null, note: String(x.note||''), auto: x.auto || null, forMember: x.forMember || null,
-      envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero, split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
+      envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero,
+      paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
   // Références orphelines
@@ -680,6 +713,10 @@ function normalize(d){
   const lineIds = new Set(S.lines.map(l => l.id));
   S.spends = arr(d.spends).map(x => ({id:String((x && x.id) || uid()), lineId:String((x && x.lineId) || ''), date:String((x && x.date) || ''), amount:Math.abs(+(x && x.amount)) || 0, note:String((x && x.note) || '')}))
     .filter(x => lineIds.has(x.lineId) && x.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
+  const POT_KINDS = ['reliquat', 'ecart', 'epargne', 'ajustement', 'recalage'];
+  S.pot = arr(d.pot).map(x => ({id:String((x && x.id) || uid()), date:String((x && x.date) || ''), amount:+(x && x.amount) || 0, kind:POT_KINDS.includes(x && x.kind) ? x.kind : 'ajustement',
+    label:String((x && x.label) || ''), note:String((x && x.note) || ''), dest:(x && x.dest) ? String(x.dest) : null, lineId:(x && x.lineId) ? String(x.lineId) : null}))
+    .filter(x => Math.abs(x.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
   return S;
 }
 function ensureCategory(S, name){
@@ -692,7 +729,7 @@ function newLine(S, o={}){
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, paid:[]
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -959,32 +996,65 @@ function provisionLine(l, now, clock){
   const monthlyGoal = isMonthlyExact(l) && l.goal != null;
   const mens = isMonthlyExact(l) ? l.amount * times : annualTotal(l) / 12;
   const st = parseISO(l.lastDate);
-  const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, exact:0, accrued:0, rest:goal, over:0, done:false, overdue:false, noStart:!st};
+  const paid = (l.paid || []).reduce((a, p) => a + p.amount, 0);
+  const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, exact:0, gross:0, paid, toPay:Math.max(0, goal - paid), accrued:0, rest:goal, over:0, done:false, overdue:false, noStart:!st};
   if(!st) return out;
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), s = dateOf(st);
   out.k = clock.countFrom(s, today0);
-  out.exact = mens * out.k;
-  out.accrued = Math.floor(out.exact + 1e-6);
-  out.rest = Math.max(0, goal - out.accrued);
-  out.over = Math.max(0, Math.floor(out.exact - goal + 1e-6));
-  out.done = out.accrued >= goal - 0.005;
+  const grossExact = mens * out.k;
+  out.gross = Math.floor(grossExact + 1e-6);
+  out.exact = grossExact - paid;               // ce qui reste sur le compte pour cette ligne, centimes compris
+  out.accrued = out.gross - paid;              // idem, arrondi à l'euro inférieur avant déduction (comme l'Excel)
+  out.rest = Math.max(0, goal - out.gross);    // reste à provisionner
+  out.over = Math.max(0, Math.floor(grossExact - goal + 1e-6));
+  out.done = out.gross >= goal - 0.005;
   if(monthlyGoal) out.end = mens > 0 ? clock.nthFrom(s, Math.max(1, Math.ceil(goal / mens - 1e-9))) : null;
   else { out.end = addCycleTo(st, c); out.overdue = out.end < today0; }
   return out;
+}
+/* ---------- Cagnotte : écarts des provisions (reliquats, manques, épargne, recalage) ---------- */
+function potTotal(S){ return (S.pot || []).reduce((a, x) => a + x.amount, 0); }
+function potAdd(S, kind, amount, date, label, extra){
+  const e = Object.assign({id:uid(), date, amount:+amount || 0, kind, label:String(label || ''), note:'', dest:null, lineId:null}, extra || {});
+  if(Math.abs(e.amount) < 0.0049) return null;
+  S.pot = S.pot || []; S.pot.push(e); return e;
+}
+/* Paiement partiel : la dépense reste à compléter, le suivi ne repart pas */
+function payPartial(S, lineId, amount, date, note){
+  const l = S.lines.find(x => x.id === lineId); if(!l) return null;
+  const p = {id:uid(), date, amount:Math.abs(+amount) || 0, note:String(note || '').trim()};
+  l.paid = l.paid || []; l.paid.push(p); return p;
+}
+/* Paiement final : solde la dépense, le suivi repart de la date de paiement, l'écart va dans la cagnotte */
+function payFinal(S, lineId, amount, date, note, clock){
+  const l = S.lines.find(x => x.id === lineId); if(!l) return null;
+  const d = parseISO(date) || objOf(new Date());
+  const p = provisionLine(l, new Date(d.y, d.m - 1, d.d), clock);
+  const total = p.paid + Math.abs(+amount || 0);
+  const delta = p.noStart ? 0 : p.gross - total;
+  const entry = potAdd(S, delta > 0 ? 'reliquat' : 'ecart', delta, date, l.name, {lineId, note:String(note || '').trim()});
+  l.paid = []; l.lastDate = date;
+  return {delta, total, entry, gross:p.gross};
+}
+/* Recalage : l'écart entre le solde réel saisi et l'état attendu devient une entrée de cagnotte */
+function recalage(S, real, date, now){
+  const st = provisionSummary(S, now).cash.state, delta = (+real || 0) - st;
+  const acc = S.accounts.find(a => a.id === S.settings.commonAccountId);
+  return {state:st, delta, entry:potAdd(S, 'recalage', delta, date, `Recalage sur le solde réel${acc ? ' · ' + acc.name : ''}`)};
 }
 /* Lignes concernées par le suivi de provision */
 function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l)) && !l.zero); }
 /* Vue compacte pour l'onglet Provisions */
 function provisionInfo(l, now, clock){
   const p = provisionLine(l, now, clock);
-  return {goal:p.goal, reserved:p.accrued, rest:p.rest, over:p.over, next:p.end, mens:p.mens, k:p.k, start:p.start, done:p.done, overdue:p.overdue, noStart:p.noStart, monthlyGoal:p.monthlyGoal};
+  return {goal:p.goal, reserved:p.accrued, gross:p.gross, paid:p.paid, toPay:p.toPay, rest:p.rest, over:p.over, next:p.end, mens:p.mens, k:p.k, start:p.start, done:p.done, overdue:p.overdue, noStart:p.noStart, monthlyGoal:p.monthlyGoal};
 }
 /* Projection du compte provisions à la fin de chacun des n prochains mois.
    Hypothèse : chaque dépense est payée à sa date de fin (une échéance déjà dépassée est supposée payée
    aujourd'hui), le suivi repart alors de cette date et le surplus éventuel reste sur le compte.
    Une ligne à objectif dont la date est déjà passée n'est jamais supposée payée : elle continue d'augmenter. */
 function projectProvisions(counted, clock, today0, n){
-  const items = counted.map(r => ({name:r.l.name, mens:r.p.mens, goal:r.p.goal, mg:r.p.monthlyGoal, c:r.l.cycle, start:dateOf(r.p.start), base:0}));
+  const items = counted.map(r => ({name:r.l.name, mens:r.p.mens, goal:r.p.goal, rem:r.p.toPay, mg:r.p.monthlyGoal, c:r.l.cycle, start:dateOf(r.p.start), base:-r.p.paid}));
   const endOf = it => it.mg
     ? (it.mens > 0 ? clock.nthFrom(it.start, Math.max(1, Math.ceil(it.goal / it.mens - 1e-9))) : null)
     : addCycleTo(objOf(it.start), it.c);
@@ -997,8 +1067,8 @@ function projectProvisions(counted, clock, today0, n){
         const end = endOf(it);
         if(!end || end > D || (it.mg && end < today0)) break;
         const pay = end < today0 ? today0 : end;
-        it.base = it.base + it.mens * clock.countFrom(it.start, pay) - it.goal;
-        it.start = pay; deb += it.goal; list.push({name:it.name, goal:it.goal, date:objOf(pay)});
+        it.base = it.base + it.mens * clock.countFrom(it.start, pay) - it.rem;
+        deb += it.rem; list.push({name:it.name, goal:it.rem, date:objOf(pay)}); it.start = pay; it.rem = it.goal;
       }
       bal += it.base + it.mens * clock.countFrom(it.start, D);
     });
@@ -1016,14 +1086,15 @@ function provisionSummary(S, now){
   const sum = f => counted.reduce((a, r) => a + f(r.p), 0);
   const accrued = sum(p => p.accrued), exactToday = sum(p => p.exact), delta = exactToday - accrued;
   const mensAll = sum(p => p.mens);
-  const dueNow = counted.filter(r => r.p.end && (r.p.overdue || (r.p.end >= today0 && r.p.end <= monthEnd)))
-    .sort((a, b) => a.p.end - b.p.end)
-    .map(r => ({id:r.l.id, name:r.l.name, end:objOf(r.p.end), goal:r.p.goal, accrued:r.p.accrued, over:r.p.over, overdue:r.p.overdue}));
+  const dueNow = counted.filter(r => r.p.paid > 0 || (r.p.end && (r.p.overdue || (r.p.end >= today0 && r.p.end <= monthEnd))))
+    .sort((a, b) => (a.p.end || 0) - (b.p.end || 0))
+    .map(r => ({id:r.l.id, name:r.l.name, end:r.p.end ? objOf(r.p.end) : null, goal:r.p.goal, toPay:r.p.toPay, paid:r.p.paid, accrued:r.p.accrued, over:r.p.over, overdue:r.p.overdue}));
   const limit = new Date(today0); limit.setDate(limit.getDate() + 60);
   const upcoming = counted.filter(r => r.p.end && r.p.end >= today0 && r.p.end <= limit)
     .sort((a, b) => a.p.end - b.p.end)
     .map(r => ({name:r.l.name, end:objOf(r.p.end), days:Math.round((r.p.end - today0) / DAY_MS), goal:r.p.goal, accrued:r.p.accrued, monthlyGoal:r.p.monthlyGoal}));
-  const proj = projectProvisions(counted, clock, today0, 12).map(x => ({...x, balance:x.exact - delta}));
+  const pot = potTotal(S);
+  const proj = projectProvisions(counted, clock, today0, 12).map(x => ({...x, balance:x.exact - delta + pot}));
   const evs = clock.events(today0, monthEnd);
   const curY = today0.getFullYear(), curM = today0.getMonth() + 1;
   const incoming = evs.length * mensAll;
@@ -1066,24 +1137,24 @@ function provisionSummary(S, now){
   const exJ = {deb:execDeb, cr:execCr};
   const funded = [[curY, curM], (m => [m.getFullYear(), m.getMonth() + 1])(new Date(curY, curM, 1))];
   const arrived = d => { let t = 0; funded.forEach(([y, m]) => clock.contrib.forEach(mb => { const sh = clock.shareOf(m, mb.id); if(sh > 0.005 && clock.T(mb, y, m) <= d) t += sh; })); return t; };
-  const mensAlloc = d => { let t = 0; funded.forEach(([y, m]) => { const D = clock.dateFor(y, m); if(D <= d) counted.forEach(r => { if(clock.idx(new Date(y, m - 1, 1)) > clock.idx(dateOf(r.p.start))) t += r.p.mens; }); }); return t; };
+  const mensAlloc = d => { let t = 0; funded.forEach(([y, m]) => { const D = clock.dateFor(y, m); if(D <= d) counted.forEach(r => { const st = dateOf(r.p.start); if(clock.idx(new Date(y, m - 1, 1)) > clock.idx(st) || D <= st) t += r.p.mens; }); }); return t; };
   const treasury = arrived(today0) - mensAlloc(today0) - exJ.deb + exJ.cr;
   const remainNet = remD - remC;
   const incomingShares = arrived(monthEnd) - arrived(today0);
-  const state = accrued + treasury;
+  const state = accrued + pot + treasury;
   const endBalance = state + incomingShares - remainNet - debits;
-  const provisionsEnd = proj.length ? proj[0].balance : accrued;
+  const provisionsEnd = proj.length ? proj[0].balance : accrued + pot;
   const pending = [];
   clock.contrib.forEach(mb => { const sh = clock.shareOf(curM, mb.id); const d = clock.T(mb, curY, curM); if(sh > 0.005 && d > today0) pending.push({name:mb.name, date:objOf(d), amount:sh}); });
   const groups = {};
   mlines.filter(x => x.sign < 0 && !x.spread && x.day > dayJ).forEach(x => { (groups[x.day] = groups[x.day] || {day:x.day, total:0, names:[]}); groups[x.day].total += x.v; groups[x.day].names.push(x.name); });
   const upcomingDebits = Object.values(groups).sort((a, b) => a.day - b.day).map(g => ({date:{y:curY, m:curM, d:g.day}, total:g.total, names:g.names}));
-  const cash = {state, provisions:accrued, treasury, remainNet, incomingShares, endBalance, provisionsEnd, treasuryEnd:endBalance - provisionsEnd, pending, upcomingDebits, spentSoFar:exJ.deb - exJ.cr, envOver};
+  const cash = {state, provisions:accrued, pot, treasury, remainNet, incomingShares, endBalance, provisionsEnd, treasuryEnd:endBalance - provisionsEnd, pending, upcomingDebits, spentSoFar:exJ.deb - exJ.cr, envOver};
 
   const overRows = counted.filter(r => r.p.over >= 1).sort((a, b) => b.p.over - a.p.over);
   return {count:counted.length, accrued, goal:sum(p => p.goal), rest:sum(p => p.rest), over:overRows.reduce((a, r) => a + r.p.over, 0),
           overList:overRows.map(r => ({name:r.l.name, over:r.p.over})), mens:mensAll,
-          dueNow, upcoming, debits, incoming, incomingNext, eom:proj.length ? proj[0].balance : accrued, proj, cash,
+          dueNow, upcoming, debits, incoming, incomingNext, pot, eom:proj.length ? proj[0].balance : accrued + pot, proj, cash,
           overdue:counted.filter(r => r.p.overdue).map(r => r.l.name), noStart:rows.filter(r => r.p.noStart).map(r => r.l.name), nextTransfer};
 }
 
@@ -1159,6 +1230,9 @@ function computeAdvice(S, now){
   if(PS.over >= 1) push('info','prov-depassement',{total:PS.over, count:PS.overList.length, name:PS.overList[0].name}, {tab:'provisions'});
   if(PS.noStart.length) push('info','prov-sans-date',{count:PS.noStart.length, name:PS.noStart[0]}, {tab:'provisions'});
 
+  const potV = potTotal(S);
+  if(potV >= 1) push('info','pot-plus',{amount:potV}, {tab:'synthese', month:(now || new Date()).getMonth() + 1});
+  else if(potV <= -1) push('warn','pot-moins',{amount:-potV}, {tab:'synthese', month:(now || new Date()).getMonth() + 1});
   const nowE = now || new Date(), ES = envelopeStats(S, nowE.getFullYear(), nowE.getMonth() + 1, nowE);
   const overE = ES.items.filter(x => x.over > 0.5).sort((a, b) => b.over - a.over);
   if(overE.length) push('alert','env-depasse',{count:overE.length, name:overE[0].name, pct:overE[0].pct, over:overE[0].over, total:ES.over}, {tab:'synthese', month:nowE.getMonth() + 1});
@@ -1190,7 +1264,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, MASCOT_IDS};
 
 </script>
 <script>
@@ -1211,10 +1285,42 @@ const FSA = typeof window.showOpenFilePicker === 'function';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
-/* ---------- Mascotte ---------- */
-const PIG = {"happy": "<g class=\"pig-coin\"><circle cx=\"75\" cy=\"26\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"75\" cy=\"26\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M69 21q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g class=\"pig-body\"><path d=\"M28 82C14 79 12 64 23 63c8-1 9 8 2 9\" fill=\"none\" stroke=\"#EE8FA9\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><rect x=\"94\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><ellipse cx=\"78\" cy=\"84\" rx=\"52\" ry=\"38\" fill=\"#F7A8BC\"/><ellipse cx=\"66\" cy=\"68\" rx=\"24\" ry=\"10\" fill=\"#FCCBD8\" opacity=\".75\" transform=\"rotate(-8 66 68)\"/><path d=\"M93 52l11-21 13 27z\" fill=\"#EE8FA9\" stroke=\"#EE8FA9\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M99 50l5-10 6 13z\" fill=\"#F7A8BC\"/><rect x=\"58\" y=\"47\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#A63A5B\"/><ellipse cx=\"128\" cy=\"86\" rx=\"15\" ry=\"13\" fill=\"#EE8FA9\"/><ellipse cx=\"123\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><ellipse cx=\"133\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><circle cx=\"103\" cy=\"89\" r=\"6.5\" fill=\"#F27C9D\" opacity=\".55\"/><circle cx=\"110\" cy=\"72\" r=\"4.2\" fill=\"#2A2233\"/><circle cx=\"111.4\" cy=\"70.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M112 101q8 6 16 0\" stroke=\"#A63A5B\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"/></g>", "worried": "<g class=\"pig-coin\"><circle cx=\"75\" cy=\"26\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"75\" cy=\"26\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M69 21q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g class=\"pig-body\"><path d=\"M28 82C14 79 12 64 23 63c8-1 9 8 2 9\" fill=\"none\" stroke=\"#EE8FA9\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><rect x=\"94\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><ellipse cx=\"78\" cy=\"84\" rx=\"52\" ry=\"38\" fill=\"#F7A8BC\"/><ellipse cx=\"66\" cy=\"68\" rx=\"24\" ry=\"10\" fill=\"#FCCBD8\" opacity=\".75\" transform=\"rotate(-8 66 68)\"/><path d=\"M93 52l11-21 13 27z\" fill=\"#EE8FA9\" stroke=\"#EE8FA9\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M99 50l5-10 6 13z\" fill=\"#F7A8BC\"/><rect x=\"58\" y=\"47\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#A63A5B\"/><ellipse cx=\"128\" cy=\"86\" rx=\"15\" ry=\"13\" fill=\"#EE8FA9\"/><ellipse cx=\"123\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><ellipse cx=\"133\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><circle cx=\"103\" cy=\"89\" r=\"6.5\" fill=\"#F27C9D\" opacity=\".55\"/><circle cx=\"110\" cy=\"73\" r=\"4\" fill=\"#2A2233\"/><circle cx=\"111.3\" cy=\"71.7\" r=\"1.3\" fill=\"#fff\"/><path d=\"M103 62l14 4\" stroke=\"#2A2233\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M112 105q8-6 16 0\" stroke=\"#A63A5B\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M96 56q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/></g>"};
+/* ---------- Apparence : skin, mode clair/sombre, mascotte (réglages enregistrés dans le JSON et en local) ---------- */
+const MASC = {"pig": {"happy": "<g class=\"pig-coin\"><circle cx=\"75\" cy=\"26\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"75\" cy=\"26\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M69 21q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g class=\"pig-body\"><path d=\"M28 82C14 79 12 64 23 63c8-1 9 8 2 9\" fill=\"none\" stroke=\"#EE8FA9\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><rect x=\"94\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><ellipse cx=\"78\" cy=\"84\" rx=\"52\" ry=\"38\" fill=\"#F7A8BC\"/><ellipse cx=\"66\" cy=\"68\" rx=\"24\" ry=\"10\" fill=\"#FCCBD8\" opacity=\".75\" transform=\"rotate(-8 66 68)\"/><path d=\"M93 52l11-21 13 27z\" fill=\"#EE8FA9\" stroke=\"#EE8FA9\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M99 50l5-10 6 13z\" fill=\"#F7A8BC\"/><rect x=\"58\" y=\"47\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#A63A5B\"/><ellipse cx=\"128\" cy=\"86\" rx=\"15\" ry=\"13\" fill=\"#EE8FA9\"/><ellipse cx=\"123\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><ellipse cx=\"133\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><circle cx=\"103\" cy=\"89\" r=\"6.5\" fill=\"#F27C9D\" opacity=\".55\"/><circle cx=\"110\" cy=\"72\" r=\"4.2\" fill=\"#2A2233\"/><circle cx=\"111.4\" cy=\"70.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M112 101q8 6 16 0\" stroke=\"#A63A5B\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"/></g>", "worried": "<g class=\"pig-coin\"><circle cx=\"75\" cy=\"26\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"75\" cy=\"26\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M69 21q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g><g class=\"pig-body\"><path d=\"M28 82C14 79 12 64 23 63c8-1 9 8 2 9\" fill=\"none\" stroke=\"#EE8FA9\" stroke-width=\"5\" stroke-linecap=\"round\"/><rect x=\"40\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><rect x=\"94\" y=\"106\" width=\"17\" height=\"22\" rx=\"8\" fill=\"#EE8FA9\"/><ellipse cx=\"78\" cy=\"84\" rx=\"52\" ry=\"38\" fill=\"#F7A8BC\"/><ellipse cx=\"66\" cy=\"68\" rx=\"24\" ry=\"10\" fill=\"#FCCBD8\" opacity=\".75\" transform=\"rotate(-8 66 68)\"/><path d=\"M93 52l11-21 13 27z\" fill=\"#EE8FA9\" stroke=\"#EE8FA9\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M99 50l5-10 6 13z\" fill=\"#F7A8BC\"/><rect x=\"58\" y=\"47\" width=\"34\" height=\"8\" rx=\"4\" fill=\"#A63A5B\"/><ellipse cx=\"128\" cy=\"86\" rx=\"15\" ry=\"13\" fill=\"#EE8FA9\"/><ellipse cx=\"123\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><ellipse cx=\"133\" cy=\"86\" rx=\"2.4\" ry=\"3.8\" fill=\"#A63A5B\"/><circle cx=\"103\" cy=\"89\" r=\"6.5\" fill=\"#F27C9D\" opacity=\".55\"/><circle cx=\"110\" cy=\"73\" r=\"4\" fill=\"#2A2233\"/><circle cx=\"111.3\" cy=\"71.7\" r=\"1.3\" fill=\"#fff\"/><path d=\"M103 62l14 4\" stroke=\"#2A2233\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M112 105q8-6 16 0\" stroke=\"#A63A5B\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M96 56q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/></g>"}, "toucan": {"happy": "<g transform=\"translate(127,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><path d=\"M50 104 L32 134 L62 127 Z\" fill=\"#2A2233\"/><ellipse cx=\"78\" cy=\"92\" rx=\"34\" ry=\"40\" fill=\"#2A2233\"/><path d=\"M54 80 Q38 102 58 124 Q74 108 68 82 Z\" fill=\"#3B3347\"/><ellipse cx=\"94\" cy=\"99\" rx=\"17\" ry=\"25\" fill=\"#FFF4D6\"/><circle cx=\"94\" cy=\"58\" r=\"23\" fill=\"#2A2233\"/><ellipse cx=\"104\" cy=\"58\" rx=\"13\" ry=\"14\" fill=\"#FFE9A8\"/><circle cx=\"104\" cy=\"55\" r=\"8\" fill=\"#5BC0DE\"/><circle cx=\"104\" cy=\"55\" r=\"4.4\" fill=\"#2A2233\"/><circle cx=\"105.4\" cy=\"53.6\" r=\"1.5\" fill=\"#fff\"/><path d=\"M106 47 C130 33 155 44 156 66 L108 65 Z\" fill=\"#F5A623\"/><path d=\"M108 65 L156 66 C152 83 126 86 108 75 Z\" fill=\"#FFD166\"/><path d=\"M144 46 C152 50 156 58 156 66 L146 66 C148 58 146 52 142 47 Z\" fill=\"#E0562B\"/><path d=\"M108 65.5 L156 66\" stroke=\"#D98A1A\" stroke-width=\"1.5\"/><circle cx=\"121\" cy=\"51\" r=\"1.8\" fill=\"#C77C12\"/><path d=\"M70 129 h14 M92 129 h14\" stroke=\"#F5A623\" stroke-width=\"5\" stroke-linecap=\"round\"/></g>", "worried": "<g transform=\"translate(127,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><path d=\"M50 104 L32 134 L62 127 Z\" fill=\"#2A2233\"/><ellipse cx=\"78\" cy=\"92\" rx=\"34\" ry=\"40\" fill=\"#2A2233\"/><path d=\"M54 80 Q38 102 58 124 Q74 108 68 82 Z\" fill=\"#3B3347\"/><ellipse cx=\"94\" cy=\"99\" rx=\"17\" ry=\"25\" fill=\"#FFF4D6\"/><circle cx=\"94\" cy=\"58\" r=\"23\" fill=\"#2A2233\"/><ellipse cx=\"104\" cy=\"58\" rx=\"13\" ry=\"14\" fill=\"#FFE9A8\"/><circle cx=\"104\" cy=\"55\" r=\"8\" fill=\"#5BC0DE\"/><circle cx=\"104\" cy=\"56\" r=\"3.8\" fill=\"#2A2233\"/><circle cx=\"105.2\" cy=\"54.8\" r=\"1.2\" fill=\"#fff\"/><path d=\"M97 44 L112 49\" stroke=\"#2A2233\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M90 36 q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/><path d=\"M106 47 C130 33 155 44 156 66 L108 65 Z\" fill=\"#F5A623\"/><path d=\"M108 65 L156 66 C152 83 126 86 108 75 Z\" fill=\"#FFD166\"/><path d=\"M144 46 C152 50 156 58 156 66 L146 66 C148 58 146 52 142 47 Z\" fill=\"#E0562B\"/><path d=\"M108 65.5 L156 66\" stroke=\"#D98A1A\" stroke-width=\"1.5\"/><circle cx=\"121\" cy=\"51\" r=\"1.8\" fill=\"#C77C12\"/><path d=\"M70 129 h14 M92 129 h14\" stroke=\"#F5A623\" stroke-width=\"5\" stroke-linecap=\"round\"/></g>"}, "squirrel": {"happy": "<g transform=\"translate(100,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><ellipse cx=\"40\" cy=\"80\" rx=\"21\" ry=\"40\" fill=\"#E0873A\" transform=\"rotate(-16 40 80)\"/><ellipse cx=\"36\" cy=\"76\" rx=\"9\" ry=\"28\" fill=\"#F2B26B\" transform=\"rotate(-16 36 76)\"/><ellipse cx=\"84\" cy=\"99\" rx=\"30\" ry=\"33\" fill=\"#E8923F\"/><ellipse cx=\"94\" cy=\"105\" rx=\"15\" ry=\"23\" fill=\"#FBE3C2\"/><ellipse cx=\"78\" cy=\"131\" rx=\"11\" ry=\"5.5\" fill=\"#C9742E\"/><ellipse cx=\"102\" cy=\"131\" rx=\"11\" ry=\"5.5\" fill=\"#C9742E\"/><circle cx=\"98\" cy=\"62\" r=\"24\" fill=\"#E8923F\"/><path d=\"M80 46 L77 24 L96 40 Z\" fill=\"#E8923F\"/><path d=\"M104 38 L121 24 L120 48 Z\" fill=\"#E8923F\"/><path d=\"M82 42 L80 31 L91 39 Z\" fill=\"#F2B26B\"/><path d=\"M110 38 L117 30 L117 44 Z\" fill=\"#F2B26B\"/><ellipse cx=\"110\" cy=\"70\" rx=\"12\" ry=\"9\" fill=\"#FBE3C2\"/><circle cx=\"99\" cy=\"72\" r=\"5\" fill=\"#F2A5A0\" opacity=\".55\"/><ellipse cx=\"119\" cy=\"66\" rx=\"3.6\" ry=\"3\" fill=\"#2A2233\"/><circle cx=\"106\" cy=\"58\" r=\"4.4\" fill=\"#2A2233\"/><circle cx=\"107.4\" cy=\"56.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M111 75 q5 5 10 0\" stroke=\"#7A3F1D\" stroke-width=\"2.2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"112\" cy=\"106\" rx=\"8\" ry=\"10\" fill=\"#B8742F\"/><path d=\"M103 100 Q112 87 121 100 Z\" fill=\"#7A4A1D\"/><rect x=\"111\" y=\"85\" width=\"2.4\" height=\"5\" rx=\"1\" fill=\"#7A4A1D\"/><circle cx=\"104\" cy=\"106\" r=\"5\" fill=\"#E8923F\"/><circle cx=\"120\" cy=\"106\" r=\"5\" fill=\"#E8923F\"/></g>", "worried": "<g transform=\"translate(100,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><ellipse cx=\"40\" cy=\"80\" rx=\"21\" ry=\"40\" fill=\"#E0873A\" transform=\"rotate(-16 40 80)\"/><ellipse cx=\"36\" cy=\"76\" rx=\"9\" ry=\"28\" fill=\"#F2B26B\" transform=\"rotate(-16 36 76)\"/><ellipse cx=\"84\" cy=\"99\" rx=\"30\" ry=\"33\" fill=\"#E8923F\"/><ellipse cx=\"94\" cy=\"105\" rx=\"15\" ry=\"23\" fill=\"#FBE3C2\"/><ellipse cx=\"78\" cy=\"131\" rx=\"11\" ry=\"5.5\" fill=\"#C9742E\"/><ellipse cx=\"102\" cy=\"131\" rx=\"11\" ry=\"5.5\" fill=\"#C9742E\"/><circle cx=\"98\" cy=\"62\" r=\"24\" fill=\"#E8923F\"/><path d=\"M80 46 L77 24 L96 40 Z\" fill=\"#E8923F\"/><path d=\"M104 38 L121 24 L120 48 Z\" fill=\"#E8923F\"/><path d=\"M82 42 L80 31 L91 39 Z\" fill=\"#F2B26B\"/><path d=\"M110 38 L117 30 L117 44 Z\" fill=\"#F2B26B\"/><ellipse cx=\"110\" cy=\"70\" rx=\"12\" ry=\"9\" fill=\"#FBE3C2\"/><circle cx=\"99\" cy=\"72\" r=\"5\" fill=\"#F2A5A0\" opacity=\".55\"/><ellipse cx=\"119\" cy=\"66\" rx=\"3.6\" ry=\"3\" fill=\"#2A2233\"/><circle cx=\"106\" cy=\"59\" r=\"4\" fill=\"#2A2233\"/><circle cx=\"107.4\" cy=\"57.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M100 49 L113 53\" stroke=\"#2A2233\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M94 38 q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/><path d=\"M111 77 q5 -4 10 0\" stroke=\"#7A3F1D\" stroke-width=\"2.2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"112\" cy=\"106\" rx=\"8\" ry=\"10\" fill=\"#B8742F\"/><path d=\"M103 100 Q112 87 121 100 Z\" fill=\"#7A4A1D\"/><rect x=\"111\" y=\"85\" width=\"2.4\" height=\"5\" rx=\"1\" fill=\"#7A4A1D\"/><circle cx=\"104\" cy=\"106\" r=\"5\" fill=\"#E8923F\"/><circle cx=\"120\" cy=\"106\" r=\"5\" fill=\"#E8923F\"/></g>"}, "owl": {"happy": "<g transform=\"translate(80,13)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\" transform=\"translate(0,5)\"><path d=\"M44 52 L38 26 L62 44 Z\" fill=\"#8B6B4A\"/><path d=\"M116 52 L122 26 L98 44 Z\" fill=\"#8B6B4A\"/><ellipse cx=\"80\" cy=\"86\" rx=\"44\" ry=\"48\" fill=\"#8B6B4A\"/><path d=\"M38 80 Q28 104 46 124 Q54 104 52 80 Z\" fill=\"#6F5238\"/><path d=\"M122 80 Q132 104 114 124 Q106 104 108 80 Z\" fill=\"#6F5238\"/><ellipse cx=\"80\" cy=\"102\" rx=\"28\" ry=\"30\" fill=\"#F3E3C3\"/><path d=\"M66 94 q4 6 8 0 M82 94 q4 6 8 0 M74 108 q4 6 8 0 M58 108 q4 6 8 0 M90 108 q4 6 8 0\" stroke=\"#D2B98A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"80\" cy=\"64\" rx=\"38\" ry=\"24\" fill=\"#B58E64\"/><circle cx=\"63\" cy=\"64\" r=\"15\" fill=\"#fff\"/><circle cx=\"97\" cy=\"64\" r=\"15\" fill=\"#fff\"/><circle cx=\"65\" cy=\"65\" r=\"6.5\" fill=\"#2A2233\"/><circle cx=\"95\" cy=\"65\" r=\"6.5\" fill=\"#2A2233\"/><circle cx=\"67\" cy=\"63\" r=\"1.8\" fill=\"#fff\"/><circle cx=\"97\" cy=\"63\" r=\"1.8\" fill=\"#fff\"/><circle cx=\"63\" cy=\"64\" r=\"17\" fill=\"none\" stroke=\"#2A2233\" stroke-width=\"2.6\"/><circle cx=\"97\" cy=\"64\" r=\"17\" fill=\"none\" stroke=\"#2A2233\" stroke-width=\"2.6\"/><path d=\"M79 62 q1-3 2 0\" stroke=\"#2A2233\" stroke-width=\"2.4\" fill=\"none\"/><path d=\"M74 77 L86 77 L80 91 Z\" fill=\"#F5A623\"/><path d=\"M62 129 h16 M82 129 h16\" stroke=\"#F5A623\" stroke-width=\"5\" stroke-linecap=\"round\"/></g>", "worried": "<g transform=\"translate(80,13)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\" transform=\"translate(0,5)\"><path d=\"M44 52 L38 26 L62 44 Z\" fill=\"#8B6B4A\"/><path d=\"M116 52 L122 26 L98 44 Z\" fill=\"#8B6B4A\"/><ellipse cx=\"80\" cy=\"86\" rx=\"44\" ry=\"48\" fill=\"#8B6B4A\"/><path d=\"M38 80 Q28 104 46 124 Q54 104 52 80 Z\" fill=\"#6F5238\"/><path d=\"M122 80 Q132 104 114 124 Q106 104 108 80 Z\" fill=\"#6F5238\"/><ellipse cx=\"80\" cy=\"102\" rx=\"28\" ry=\"30\" fill=\"#F3E3C3\"/><path d=\"M66 94 q4 6 8 0 M82 94 q4 6 8 0 M74 108 q4 6 8 0 M58 108 q4 6 8 0 M90 108 q4 6 8 0\" stroke=\"#D2B98A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"80\" cy=\"64\" rx=\"38\" ry=\"24\" fill=\"#B58E64\"/><circle cx=\"63\" cy=\"64\" r=\"15\" fill=\"#fff\"/><circle cx=\"97\" cy=\"64\" r=\"15\" fill=\"#fff\"/><circle cx=\"65\" cy=\"66\" r=\"5.4\" fill=\"#2A2233\"/><circle cx=\"95\" cy=\"66\" r=\"5.4\" fill=\"#2A2233\"/><circle cx=\"66.2\" cy=\"64.8\" r=\"1.4\" fill=\"#fff\"/><circle cx=\"96.2\" cy=\"64.8\" r=\"1.4\" fill=\"#fff\"/><path d=\"M48 46 L72 54 M112 46 L88 54\" stroke=\"#2A2233\" stroke-width=\"2.8\" stroke-linecap=\"round\"/><path d=\"M122 36 q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/><circle cx=\"63\" cy=\"64\" r=\"17\" fill=\"none\" stroke=\"#2A2233\" stroke-width=\"2.6\"/><circle cx=\"97\" cy=\"64\" r=\"17\" fill=\"none\" stroke=\"#2A2233\" stroke-width=\"2.6\"/><path d=\"M79 62 q1-3 2 0\" stroke=\"#2A2233\" stroke-width=\"2.4\" fill=\"none\"/><path d=\"M74 77 L86 77 L80 91 Z\" fill=\"#F5A623\"/><path d=\"M62 129 h16 M82 129 h16\" stroke=\"#F5A623\" stroke-width=\"5\" stroke-linecap=\"round\"/></g>"}, "fox": {"happy": "<g transform=\"translate(100,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><path d=\"M52 112 C0 116 -2 50 28 42 C50 38 68 64 64 94 C62 104 58 110 52 112 Z\" fill=\"#E8713A\"/><path d=\"M5 62 C6 50 16 42 28 42 C26 52 20 60 5 62 Z\" fill=\"#fff\"/><ellipse cx=\"86\" cy=\"100\" rx=\"30\" ry=\"32\" fill=\"#E8713A\"/><ellipse cx=\"98\" cy=\"107\" rx=\"14\" ry=\"22\" fill=\"#FFF3E6\"/><ellipse cx=\"80\" cy=\"132\" rx=\"10\" ry=\"5\" fill=\"#3A2A33\"/><ellipse cx=\"104\" cy=\"132\" rx=\"10\" ry=\"5\" fill=\"#3A2A33\"/><ellipse cx=\"98\" cy=\"62\" rx=\"25\" ry=\"21\" fill=\"#E8713A\"/><path d=\"M78 48 L76 22 L98 40 Z\" fill=\"#E8713A\"/><path d=\"M104 40 L122 24 L122 52 Z\" fill=\"#E8713A\"/><path d=\"M80 44 L79 30 L92 40 Z\" fill=\"#3A2A33\"/><path d=\"M110 40 L117 31 L117 46 Z\" fill=\"#3A2A33\"/><path d=\"M110 54 L148 72 L110 72 Z\" fill=\"#E8713A\"/><path d=\"M108 71 L148 72 Q132 93 106 85 Z\" fill=\"#FFF3E6\"/><circle cx=\"99\" cy=\"72\" r=\"5\" fill=\"#F2A5A0\" opacity=\".5\"/><circle cx=\"148\" cy=\"72\" r=\"4.2\" fill=\"#2A2233\"/><circle cx=\"110\" cy=\"58\" r=\"3.8\" fill=\"#2A2233\"/><circle cx=\"111.4\" cy=\"56.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M124 77 q5 4 10 0\" stroke=\"#2A2233\" stroke-width=\"2.2\" fill=\"none\" stroke-linecap=\"round\"/></g>", "worried": "<g transform=\"translate(100,16)\"><g class=\"pig-coin\"><circle cx=\"0\" cy=\"0\" r=\"14\" fill=\"#F5B82E\" stroke=\"#D08C0F\" stroke-width=\"3\"/><circle cx=\"0\" cy=\"0\" r=\"8\" fill=\"none\" stroke=\"#D08C0F\" stroke-width=\"2\"/><path d=\"M-6 -5q3-3 8-2\" stroke=\"#FFE08A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/></g></g><g class=\"pig-body\"><path d=\"M52 112 C0 116 -2 50 28 42 C50 38 68 64 64 94 C62 104 58 110 52 112 Z\" fill=\"#E8713A\"/><path d=\"M5 62 C6 50 16 42 28 42 C26 52 20 60 5 62 Z\" fill=\"#fff\"/><ellipse cx=\"86\" cy=\"100\" rx=\"30\" ry=\"32\" fill=\"#E8713A\"/><ellipse cx=\"98\" cy=\"107\" rx=\"14\" ry=\"22\" fill=\"#FFF3E6\"/><ellipse cx=\"80\" cy=\"132\" rx=\"10\" ry=\"5\" fill=\"#3A2A33\"/><ellipse cx=\"104\" cy=\"132\" rx=\"10\" ry=\"5\" fill=\"#3A2A33\"/><ellipse cx=\"98\" cy=\"62\" rx=\"25\" ry=\"21\" fill=\"#E8713A\"/><path d=\"M78 48 L76 22 L98 40 Z\" fill=\"#E8713A\"/><path d=\"M104 40 L122 24 L122 52 Z\" fill=\"#E8713A\"/><path d=\"M80 44 L79 30 L92 40 Z\" fill=\"#3A2A33\"/><path d=\"M110 40 L117 31 L117 46 Z\" fill=\"#3A2A33\"/><path d=\"M110 54 L148 72 L110 72 Z\" fill=\"#E8713A\"/><path d=\"M108 71 L148 72 Q132 93 106 85 Z\" fill=\"#FFF3E6\"/><circle cx=\"99\" cy=\"72\" r=\"5\" fill=\"#F2A5A0\" opacity=\".5\"/><circle cx=\"148\" cy=\"72\" r=\"4.2\" fill=\"#2A2233\"/><circle cx=\"110\" cy=\"59\" r=\"3.8\" fill=\"#2A2233\"/><circle cx=\"111.4\" cy=\"57.6\" r=\"1.4\" fill=\"#fff\"/><path d=\"M103 50 L116 54\" stroke=\"#2A2233\" stroke-width=\"2.6\" stroke-linecap=\"round\"/><path d=\"M94 38 q-5 8 0 11 5-3 0-11z\" fill=\"#8CC3EE\"/><path d=\"M124 79 q5 -3 10 0\" stroke=\"#2A2233\" stroke-width=\"2.2\" fill=\"none\" stroke-linecap=\"round\"/></g>"}};
+const LOOK_KEY = 'matirelire:look';
+const SKIN_INFO = {
+  tirelire:{name:'Tirelire', sw:['#FFF3F0', '#1E6B66', '#F7A8BC']}, ocean:{name:'Océan', sw:['#EEF4FA', '#1D5FA6', '#6AAEF0']},
+  foret:{name:'Forêt', sw:['#F1F5EC', '#2F6B3A', '#6CC17A']}, pastel:{name:'Pastel', sw:['#FAF4FF', '#6D4FB0', '#B79CF0']},
+  minuit:{name:'Minuit', sw:['#090E1C', '#7C9CFF', '#F0B441']}, contraste:{name:'Contraste élevé', sw:['#FFFFFF', '#0B3D91', '#000000']},
+};
+const MASCOT_INFO = {
+  pig:{name:'Cochon tirelire', de:'du cochon', cry:'Groin groin !', tag:'Le classique',
+    jokes:['Un cochon bien nourri, c’est un budget bien tenu.', 'Je suis tout rose, mais tes comptes sont au vert.', 'Même un cochon fait la chasse aux abonnements oubliés.', 'Jamais deux sans trois… pièces dans la fente.']},
+  toucan:{name:'Toucan', de:'du toucan', cry:'Toucan-toucan !', tag:'Un bec pour chaque pièce',
+    jokes:['Avec un bec pareil, aucune pièce ne m’échappe.', 'Toucan-toucan : j’attrape les bons plans au vol.', 'Un bec bien rempli, c’est une cagnotte bien nourrie.', 'Je picore les petites économies, une par une.']},
+  squirrel:{name:'Écureuil', de:'de l’écureuil', cry:'Croc-croc !', tag:'Le roi de l’épargne',
+    jokes:['Une noisette de côté chaque jour, et l’hiver peut venir.', 'Je cache les économies… et je sais où.', 'Petit à petit, l’écureuil fait son nid d’épargne.', 'Croc-croc : même les centimes ont leur cachette.']},
+  owl:{name:'Hibou', de:'du hibou', cry:'Hou hou !', tag:'Sage et lunetté',
+    jokes:['La nuit porte conseil, surtout pour les comptes.', 'Hou hou : tout est sous contrôle.', 'Sage comme un hibou, prévoyant comme un budget.', 'Mes lunettes repèrent les frais cachés.']},
+  fox:{name:'Renard', de:'du renard', cry:'Rusé comme un renard !', tag:'Malin, rien ne lui échappe',
+    jokes:['Malin comme un renard : aucune dépense ne passe inaperçue.', 'Un renard averti en vaut deux budgets.', 'Je flaire les bonnes affaires à des kilomètres.', 'Discret, rapide, et toujours dans les clous.']},
+};
+const lookPrefs = () => { try{ return JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') || {}; }catch{ return {}; } };
+function currentLook(){
+  const st = S ? S.settings : {}, ls = lookPrefs();
+  const pick = (v, list, d) => list.includes(v) ? v : d;
+  return {skin:pick(st.skin || ls.skin, Object.keys(SKIN_INFO), 'tirelire'), mode:pick(st.mode || ls.mode, ['auto', 'light', 'dark'], 'auto'), mascot:pick(st.mascot || ls.mascot, Object.keys(MASCOT_INFO), 'pig')};
+}
+function applyLook(){
+  const L = currentLook(), root = document.documentElement;
+  const dark = L.skin === 'minuit' || L.mode === 'dark' || (L.mode === 'auto' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
+  root.dataset.skin = L.skin; root.dataset.theme = dark ? 'dark' : 'light'; root.dataset.mascot = L.mascot;
+  const meta = document.querySelector('meta[name=theme-color]'); if(meta){ const h = getComputedStyle(root).getPropertyValue('--hero').trim(); if(h) meta.content = h; }
+  try{ localStorage.setItem(LOOK_KEY, JSON.stringify(L)); }catch{}
+}
+if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyLook());
 function piggy(mood = 'happy', size = 96, cls = ''){
-  const inner = PIG[mood] || PIG.happy;
+  const m = MASC[currentLook().mascot] || MASC.pig, inner = m[mood] || m.happy;
   return `<svg class="pig ${cls}" viewBox="0 0 160 140" width="${size}" height="${Math.round(size*140/160)}" aria-hidden="true" focusable="false">${inner}</svg>`;
 }
 
@@ -1360,7 +1466,7 @@ const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
 const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
-  closePop();
+  closePop(); applyLook();
   $('#app').innerHTML = U.wizard ? wizardPage() : (S ? shell() : welcome());
   window.scrollTo(0, y);
   centerMonthChip();
@@ -1392,6 +1498,163 @@ function welcome(){
   </section>`;
 }
 
+/* ----- Paiement (partiel ou final) et cagnotte ----- */
+const POT_LABEL = {reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage'};
+const accLabel = id => { const a = id && accById(id); return a ? a.name : (id || ''); };
+const fmtShort = iso => new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+const potSigned = v => `${v < 0 ? '−' : '+'}${money(Math.abs(v))}`;
+function payInfo(lineId, dateIso){
+  const l = S.lines.find(x => x.id === lineId); if(!l) return null;
+  const d = parseISO(dateIso) || objOf(new Date());
+  return {l, p:provisionLine(l, new Date(d.y, d.m - 1, d.d), provisionClock(S))};
+}
+function payConsequence(){
+  const c = U.payCtx, amt = Math.abs(num($('#py-amount').value)), mode = $('input[name=py-mode]:checked').value, info = payInfo(c.lineId, $('#py-date').value);
+  if(!info) return '';
+  const {p} = info;
+  if(!(amt > 0)) return 'Saisis le montant payé.';
+  if(mode === 'partial'){
+    const left = Math.max(0, p.toPay - amt);
+    return left > 0.005 ? `Il restera <b>${money(left)}</b> à payer sur ${money(p.goal)} prévus. Tu pourras compléter plus tard.` : `Le montant couvre déjà tout ce qui restait : choisis plutôt « Paiement final ».`;
+  }
+  const delta = p.gross - (p.paid + amt);
+  if(p.noStart) return 'La dépense est soldée et le suivi démarre à la date du paiement.';
+  if(Math.abs(delta) < 0.005) return 'La dépense est soldée, sans écart. Le suivi repart de zéro.';
+  return delta > 0 ? `La dépense est soldée. Écart : <b class="credit">+${money(delta)}</b> → ajouté à la cagnotte. Le suivi repart de zéro.`
+                   : `La dépense est soldée. Écart : <b class="debit">−${money(-delta)}</b> → la cagnotte baisse (manque). Le suivi repart de zéro.`;
+}
+function openPay(lineId){
+  const info = payInfo(lineId, isoToday()); if(!info) return;
+  const {l, p} = info, dlg = $('#dlg'); U.editing = null; U.payCtx = {lineId, modeTouched:false};
+  const hist = (l.paid || []).length ? `<h3 class="who">Déjà payé</h3><ul class="leaders">${l.paid.map(x => `<li><span>${fmtShort(x.date)}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b><button type="button" class="btn ghost small" data-act="pay-del" data-id="${esc(x.id)}" aria-label="Retirer ce paiement">✕</button></li>`).join('')}</ul>` : '';
+  const dflt = p.toPay;
+  dlg.innerHTML = dlgShell(`Paiement · ${esc(l.name)}`, `<p class="envmini">Prévu ${money(p.goal)}${p.paid > 0 ? ` · déjà payé ${money(p.paid)} · reste ${money(p.toPay)}` : ''}${p.noStart ? '' : ` · provisionné ${money(p.gross)}`}</p>
+    <label class="field">Montant payé<input class="inp bigamt" id="py-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${dflt || ''}" enterkeyhint="done"></label>
+    <div class="grid2"><label class="field">Date<input class="inp" id="py-date" type="date" value="${isoToday()}"></label><label class="field">Note (facultatif)<input class="inp" id="py-note" placeholder="Ex. photo du fils" autocomplete="off" enterkeyhint="done"></label></div>
+    <div class="field">Ce paiement est<div class="seg" role="radiogroup" aria-label="Type de paiement"><label><input type="radio" name="py-mode" value="partial">Partiel</label><label><input type="radio" name="py-mode" value="final" checked>Final</label></div></div>
+    <div class="preview" id="py-info" aria-live="polite"></div>${hist}`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="pay-save">Valider le paiement</button></div>`);
+  dlg.showModal(); $('#py-info').innerHTML = payConsequence(); focusQuiet($('#py-amount'));
+}
+function paySync(fromAmount){
+  const c = U.payCtx; if(!c) return;
+  if(fromAmount && !c.modeTouched){   // tant que l'utilisateur n'a pas choisi, un montant inférieur au reste suggère « partiel »
+    const info = payInfo(c.lineId, $('#py-date').value), amt = Math.abs(num($('#py-amount').value));
+    const r = $(`input[name=py-mode][value=${info && amt > 0 && amt < info.p.toPay - 0.005 ? 'partial' : 'final'}]`); if(r) r.checked = true;
+  }
+  $('#py-info').innerHTML = payConsequence();
+}
+function savePay(){
+  const c = U.payCtx; if(!c) return;
+  const amount = Math.abs(num($('#py-amount').value)), date = $('#py-date').value, note = $('#py-note').value.trim(), mode = $('input[name=py-mode]:checked').value;
+  if(!(amount > 0)){ toast('Saisis le montant payé.'); focusQuiet($('#py-amount')); return; }
+  if(!parseISO(date)){ toast('Choisis la date du paiement.'); return; }
+  const l = S.lines.find(x => x.id === c.lineId); if(!l) return;
+  const snap = {paid:JSON.parse(JSON.stringify(l.paid || [])), lastDate:l.lastDate, potLen:(S.pot || []).length};
+  const before = provInfo(l, undefined, provisionClock(S));
+  if(mode === 'partial'){
+    const pay = payPartial(S, l.id, amount, date, note); $('#dlg').close(); touch();
+    const left = Math.max(0, before.toPay - amount);
+    toastUndo(`${money(amount)} payés sur ${l.name} · reste ${money(left)}`, () => { l.paid = l.paid.filter(x => x.id !== pay.id); touch(); });
+    return;
+  }
+  const r = payFinal(S, l.id, amount, date, note, provisionClock(S)); $('#dlg').close(); touch();
+  const extra = r && Math.abs(r.delta) >= 0.005 ? ` · ${r.delta > 0 ? 'reliquat' : 'manque'} ${money(Math.abs(r.delta))} ${r.delta > 0 ? 'ajouté à' : 'dans'} la cagnotte` : '';
+  toastUndo(`${l.name} soldé${extra}`, () => { l.paid = snap.paid; l.lastDate = snap.lastDate; S.pot = S.pot.slice(0, snap.potLen); touch(); });
+}
+/* Cagnotte */
+function potEntryRow(x){
+  return `<li><button type="button" class="spend-row" data-act="pot-edit" data-id="${esc(x.id)}" aria-label="Modifier cette ligne de la cagnotte"><span>${fmtShort(x.date)} <small>${POT_LABEL[x.kind] || ''}${x.label ? ' · ' + esc(x.label) : ''}${x.dest ? ' → ' + esc(accLabel(x.dest)) : ''}</small></span><i class="dots"></i><b class="${x.amount < 0 ? 'debit' : 'credit'}">${potSigned(x.amount)}</b></button></li>`;
+}
+function openPot(){
+  const tot = potTotal(S), dlg = $('#dlg'); U.editing = null;
+  const list = (S.pot || []).slice().sort((a, b) => b.date.localeCompare(a.date) || 0);
+  dlg.innerHTML = dlgShell(`Cagnotte ${H('pot')}`, `<div class="rest"><b class="${tot < -0.005 ? 'neg' : ''}">${tot < -0.005 ? '−' : ''}${money(Math.abs(tot))}</b><span>${tot < -0.005 ? 'manque dans les provisions' : 'écart disponible dans les provisions'}</span></div>
+    ${list.length ? `<ul class="leaders spendlist">${list.map(potEntryRow).join('')}</ul>` : '<p class="hint">La cagnotte est vide. Elle reçoit les reliquats quand tu paies moins que prévu, et le manque quand tu paies plus.</p>'}`,
+    `<div class="potacts"><button type="button" class="btn" data-act="pot-save" ${tot > 0.005 ? '' : 'disabled'}>Épargner</button><button type="button" class="btn" data-act="pot-adjust">Ajuster</button><button type="button" class="btn" data-act="pot-fix">Fixer à…</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
+  dlg.showModal();
+}
+function openPotForm(kind, entryId){
+  const tot = potTotal(S), dlg = $('#dlg'), e = entryId ? S.pot.find(x => x.id === entryId) : null; U.editing = null; U.potCtx = {kind, entryId:entryId || null};
+  const acc = S.accounts.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+  let title, body, ok = 'Valider';
+  if(kind === 'save'){
+    title = 'Mettre de côté en épargne'; ok = 'Épargner';
+    body = `<p class="hint">Retire un montant de la cagnotte, donc des provisions et de l’état du compte. Il reste un virement à faire vers ton épargne.</p>
+      <label class="field">Montant à épargner (cagnotte : ${money(tot)})<input class="inp bigamt" id="pf-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${tot > 0.005 ? Math.round(tot * 100) / 100 : ''}" enterkeyhint="done"></label>
+      <div class="grid2"><label class="field">Destination<select class="inp" id="pf-dest"><option value="">— à préciser —</option>${acc}</select></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${isoToday()}"></label></div>
+      <label class="field">Note (facultatif)<input class="inp" id="pf-note" placeholder="Ex. Livret A" autocomplete="off" enterkeyhint="done"></label>`;
+  } else if(kind === 'adjust'){
+    title = 'Ajuster la cagnotte';
+    body = `<div class="field">Opération<div class="seg" role="radiogroup" aria-label="Opération"><label><input type="radio" name="pf-sign" value="1" checked>Ajouter</label><label><input type="radio" name="pf-sign" value="-1">Retirer</label></div></div>
+      <label class="field">Montant<input class="inp bigamt" id="pf-amount" type="number" step="0.01" min="0" inputmode="decimal" enterkeyhint="done"></label>
+      <div class="grid2"><label class="field">Motif<input class="inp" id="pf-label" placeholder="Ex. cadeau reçu" autocomplete="off" enterkeyhint="done"></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${isoToday()}"></label></div>`;
+  } else if(kind === 'fix'){
+    title = 'Fixer la cagnotte à…';
+    body = `<p class="hint">Saisis le total voulu : l’écart est enregistré comme un ajustement.</p>
+      <label class="field">Cagnotte souhaitée (actuellement ${potSigned(tot)})<input class="inp bigamt" id="pf-amount" type="number" step="0.01" inputmode="decimal" value="${Math.round(tot * 100) / 100}" enterkeyhint="done"></label>
+      <input type="hidden" id="pf-date" value="${isoToday()}">`;
+  } else {
+    title = 'Modifier la ligne';
+    body = `<label class="field">Montant (négatif = sortie)<input class="inp bigamt" id="pf-amount" type="number" step="0.01" inputmode="decimal" value="${e.amount}" enterkeyhint="done"></label>
+      <div class="grid2"><label class="field">Libellé<input class="inp" id="pf-label" value="${esc(e.label)}" autocomplete="off" enterkeyhint="done"></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${esc(e.date)}"></label></div>
+      <label class="field">Note<input class="inp" id="pf-note" value="${esc(e.note)}" autocomplete="off" enterkeyhint="done"></label>`;
+  }
+  dlg.innerHTML = dlgShell(title, body, `${kind === 'edit' ? '<button type="button" class="btn danger" data-act="pot-del">Supprimer</button>' : '<span></span>'}<div class="r"><button type="button" class="btn" data-act="pot-back">Retour</button><button type="button" class="btn primary" data-act="pot-confirm">${ok}</button></div>`);
+  if(!dlg.open) dlg.showModal();
+  if(kind === 'edit' && e && e.dest){ const sel = $('#pf-dest'); if(sel) sel.value = e.dest; }
+  focusQuiet($('#pf-amount'));
+}
+function confirmPot(){
+  const c = U.potCtx; if(!c) return;
+  const date = $('#pf-date').value, amtRaw = num($('#pf-amount').value), amtAbs = Math.abs(amtRaw), tot = potTotal(S);
+  if(!parseISO(date)){ toast('Choisis la date.'); return; }
+  const snap = JSON.parse(JSON.stringify(S.pot || []));
+  const undo = msg => toastUndo(msg, () => { S.pot = snap; touch(); });
+  if(c.kind === 'save'){
+    if(!(amtAbs > 0)){ toast('Saisis le montant à épargner.'); return; }
+    if(amtAbs > tot + 0.005){ toast(`La cagnotte ne contient que ${money(Math.max(0, tot))}.`); return; }
+    const dest = $('#pf-dest').value || null, note = $('#pf-note').value.trim();
+    potAdd(S, 'epargne', -amtAbs, date, 'Mise de côté', {dest, note}); $('#dlg').close(); touch();
+    undo(`${money(amtAbs)} mis de côté${dest ? ` : à virer vers ${accLabel(dest)}` : ''}`); return;
+  }
+  if(c.kind === 'adjust'){
+    if(!(amtAbs > 0)){ toast('Saisis le montant.'); return; }
+    const sign = +$('input[name=pf-sign]:checked').value;
+    potAdd(S, 'ajustement', sign * amtAbs, date, $('#pf-label').value.trim() || 'Ajustement manuel'); $('#dlg').close(); touch(); undo(`Cagnotte ${sign > 0 ? '+' : '−'}${money(amtAbs)}`); return;
+  }
+  if(c.kind === 'fix'){
+    const delta = amtRaw - tot;
+    if(Math.abs(delta) < 0.005){ $('#dlg').close(); toast('La cagnotte est déjà à ce montant.'); return; }
+    potAdd(S, 'ajustement', delta, date, `Cagnotte fixée à ${money(amtRaw)}`); $('#dlg').close(); touch(); undo(`Cagnotte fixée à ${money(amtRaw)}`); return;
+  }
+  const e = S.pot.find(x => x.id === c.entryId); if(!e) return;
+  if(Math.abs(amtRaw) < 0.005){ toast('Le montant ne peut pas être nul : supprime la ligne si besoin.'); return; }
+  e.amount = amtRaw; e.date = date; e.label = $('#pf-label').value.trim(); e.note = $('#pf-note').value.trim(); $('#dlg').close(); touch(); undo('Ligne de la cagnotte modifiée');
+}
+/* Recalage sur le solde réel */
+function openRecalage(){
+  const P = provisionSummary(S), st = P.cash.state, acc = S.accounts.find(a => a.id === S.settings.commonAccountId), dlg = $('#dlg'); U.editing = null; U.recState = st;
+  dlg.innerHTML = dlgShell(`Recaler${acc ? ' · ' + esc(acc.name) : ''}`, `<p class="hint">Saisis le solde réel du compte tel que tu le vois dans ta banque : l’écart avec l’état attendu va dans la cagnotte (en plus si tu as davantage, en négatif si tu as moins).</p>
+    <p class="envmini">État attendu aujourd’hui : <b>${money(st)}</b></p>
+    <label class="field">Solde réel aujourd’hui<input class="inp bigamt" id="rc-real" type="number" step="0.01" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+    <input type="hidden" id="rc-date" value="${isoToday()}"><div class="preview" id="rc-info" aria-live="polite">Saisis ton solde réel pour voir l’écart.</div>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="rc-save">Recaler</button></div>`);
+  dlg.showModal(); focusQuiet($('#rc-real'));
+}
+function recalageInfo(){
+  const v = $('#rc-real').value; if(String(v).trim() === '') return 'Saisis ton solde réel pour voir l’écart.';
+  const d = num(v) - U.recState;
+  return Math.abs(d) < 0.005 ? 'Ton solde correspond déjà à l’état attendu.' : (d > 0 ? `Écart : <b class="credit">+${money(d)}</b> → ajouté à la cagnotte.` : `Écart : <b class="debit">−${money(-d)}</b> → la cagnotte baisse (manque).`);
+}
+function saveRecalage(){
+  const v = $('#rc-real').value; if(String(v).trim() === ''){ toast('Saisis ton solde réel.'); focusQuiet($('#rc-real')); return; }
+  const snap = JSON.parse(JSON.stringify(S.pot || [])), r = recalage(S, num(v), $('#rc-date').value);
+  $('#dlg').close(); touch();
+  if(!r.entry){ toast('Ton solde correspond déjà à l’état attendu.'); return; }
+  toastUndo(`Recalé : ${potSigned(r.delta)} dans la cagnotte`, () => { S.pot = snap; touch(); });
+}
+
 /* ----- Aide intégrée : un « ? » à côté du titre de chaque bloc ----- */
 const HELP = {
   transfer:{title:'Ce versement compte pour…', body:`<p>Tu choisis le <b>jour</b> où ton salaire arrive (de 1 à 31 ; 31 veut dire « dernier jour du mois »), puis le <b>mois que ce versement finance</b>.</p>
@@ -1406,6 +1669,9 @@ const HELP = {
     <p>Au fil des achats, tu appuies sur <b>+</b> et tu déclares le montant. La barre montre ce qui est dépensé, ce qu’il reste et le montant par jour restant.</p>
     <p>Si tu dépasses, le <b>dépassement</b> s’affiche à part : il ne change pas ton reste à vivre prévu, mais il baisse l’état du compte provisions.</p><p class="note">Appuie sur une enveloppe pour voir, modifier ou supprimer ses dépenses.</p>`},
   'env-guide':{title:'Suivre mes dépenses variables', body:`<p>MaTirelire repère les lignes qui ressemblent à des dépenses variables : payées par carte ou en espèces sans jour fixe, ou nommées courses, carburant, pain, vêtements, restaurants…</p><p>Coche celles à suivre : elles deviennent des enveloppes, avec le même montant prévu. Tu pourras toujours les modifier dans Budget.</p>`},
+  pot:{title:'Cagnotte', body:`<p>La cagnotte est l’<b>écart</b> entre l’argent réellement mis de côté pour une dépense et ce que tu as payé.</p>
+    <ul><li>Tu paies <b>moins</b> que prévu : le reliquat va dans la cagnotte.</li><li>Tu paies <b>plus</b> : la cagnotte baisse, et si elle passe sous zéro elle indique un <b>manque</b>.</li><li>Tu peux <b>épargner</b> la cagnotte (elle sort des provisions, donc du compte joint), l’<b>ajuster</b> à la main, ou la <b>recaler</b> sur ton solde bancaire réel.</li></ul>
+    <p class="note">Elle fait partie de l’état du compte provisions. Chaque ligne de l’historique se modifie ou se supprime.</p>`},
   rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
     <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
     <p class="note">Exemple : 6 000 € de revenus − 4 200 € de budget commun − 170 € de dépenses personnelles = 1 630 € à vivre.</p>`},
@@ -1414,7 +1680,7 @@ const HELP = {
     <p>État du compte = provisions + trésorerie. Ce n’est pas un solde bancaire : c’est ce que ton budget prévoit.</p>
     <p class="note">Calcul : pour chaque ligne, mensualité × mensualités reçues depuis son dernier paiement, arrondie à l’euro inférieur, comme dans ton Excel. La somme n’est jamais plafonnée : au-delà du coût, c’est un dépassement d’objectif, jusqu’à « Payé ». Une mensualité compte quand les virements de tous les contributeurs sont arrivés (réglage dans Foyer). Les mois précédents sont supposés équilibrés.</p>`},
   'prov-next':{title:'Prochains prélèvements du mois', body:`<p>Les prélèvements mensuels pas encore passés (prêts, factures, abonnements), regroupés par date. Le montant d’une ligne sans jour ou payée par carte est étalé sur le mois et n’apparaît pas ici.</p>`},
-  'prov-due':{title:'Dépenses de provision à régler', body:`<p>Les dépenses qui ne tombent pas tous les mois et dont la date de fin est ce mois-ci, ou déjà dépassée.</p><p>Quand tu les as réglées, appuie sur <b>Payé</b> : le suivi repart de zéro à la date du jour.</p>`},
+  'prov-due':{title:'Dépenses de provision à régler', body:`<p>Les dépenses qui ne tombent pas tous les mois et dont la date de fin est ce mois-ci, ou déjà dépassée.</p><p>Quand tu les as réglées, appuie sur <b>Payé</b> : tu indiques le montant et si le paiement est <b>partiel</b> (tu compléteras plus tard) ou <b>final</b> (le suivi repart de zéro, l’écart va dans la cagnotte).</p>`},
   'prov-flow':{title:'Du compte d’aujourd’hui à l’objectif', body:`<p>On part de l’argent présent aujourd’hui sur le compte et on retire ce qui va sortir ce mois-ci : les prélèvements mensuels à venir, puis les dépenses de provision du mois.</p><p>Il reste la <b>provision restante</b> : ton objectif, le matelas sur lequel tu peux compter une fois le mois passé.</p>`},
   'prov-traj':{title:'Trajectoire de la provision', body:`<p>La courbe montre ce que devrait contenir le compte provisions à la fin de chacun des 12 prochains mois, une fois les prélèvements mensuels passés.</p><p>Les creux correspondent aux grosses dépenses (permis, voiture…). Hypothèse : chaque dépense est payée à sa date de fin, puis le suivi repart de zéro.</p>`},
   repartition:{title:'Répartition du budget commun', body:`<p>Le budget commun (loyer, prêts, courses…) est financé par les adultes qui participent. Tu choisis comment le partager :</p>
@@ -1430,8 +1696,9 @@ const HELP = {
   membres:{title:'Membres du foyer', body:`<p>Chaque personne du foyer : adulte, adolescent ou enfant. Un adulte a un salaire et peut participer au budget commun. Un enfant peut recevoir de l’argent de poche, versé par un ou plusieurs adultes : une seule ligne répartie entre leurs comptes.</p><p class="note">Pour chaque contributeur : la date de versement du salaire et le mois qu’il finance.</p>`},
   provisions:{title:'Provisions', body:`<p>Les dépenses qui ne tombent pas tous les mois, avec pour chacune :</p>
     <ul><li><b>Mensualité</b> mise de côté</li><li><b>Somme en cours</b> : mensualités reçues depuis la date de départ, arrondie à l’euro inférieur</li><li><b>Reste</b> à provisionner, ou <b>dépassement</b> d’objectif</li><li><b>Date de fin</b> : départ + cycle</li></ul>
-    <p>La somme n’est jamais plafonnée. Quand tu règles une dépense, appuie sur <b>Payé</b> : la date de départ passe à aujourd’hui.</p>`},
+    <p>La somme n’est jamais plafonnée. Quand tu règles une dépense, appuie sur <b>Payé</b> : paiement partiel (la ligne reste à compléter) ou final (le suivi repart, l’écart va dans la cagnotte).</p>`},
   donnees:{title:'Données', body:`<p>Tes données sont dans un fichier JSON sur ton appareil (<b>MaTirelire.json</b> par défaut), jamais envoyées sur Internet. Sur Chrome ou Edge, le fichier se met à jour automatiquement ; ailleurs, utilise « Exporter » puis « Ouvrir ».</p><p>Une copie de secours reste dans ce navigateur, au cas où.</p>`},
+  apparence:{title:'Apparence', body:`<p>Personnalise MaTirelire sans toucher à tes chiffres.</p><ul><li><b>Skin</b> : les couleurs de l’appli (Tirelire, Océan, Forêt, Pastel, Minuit, Contraste élevé).</li><li><b>Mode</b> : clair, sombre, ou automatique selon ton appareil. Minuit est toujours sombre.</li><li><b>Mascotte</b> : cochon, toucan, écureuil, hibou ou renard. Elle se choisit indépendamment du skin et a ses propres répliques.</li></ul><p class="note">Ces choix sont enregistrés dans ton fichier.</p>`},
   comptes:{title:'Comptes', body:`<p>Tes comptes bancaires. Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses.</p><p>Chaque ligne du budget peut être rattachée à un compte cible, ce qui alimente les virements à programmer.</p>`},
   'prov-reglage':{title:'Compte provisions (réglage)', body:`<p>Affiche ou masque le bloc « Compte provisions » de la Synthèse. Masqué, les réglages de versement du salaire disparaissent aussi de Foyer.</p>`},
   cats:{title:'Catégories', body:`<p>Les familles qui regroupent tes lignes (Logement, Transports…). Tu peux les renommer, changer leur couleur et les réordonner. Supprimer une catégorie remet ses lignes dans « Divers ».</p>`},
@@ -1634,8 +1901,8 @@ function provisionCardHTML(){
   const dl = C.upcomingDebits;
   const nxt = dl.length ? `<h3 class="who">Prochains prélèvements du mois ${H('prov-next')}</h3><ul class="leaders">${dl.slice(0, 4).map(g =>
     `<li><span>${fmtDay(g.date)} <small>${g.names.slice(0, 3).map(esc).join(', ')}${g.names.length > 3 ? ` et ${g.names.length - 3} autre${plural(g.names.length - 3, '', 's')}` : ''}</small></span><i class="dots"></i><b class="debit">−${money(g.total)}</b></li>`).join('')}</ul>${dl.length > 4 ? `<p class="note">… et ${dl.length - 4} autre${plural(dl.length - 4, '', 's')} date${plural(dl.length - 4, '', 's')} d’ici la fin du mois.</p>` : ''}` : '';
-  const due = P.dueNow.length ? `<h3 class="who">Dépenses de provision à régler ce mois-ci ${H('prov-due')}</h3><ul class="leaders dueList">${P.dueNow.map(d =>
-    `<li><span>${esc(d.name)} <small>${d.overdue ? 'échéance dépassée' : `le ${fmtDay(d.end)}`}</small></span><i class="dots"></i><b class="debit">−${money(d.goal)}</b><button class="btn small paid" data-act="paid" data-id="${esc(d.id)}" aria-label="Marquer ${esc(d.name)} comme payé">Payé</button></li>`).join('')}</ul>` : '';
+  const due = P.dueNow.length ? `<h3 class="who">Dépenses de provision à régler ${H('prov-due')}</h3><ul class="leaders dueList">${P.dueNow.map(d =>
+    `<li><span>${esc(d.name)} <small>${d.paid > 0 ? `partiel : ${money(d.paid)} payés sur ${money(d.goal)}` : (d.overdue ? 'échéance dépassée' : `le ${fmtDay(d.end)}`)}</small></span><i class="dots"></i><b class="debit">−${money(d.toPay)}</b><button class="btn small paid" data-act="paid" data-id="${esc(d.id)}" aria-label="${d.paid > 0 ? 'Compléter' : 'Marquer comme payé'} : ${esc(d.name)}">${d.paid > 0 ? 'Compléter' : 'Payé'}</button></li>`).join('')}</ul>` : '';
   const nextName = MONTHS[(now.getMonth() + 1) % 12];
   const sgn = (v, cls) => `<dd class="${cls}">${v < 0 ? '+' : '−'}${money(Math.abs(v))}</dd>`;
   const rows = [`<div><dt>Aujourd’hui (compte)</dt><dd>${money(C.state)}</dd></div>`,
@@ -1661,10 +1928,10 @@ function provisionCardHTML(){
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
   return `<section class="card joint"><header><h2>Compte provisions ${H('prov-block')}</h2><span class="badge">attendu</span></header>
     <div class="rest"><b>${money(C.state)}</b><span>état du compte au ${fmtDay(objOf(now))}</span></div>
-    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div><div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
+    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div>${Math.abs(C.pot) > 0.004 || (S.pot || []).length ? `<div><dt>dont cagnotte ${H('pot')}</dt><dd class="${C.pot < -0.004 ? 'debit' : ''}">${C.pot < -0.004 ? '−' : ''}${money(Math.abs(C.pot))}${C.pot < -0.004 ? ' <small class="muted">manque</small>' : ''}</dd></div>` : ''}<div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
     ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
-    <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
+    <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="rc-open">Recaler sur mon solde réel</button><button class="btn small" data-act="pot-open">Cagnotte</button><button class="btn small" data-act="tab" data-tab="provisions">Détail par ligne</button></div></section>`;
 }
 function centerMonthChip(){
   const box = $('.monthbar .chips'); if(!box) return;
@@ -1721,23 +1988,17 @@ function viewSynthese(){
     <section class="card"><h2>Sur l’année ${H('annee')}</h2>${yearTableHTML(contrib)}</section>
     <section class="card"><h2>Par compte, ${esc(title.toLowerCase())} ${H('par-compte')}</h2>${accountsTableHTML(R)}</section>`;
 }
-/* ----- Bulle du cochon : conseils cliquables en alternance avec des phrases drôles ----- */
-const JOKES = [
+/* ----- Bulle de la mascotte : conseils cliquables en alternance avec des phrases drôles ----- */
+const JOKES_COMMON = [
   'Je ne mange que des pièces, pas des factures.',
-  'Un cochon bien nourri, c’est un budget bien tenu.',
-  'Jamais deux sans trois… pièces dans la fente.',
   'Je ne boude pas : j’attends ton prochain virement.',
   'Pas de panique, je garde les sous au chaud.',
   'Mon secret pour économiser ? Ne jamais lâcher un centime.',
-  'Groin groin ! Ça sent bon la bonne gestion.',
   'Les petits ruisseaux font les grosses tirelires.',
-  'Je suis tout rose, mais tes comptes sont au vert.',
-  'Une pièce de côté, et le cochon sourit.',
+  'Une pièce de côté, et je souris.',
   'Chut… ce que j’ai dans le ventre ne se dépense pas.',
-  'J’ai un fond, et je compte bien le remplir.',
-  'Un cochon qui compte, c’est un cochon qui compte !',
-  'Même un cochon fait la chasse aux abonnements oubliés.',
   'Pas de gaspi : je recycle même les centimes.',
+  'Un budget tenu, c’est un mois tranquille.',
 ];
 const BUBBLE_MS = 60000;   // au moins une minute entre deux messages
 const reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -1746,7 +2007,7 @@ function bubbleMessages(R){
   const adv = computeAdvice(S).sort((a, b) => order[a.severity] - order[b.severity])
     .map(it => ({type:'advice', kind:it.kind, severity:it.severity, go:!!(it.action && it.action.tab), text:((ADVICE_META[it.kind] || (() => ({title:''})))(it.data, it.severity)).title}))
     .filter(m => m.text);
-  const jokes = [{type:'joke', text:heroMsg(R)}, ...JOKES.map(text => ({type:'joke', text}))];
+  const own = MASCOT_INFO[currentLook().mascot].jokes, jokes = [{type:'joke', text:heroMsg(R)}, ...own.slice(0, 2), ...JOKES_COMMON.slice(0, 4), ...own.slice(2), ...JOKES_COMMON.slice(4)].map(x => typeof x === 'string' ? {type:'joke', text:x} : x);
   const out = [];
   if(!adv.length) return jokes;
   adv.forEach((m, i) => { out.push(m); out.push(jokes[i % jokes.length]); });
@@ -1759,7 +2020,7 @@ function bubbleMood(){
 }
 function bubbleHTML(){
   const m = bubbleCurrent(); if(!m) return '';
-  const label = m.type === 'advice' ? (m.go ? `Conseil : ${m.text}. Ouvrir.` : `Conseil : ${m.text}. Appuyer pour le suivant.`) : `Message du cochon : ${m.text}. Appuyer pour le suivant.`;
+  const label = m.type === 'advice' ? (m.go ? `Conseil : ${m.text}. Ouvrir.` : `Conseil : ${m.text}. Appuyer pour le suivant.`) : `Message ${MASCOT_INFO[currentLook().mascot].de} : ${m.text}. Appuyer pour le suivant.`;
   return `${piggy(bubbleMood(), 92, 'nocoin')}<button type="button" class="bubble ${m.type === 'advice' ? (m.go ? 'adv ' : 'note ') + 'sev-' + m.severity : 'joke'}" data-act="bubble" aria-label="${esc(label)}"><span class="txt">${esc(m.text)}</span>${m.go ? '<span class="go" aria-hidden="true">›</span>' : ''}</button>`;
 }
 function swapBubble(){
@@ -1787,9 +2048,10 @@ function goAdvice(kind){
 
 function heroMsg(R){
   const inc = R.totals.income;
-  if(inc <= 0) return 'Groin ! Dis-moi ce qui rentre et je fais les comptes.';
+  const cry = MASCOT_INFO[currentLook().mascot].cry;
+  if(inc <= 0) return `${cry} Dis-moi ce qui rentre et je fais les comptes.`;
   if(R.totals.rest < -0.005) return 'Aïe, la tirelire est un peu maigre sur cette période.';
-  if(R.totals.rest / inc >= 0.25) return 'Groin groin ! De quoi bien remplir la tirelire.';
+  if(R.totals.rest / inc >= 0.25) return `${cry} De quoi bien remplir la tirelire.`;
   return 'Ça passe ! Reste à garder l’œil sur les petites dépenses.';
 }
 function memberCard(m, M){
@@ -1955,6 +2217,8 @@ const ADVICE_META = {
   'env-depasse': d => ({title:`Enveloppe dépassée : ${esc(d.name)}`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu (+${money(d.over)})${d.count > 1 ? `, et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''} dépassée${d.count > 2 ? 's' : ''}` : ''}. Le dépassement est suivi à part et baisse l’état du compte provisions.`}),
   'env-rythme': d => ({title:`${esc(d.name)} : rythme soutenu`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu alors que ${Math.round(d.elapsed * 100)} % du mois est écoulé${d.count > 1 ? ` (et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''})` : ''}.`}),
   'env-guide': d => ({title:'Suivre vos dépenses variables', text:`${d.count} ligne${d.count > 1 ? 's' : ''} ressemble${d.count > 1 ? 'nt' : ''} à des dépenses variables (dont « ${esc(d.name)} »). Crée des enveloppes pour les déclarer au fil du mois.`}),
+  'pot-plus': d => ({title:'Cagnotte disponible', text:`${money(d.amount)} d’écart sont dans la cagnotte : tu peux les garder pour une dépense plus lourde ou les épargner (ils sortiront des provisions).`}),
+  'pot-moins': d => ({title:'Manque dans les provisions', text:`La cagnotte est négative : il manque ${money(d.amount)} dans les provisions. Un reliquat futur le comblera, ou recale le compte sur ton solde réel.`}),
   'prov-depassement': d => ({title:'Dépassement d’objectif disponible',
     text:`${money(d.total)} dépassent leur objectif${d.count>1?` sur ${d.count} lignes`:''} (dont « ${esc(d.name)} »). La provision continue tant que la ligne n’est pas « Payée » : tu peux reprendre ce surplus en épargne.`}),
   'prov-sans-date': d => ({title:'Provisions sans date de départ',
@@ -2130,14 +2394,14 @@ function provTotals(clk){
 }
 function viewProvisions(){
   const lines = provLines(), clk = provisionClock(S), tot = provTotals(clk);
-  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}</small></td>
+  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
     <td data-cell="mens:${l.id}">${money(p.mens)}</td>
     <td data-cell="goal:${l.id}">${money(p.goal)}</td>
     <td data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
     <td data-cell="rest:${l.id}" class="${restClass(p)}">${restCell(p)}</td>
     <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
     <td data-cell="next:${l.id}">${nextText(p)}</td>
-    <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="Marquer ${esc(l.name)} comme payé">Payé</button></td></tr>`; }).join('');
+    <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="${p.paid > 0 ? 'Compléter' : 'Marquer comme payé'} : ${esc(l.name)}">${p.paid > 0 ? 'Compléter' : 'Payé'}</button></td></tr>`; }).join('');
   return `<section class="card"><h2>Provisions ${H('provisions')}</h2>
     <p class="hint" style="margin-bottom:10px">La somme en cours se calcule toute seule. Appuie sur « Payé » quand une dépense est réglée.</p>
     ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
@@ -2157,6 +2421,7 @@ function patchProv(id){
 
 /* ----- Réglages ----- */
 function viewReglages(){
+  const L = currentLook();
   const accOwner = a => [['','Commun (compte joint)'],...S.members.map(m => [m.id, m.name])].map(([v,l]) => `<option value="${esc(v)}" ${(a.ownerId||'')===v?'selected':''}>${esc(l)}</option>`).join('');
   const accounts = S.accounts.map(a => `<div class="rowitem">
       <label class="field">Nom du compte<input class="inp" data-b="acc:${a.id}:name" value="${esc(a.name)}"></label>
@@ -2175,6 +2440,11 @@ function viewReglages(){
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Garder une copie de secours dans ce navigateur (elle ne quitte jamais l’appareil)</label>
       <div class="toolbar"><button class="btn danger small" data-act="reset-template">Repartir d’un modèle vierge</button><button class="btn danger small" data-act="forget">Fermer et effacer de ce navigateur</button></div>
+    </div></section>
+    <section class="card"><h2>Apparence ${H('apparence')}</h2><div class="form">
+      <div class="field">Skin<div class="look-grid" role="group" aria-label="Skin">${Object.entries(SKIN_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-skin" data-id="${id}" aria-pressed="${L.skin === id}"><span class="sw3">${k.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(k.name)}</button>`).join('')}</div></div>
+      <div class="field">Mode<div class="chips wrapchips" role="group" aria-label="Mode">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([id, l]) => `<button type="button" class="chip" data-act="set-mode" data-id="${id}" aria-pressed="${L.mode === id}" ${L.skin === 'minuit' ? 'disabled' : ''}>${l}</button>`).join('')}</div>${L.skin === 'minuit' ? '<small class="muted">Minuit est toujours sombre.</small>' : '<small class="muted">Automatique suit le réglage de ton appareil.</small>'}</div>
+      <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${(MASC[id] || MASC.pig).happy}</svg></span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
     </div></section>
     <section class="card"><h2>Comptes ${H('comptes')}</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun.</p>
       <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
@@ -2450,6 +2720,9 @@ document.addEventListener('click', async e => {
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
     case 'help': openPop(t, id); break;
+    case 'set-skin': S.settings.skin = id; applyLook(); touch(true); break;
+    case 'set-mode': S.settings.mode = id; applyLook(); touch(true); break;
+    case 'set-mascot': S.settings.mascot = id; applyLook(); U.bubbleIdx = 0; U.bubbleChanged = Date.now(); touch(true); break;
     case 'env-new': openNewEnvelope(); break;
     case 'env-open': openEnvelope(id); break;
     case 'env-add': openSpend(id); break;
@@ -2463,11 +2736,19 @@ document.addEventListener('click', async e => {
       S.lines.forEach(l => { if(ids.includes(l.id)){ l.envelope = true; l.day = null; l.zero = false; } }); touch(); toast(`${ids.length} enveloppe${ids.length > 1 ? 's créées' : ' créée'}. Déclare une dépense avec le +.`); break; }
     case 'env-guide-hide': S.settings.envGuideHidden = true; touch(); break;
     case 'env-convert': { const l = S.lines.find(x => x.id === id); if(l){ l.envelope = true; l.day = null; l.zero = false; touch(); toast(`« ${l.name} » suivie en enveloppe.`); } break; }
-    case 'paid': {
-      const l = S.lines.find(x => x.id === id); if(!l) break;
-      const p = provInfo(l, undefined, provisionClock(S));
-      if(p.over >= 1 && !confirm(`« ${l.name} » a un dépassement d’objectif de ${money(p.over)}. En marquant la ligne comme payée, ce dépassement ne sera plus suivi : pense à le reprendre en épargne si besoin. Continuer ?`)) break;
-      l.lastDate = isoToday(); touch(); toast('Marqué comme payé : le suivi repart de zéro'); break; }
+    case 'paid': openPay(id); break;
+    case 'pay-save': savePay(); break;
+    case 'pay-del': { const c = U.payCtx, l = c && S.lines.find(x => x.id === c.lineId); if(l){ l.paid = (l.paid || []).filter(x => x.id !== id); touch(false); openPay(c.lineId); } break; }
+    case 'pot-open': openPot(); break;
+    case 'pot-save': openPotForm('save'); break;
+    case 'pot-adjust': openPotForm('adjust'); break;
+    case 'pot-fix': openPotForm('fix'); break;
+    case 'pot-edit': openPotForm('edit', id); break;
+    case 'pot-back': openPot(); break;
+    case 'pot-confirm': confirmPot(); break;
+    case 'pot-del': { const c = U.potCtx, snap = JSON.parse(JSON.stringify(S.pot || [])); if(c && c.entryId){ S.pot = S.pot.filter(x => x.id !== c.entryId); $('#dlg').close(); touch(); toastUndo('Ligne supprimée de la cagnotte', () => { S.pot = snap; touch(); }); } break; }
+    case 'rc-open': openRecalage(); break;
+    case 'rc-save': saveRecalage(); break;
     case 'today': U.month = new Date().getMonth() + 1; render(); break;
     case 'advice': goAdvice(t.dataset.kind); break;
     case 'bubble': {
@@ -2556,18 +2837,24 @@ document.addEventListener('keydown', e => {
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.advice.click')){ e.preventDefault(); e.target.click(); }
   if(e.key === 'Enter' && (e.target.id === 'sp-amount' || e.target.id === 'sp-note')){ e.preventDefault(); saveSpend(); }
   if(e.key === 'Enter' && (e.target.id === 'ne-name' || e.target.id === 'ne-amount')){ e.preventDefault(); neCreate(); }
+  if(e.key === 'Enter' && (e.target.id === 'py-amount' || e.target.id === 'py-note')){ e.preventDefault(); savePay(); }
+  if(e.key === 'Enter' && e.target.id === 'rc-real'){ e.preventDefault(); saveRecalage(); }
+  if(e.key === 'Enter' && e.target.id && e.target.id.startsWith('pf-')){ e.preventDefault(); confirmPot(); }
 });
 document.addEventListener('input', e => {
   const t = e.target;
   if(t.dataset && t.dataset.w && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio'){ onWizardField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
   if(e.target.id === 'ne-name'){ neRefresh(); return; }
+  if(e.target.id === 'py-amount' || e.target.id === 'py-date'){ paySync(e.target.id === 'py-amount'); return; }
+  if(e.target.id === 'rc-real'){ $('#rc-info').innerHTML = recalageInfo(); return; }
   if(e.target.closest('#dlg') && $('#f-preview')) refreshLineForm();
 });
 document.addEventListener('change', e => {
   const el = e.target;
   if(el.dataset && el.dataset.w){ onWizardField(el); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
+  if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
   if(el.id === 'flt-cat'){ U.cat = el.value; refreshBudgetList(); return; }
   if(el.id === 'flt-owner'){ U.owner = el.value; refreshBudgetList(); return; }
