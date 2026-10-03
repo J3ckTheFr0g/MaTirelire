@@ -767,7 +767,21 @@ function provisionClock(S){
     for(let i = i0; i < i0 + 1200; i++){ const {y, m} = monthAt(i), d = dateFor(y, m); if(d > a && ++c >= n) return d; }
     return null;
   };
-  return {T, dateFor, events, nthAfter, count:(a, b) => events(a, b).length, contrib, shareOf};
+  // Mensualités d'une ligne : celles des mois financés APRÈS le mois du paiement (comme les mois écoulés de l'Excel),
+  // comptées dès que le virement correspondant est arrivé (au plus tard le jour b). Le jour du virement ne change
+  // donc que le moment où la mensualité apparaît, jamais leur nombre.
+  const idx = d => d.getFullYear() * 12 + d.getMonth();
+  const countFrom = (s, b) => {
+    let c = 0;
+    for(let i = idx(s) + 1; i <= idx(b) + 2; i++){ const {y, m} = monthAt(i); if(dateFor(y, m) <= b) c++; }
+    return c;
+  };
+  const nthFrom = (s, n) => {                      // date de la n-ième mensualité après le paiement s
+    const i0 = idx(s) + 1;
+    for(let i = i0; i < i0 + 1200; i++){ if(i - i0 + 1 >= n){ const {y, m} = monthAt(i); return dateFor(y, m); } }
+    return null;
+  };
+  return {T, dateFor, events, nthAfter, count:(a, b) => events(a, b).length, countFrom, nthFrom, idx, monthAt, contrib, shareOf};
 }
 function provisionLine(l, now, clock){
   now = now || new Date();
@@ -779,18 +793,18 @@ function provisionLine(l, now, clock){
   const out = {goal, mens, monthlyGoal, start:st, end:null, k:0, exact:0, accrued:0, rest:goal, over:0, done:false, overdue:false, noStart:!st};
   if(!st) return out;
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), s = dateOf(st);
-  out.k = clock.count(s, today0);
+  out.k = clock.countFrom(s, today0);
   out.exact = mens * out.k;
   out.accrued = Math.floor(out.exact + 1e-6);
   out.rest = Math.max(0, goal - out.accrued);
   out.over = Math.max(0, Math.floor(out.exact - goal + 1e-6));
   out.done = out.accrued >= goal - 0.005;
-  if(monthlyGoal) out.end = mens > 0 ? clock.nthAfter(s, Math.max(1, Math.ceil(goal / mens - 1e-9))) : null;
+  if(monthlyGoal) out.end = mens > 0 ? clock.nthFrom(s, Math.max(1, Math.ceil(goal / mens - 1e-9))) : null;
   else { out.end = addCycleTo(st, c); out.overdue = out.end < today0; }
   return out;
 }
 /* Lignes concernées par le suivi de provision */
-function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l))); }
+function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l))); }
 /* Vue compacte pour l'onglet Provisions */
 function provisionInfo(l, now, clock){
   const p = provisionLine(l, now, clock);
@@ -803,7 +817,7 @@ function provisionInfo(l, now, clock){
 function projectProvisions(counted, clock, today0, n){
   const items = counted.map(r => ({name:r.l.name, mens:r.p.mens, goal:r.p.goal, mg:r.p.monthlyGoal, c:r.l.cycle, start:dateOf(r.p.start), base:0}));
   const endOf = it => it.mg
-    ? (it.mens > 0 ? clock.nthAfter(it.start, Math.max(1, Math.ceil(it.goal / it.mens - 1e-9))) : null)
+    ? (it.mens > 0 ? clock.nthFrom(it.start, Math.max(1, Math.ceil(it.goal / it.mens - 1e-9))) : null)
     : addCycleTo(objOf(it.start), it.c);
   const out = [];
   for(let i = 0; i < n; i++){
@@ -814,10 +828,10 @@ function projectProvisions(counted, clock, today0, n){
         const end = endOf(it);
         if(!end || end > D || (it.mg && end < today0)) break;
         const pay = end < today0 ? today0 : end;
-        it.base = it.base + it.mens * clock.count(it.start, pay) - it.goal;
+        it.base = it.base + it.mens * clock.countFrom(it.start, pay) - it.goal;
         it.start = pay; deb += it.goal; list.push({name:it.name, goal:it.goal, date:objOf(pay)});
       }
-      bal += it.base + it.mens * clock.count(it.start, D);
+      bal += it.base + it.mens * clock.countFrom(it.start, D);
     });
     out.push({y:D.getFullYear(), m:D.getMonth() + 1, exact:bal, debitTotal:deb, debits:list});
   }
@@ -857,10 +871,48 @@ function provisionSummary(S, now){
     }
   });
   if(nextTransfer) delete nextTransfer._d;
+
+  /* --- Trésorerie du mois : l'argent des virements qui n'est pas encore prélevé ---
+     Compte à J = provisions accumulées + trésorerie. La trésorerie = parts reçues (mois en cours et suivant)
+     − part déjà affectée aux provisions − prélèvements mensuels déjà passés + crédits déjà reçus.
+     On suppose que ce qui a été reçu pour les mois précédents est dépensé (budget équilibré). */
+  const dimM = dimOf(curY, curM), dayJ = today0.getDate();
+  const provIds = new Set(rows.map(r => r.l.id));
+  const mlines = [];
+  S.lines.forEach(l => {
+    if(!l.active || !(l.amount > 0) || provIds.has(l.id)) return;
+    if(!(l.ownerId === 'common' || !S.members.some(x => x.id === l.ownerId))) return;
+    const v = amountInMonth(l, curM); if(!(v > 0)) return;
+    const spread = !l.day || l.method === 'cb' || l.method === 'especes' || l.cycle.unit === 'day' || l.cycle.unit === 'week';
+    mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread});
+  });
+  const execAt = d => {
+    let deb = 0, cr = 0;
+    mlines.forEach(x => { const done = x.spread ? x.v * Math.min(d, dimM) / dimM : (x.day <= d ? x.v : 0); if(x.sign < 0) deb += done; else cr += done; });
+    return {deb, cr};
+  };
+  const totD = mlines.filter(x => x.sign < 0).reduce((a, x) => a + x.v, 0), totC = mlines.filter(x => x.sign > 0).reduce((a, x) => a + x.v, 0);
+  const exJ = execAt(dayJ);
+  const funded = [[curY, curM], (m => [m.getFullYear(), m.getMonth() + 1])(new Date(curY, curM, 1))];
+  const arrived = d => { let t = 0; funded.forEach(([y, m]) => clock.contrib.forEach(mb => { const sh = clock.shareOf(m, mb.id); if(sh > 0.005 && clock.T(mb, y, m) <= d) t += sh; })); return t; };
+  const mensAlloc = d => { let t = 0; funded.forEach(([y, m]) => { const D = clock.dateFor(y, m); if(D <= d) counted.forEach(r => { if(clock.idx(new Date(y, m - 1, 1)) > clock.idx(dateOf(r.p.start))) t += r.p.mens; }); }); return t; };
+  const treasury = arrived(today0) - mensAlloc(today0) - exJ.deb + exJ.cr;
+  const remainNet = (totD - exJ.deb) - (totC - exJ.cr);
+  const incomingShares = arrived(monthEnd) - arrived(today0);
+  const state = accrued + treasury;
+  const endBalance = state + incomingShares - remainNet - debits;
+  const provisionsEnd = proj.length ? proj[0].balance : accrued;
+  const pending = [];
+  clock.contrib.forEach(mb => { const sh = clock.shareOf(curM, mb.id); const d = clock.T(mb, curY, curM); if(sh > 0.005 && d > today0) pending.push({name:mb.name, date:objOf(d), amount:sh}); });
+  const groups = {};
+  mlines.filter(x => x.sign < 0 && !x.spread && x.day > dayJ).forEach(x => { (groups[x.day] = groups[x.day] || {day:x.day, total:0, names:[]}); groups[x.day].total += x.v; groups[x.day].names.push(x.name); });
+  const upcomingDebits = Object.values(groups).sort((a, b) => a.day - b.day).map(g => ({date:{y:curY, m:curM, d:g.day}, total:g.total, names:g.names}));
+  const cash = {state, provisions:accrued, treasury, remainNet, incomingShares, endBalance, provisionsEnd, treasuryEnd:endBalance - provisionsEnd, pending, upcomingDebits, spentSoFar:exJ.deb - exJ.cr};
+
   const overRows = counted.filter(r => r.p.over >= 1).sort((a, b) => b.p.over - a.p.over);
   return {count:counted.length, accrued, goal:sum(p => p.goal), rest:sum(p => p.rest), over:overRows.reduce((a, r) => a + r.p.over, 0),
           overList:overRows.map(r => ({name:r.l.name, over:r.p.over})), mens:mensAll,
-          dueNow, upcoming, debits, incoming, incomingNext, eom:proj.length ? proj[0].balance : accrued, proj,
+          dueNow, upcoming, debits, incoming, incomingNext, eom:proj.length ? proj[0].balance : accrued, proj, cash,
           overdue:counted.filter(r => r.p.overdue).map(r => r.l.name), noStart:rows.filter(r => r.p.noStart).map(r => r.l.name), nextTransfer};
 }
 
@@ -1179,37 +1231,49 @@ function sparkHTML(proj){
     ${lab(imax, true)}${imin !== imax ? lab(imin, false) : ''}${ticks}</svg>`;
 }
 function provisionCardHTML(){
-  const P = provisionSummary(S), now = new Date();
+  const P = provisionSummary(S), now = new Date(), C = P.cash;
   const plural = (n, a, b) => n > 1 ? b : a;
   const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
   if(!P.count) return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
     <p class="hint" style="margin-top:8px">Aucune ligne de provision n’a de date de départ. Renseigne le dernier paiement (Provision et suivi) sur tes dépenses non mensuelles : la somme attendue se calcule alors toute seule.</p>
     <div style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Ouvrir Provisions</button></div></section>`;
-  const monthName = MONTHS[now.getMonth()], nextName = MONTHS[(now.getMonth() + 1) % 12];
-  const over = P.over >= 1 ? `<p class="note" style="margin-top:4px">dont <b>${money(P.over)}</b> de dépassement d’objectif (${P.overList.slice(0, 3).map(o => esc(o.name)).join(', ')}${P.overList.length > 3 ? '…' : ''}), disponible pour l’épargne.</p>` : '';
-  const due = P.dueNow.length ? `<h3 class="who">À débiter ce mois-ci</h3><ul class="leaders dueList">${P.dueNow.map(d =>
+  const monthName = MONTHS[now.getMonth()];
+  const over = P.over >= 1 ? `<p class="note" style="margin-top:4px">Les provisions comprennent <b>${money(P.over)}</b> de dépassement d’objectif (${P.overList.slice(0, 3).map(o => esc(o.name)).join(', ')}${P.overList.length > 3 ? '…' : ''}), disponible pour l’épargne.</p>` : '';
+  const pend = C.pending.length ? `<p class="note" style="margin-top:6px">${C.pending.map(p => `Virement de ${esc(p.name)} attendu le ${fmtDay(p.date)}`).join(', ')} : ${plural(C.pending.length, 'sa part n’est', 'leurs parts ne sont')} pas encore sur le compte.</p>` : '';
+  const dl = C.upcomingDebits;
+  const nxt = dl.length ? `<h3 class="who">Prochains prélèvements du mois</h3><ul class="leaders">${dl.slice(0, 4).map(g =>
+    `<li><span>${fmtDay(g.date)} <small>${g.names.slice(0, 3).map(esc).join(', ')}${g.names.length > 3 ? ` et ${g.names.length - 3} autre${plural(g.names.length - 3, '', 's')}` : ''}</small></span><i class="dots"></i><b class="debit">−${money(g.total)}</b></li>`).join('')}</ul>${dl.length > 4 ? `<p class="note">… et ${dl.length - 4} autre${plural(dl.length - 4, '', 's')} date${plural(dl.length - 4, '', 's')} d’ici la fin du mois.</p>` : ''}` : '';
+  const due = P.dueNow.length ? `<h3 class="who">Dépenses de provision à régler ce mois-ci</h3><ul class="leaders dueList">${P.dueNow.map(d =>
     `<li><span>${esc(d.name)} <small>${d.overdue ? 'échéance dépassée' : `le ${fmtDay(d.end)}`}</small></span><i class="dots"></i><b class="debit">−${money(d.goal)}</b><button class="btn small paid" data-act="paid" data-id="${esc(d.id)}" aria-label="Marquer ${esc(d.name)} comme payé">Payé</button></li>`).join('')}</ul>` : '';
-  const flow = `<h3 class="who">Objectif : provision restante fin ${monthName}</h3><dl class="legend waterfall">
-      <div><dt>Aujourd’hui</dt><dd>${money(P.accrued)}</dd></div>
-      <div><dt>Mensualités à recevoir${P.incomingNext > 0.005 ? ` <small>dont ${money(P.incomingNext)} pour ${nextName}</small>` : ''}</dt><dd class="credit">+${money(P.incoming)}</dd></div>
-      <div><dt>Débits du mois</dt><dd class="debit">−${money(P.debits)}</dd></div>
-      <div class="total"><dt>Fin ${monthName}</dt><dd>${money(P.eom)}</dd></div></dl>`;
+  const nextName = MONTHS[(now.getMonth() + 1) % 12];
+  const sgn = (v, cls) => `<dd class="${cls}">${v < 0 ? '+' : '−'}${money(Math.abs(v))}</dd>`;
+  const rows = [`<div><dt>Aujourd’hui (compte)</dt><dd>${money(C.state)}</dd></div>`,
+    `<div><dt>Prélèvements mensuels à venir</dt>${sgn(C.remainNet, C.remainNet < 0 ? 'credit' : 'debit')}</div>`];
+  if(C.incomingShares > 0.005) rows.push(`<div><dt>Virements à recevoir</dt><dd class="credit">+${money(C.incomingShares)}</dd></div>`);
+  if(P.debits > 0.005) rows.push(`<div><dt>Dépenses de provision du mois</dt><dd class="debit">−${money(P.debits)}</dd></div>`);
+  if(C.treasuryEnd > 0.5){
+    rows.push(`<div><dt>Fin ${monthName} (compte)</dt><dd>${money(C.endBalance)}</dd></div>`,
+              `<div><dt>dont trésorerie déjà reçue pour ${nextName}</dt><dd>${money(C.treasuryEnd)}</dd></div>`,
+              `<div class="total"><dt>Provision restante (objectif)</dt><dd>${money(C.provisionsEnd)}</dd></div>`);
+  } else rows.push(`<div class="total"><dt>Provision restante fin ${monthName} (objectif)</dt><dd>${money(C.provisionsEnd)}</dd></div>`);
+  const flow = `<h3 class="who">Du compte d’aujourd’hui à l’objectif</h3><dl class="legend waterfall">${rows.join('')}</dl>`;
   const vals = P.proj.map(x => x.balance), hi = P.proj[vals.indexOf(Math.max(...vals))], lo = P.proj[vals.indexOf(Math.min(...vals))];
-  const traj = `<h3 class="who">Trajectoire sur 12 mois</h3>${sparkHTML(P.proj)}
+  const traj = `<h3 class="who">Trajectoire de la provision sur 12 mois</h3>${sparkHTML(P.proj)}
     <p class="note" style="margin-top:2px">Point haut ${money(hi.balance, 0)} (${MONTHS_SHORT[hi.m - 1]} ${hi.y}) · point bas ${money(lo.balance, 0)} (${MONTHS_SHORT[lo.m - 1]} ${lo.y}).</p>
     <details class="how"><summary>Mois par mois</summary><ul class="leaders" style="margin-top:8px">${P.proj.map(x =>
       `<li><span>${cap1(MONTHS[x.m - 1])} ${x.y}${x.debitTotal > 0.005 ? ` <small>−${money(x.debitTotal)} : ${x.debits.slice(0, 3).map(d => esc(d.name)).join(', ')}${x.debits.length > 3 ? '…' : ''}</small>` : ''}</span><i class="dots"></i><b>${money(x.balance, 0)}</b></li>`).join('')}</ul>
-      <p class="note" style="margin-top:6px">Hypothèse : chaque dépense est payée à sa date de fin, puis le suivi repart de zéro. Une ligne à objectif déjà atteinte continue d’augmenter.</p></details>`;
+      <p class="note" style="margin-top:6px">Provision après les prélèvements mensuels. Hypothèse : chaque dépense est payée à sa date de fin, puis le suivi repart de zéro. Une ligne à objectif déjà atteinte continue d’augmenter.</p></details>`;
   const tr = P.nextTransfer ? `<div><dt>Prochain virement de provision</dt><dd>${money(P.nextTransfer.amount)} <small class="muted">le ${fmtDay(P.nextTransfer.date)}${P.nextTransfer.forMonth.m !== P.nextTransfer.date.m ? `, pour ${MONTHS[P.nextTransfer.forMonth.m - 1]}` : ''} (${esc(P.nextTransfer.name)})</small></dd></div>` : '';
   const notes = [
     P.overdue.length ? `${P.overdue.length} échéance${plural(P.overdue.length, '', 's')} dépassée${plural(P.overdue.length, '', 's')} (${P.overdue.slice(0, 3).join(', ')}${P.overdue.length > 3 ? '…' : ''}) : appuie sur « Payé » si c’est réglé.` : '',
-    P.noStart.length ? `${P.noStart.length} ligne${plural(P.noStart.length, '', 's')} sans date de départ ${plural(P.noStart.length, 'n’est', 'ne sont')} pas comptée${plural(P.noStart.length, '', 's')} (${P.noStart.slice(0, 3).join(', ')}${P.noStart.length > 3 ? '…' : ''}).` : '',
+    P.noStart.length ? `${P.noStart.length} ligne${plural(P.noStart.length, '', 's')} sans date de départ ${plural(P.noStart.length, 'n’est', 'ne sont')} pas comptée${plural(P.noStart.length, '', 's')} dans les provisions (${P.noStart.slice(0, 3).join(', ')}${P.noStart.length > 3 ? '…' : ''}).` : '',
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
   return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
-    <div class="rest"><b>${money(P.accrued)}</b><span>état du compte au ${fmtDay(objOf(now))}, sur ${P.count} ligne${plural(P.count, '', 's')} de provision (lignes à débiter ce mois-ci comprises)</span></div>${over}
-    ${due}${flow}${traj}
+    <div class="rest"><b>${money(C.state)}</b><span>état du compte au ${fmtDay(objOf(now))}</span></div>
+    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div><div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
+    ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
-    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Pour chaque dépense qui ne tombe pas tous les mois : mensualité = coût ÷ nombre de mois du cycle (ligne mensuelle à objectif : son montant mensuel). La date de départ est le dernier paiement ; la date de fin est le départ plus le cycle. Somme en cours = mensualité × nombre de mensualités reçues depuis le départ, arrondie à l’euro inférieur, comme dans ton Excel. Elle n’est jamais plafonnée : au-delà du coût, c’est un dépassement d’objectif, qui augmente jusqu’à ce que tu appuies sur « Payé ». Une mensualité compte dès que le virement de chaque contributeur est arrivé (jour et mois financé réglés dans Foyer). Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit.</p></details>
+    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Le compte à J = provisions accumulées + trésorerie du mois. Provisions : pour chaque dépense qui ne tombe pas tous les mois, mensualité × mensualités reçues depuis le dernier paiement (date de départ), arrondie à l’euro inférieur comme dans ton Excel ; jamais plafonnée, le surplus est un dépassement d’objectif jusqu’à « Payé ». Trésorerie du mois : les parts virées par chacun (à leur jour de versement, pour le mois qu’elles financent), moins la part déjà affectée aux provisions, moins les prélèvements mensuels déjà passés, plus les crédits déjà reçus. Chaque prélèvement tombe à son jour du mois ; sans jour, ou en carte ou espèces, il est étalé sur le mois. Les mois précédents sont supposés équilibrés. Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit.</p></details>
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
 }
 function openTransferHelp(){
