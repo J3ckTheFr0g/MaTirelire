@@ -309,12 +309,29 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .legend small{font-weight:500}
 .dueList li{align-items:center}
 .dueList .paid{flex:0 0 auto;margin-left:4px}
-.qbtn{display:inline-grid;place-items:center;width:22px;height:22px;margin-left:4px;border-radius:50%;border:1.5px solid var(--brand);background:var(--surface);color:var(--brand);font-weight:800;font-size:.8rem;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
+.qbtn{display:inline-grid;place-items:center;width:28px;height:28px;margin-left:4px;border-radius:50%;border:1.5px solid var(--brand);background:var(--surface);color:var(--brand);font-weight:800;font-size:.8rem;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
 .qbtn:hover{background:var(--brand);color:var(--on-brand)}
 .help h3{font-size:.98rem;font-weight:800;margin-top:4px}
 .help h3 small{font-weight:500;color:var(--muted)}
 .help p{color:var(--ink)}
 .help ul{margin:0;padding-left:20px;display:grid;gap:6px}
+
+/* Budget : barre « effacer les filtres » */
+.clearbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--amber-soft);border:1px solid var(--amber);border-radius:12px;padding:6px 8px 6px 14px;font-size:.9rem}
+
+/* Répartition d'une ligne entre plusieurs sources */
+.split{border:1px dashed var(--line);border-radius:12px;padding:10px;background:var(--surface2)}
+.splitrow{display:grid;grid-template-columns:1fr 1fr 78px auto;gap:8px;align-items:end;margin-bottom:8px}
+.splitrow .btn{margin-bottom:2px}
+@media(max-width:520px){.splitrow{grid-template-columns:1fr 1fr;}.splitrow .btn{justify-self:start}}
+
+.qbtn.light{background:transparent;border-color:rgba(255,255,255,.75);color:#fff;width:24px;height:24px;font-size:.72rem}
+.qbtn.light:hover{background:#fff;color:var(--brand)}
+h2 .qbtn,h3 .qbtn{margin-left:6px;position:relative;top:-1px}
+.pagehead{display:flex;align-items:center}
+.pagehead h2{font-size:1.15rem;font-weight:800}
+details.method summary{cursor:pointer;font-weight:800;font-size:.98rem}
+details.method[open] summary{margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -465,24 +482,40 @@ function distribute(d, need, ids, MM){
   return out;
 }
 
+/* ---------- Répartition d'une ligne entre plusieurs sources (propriétaire + compte + pourcentage) ---------- */
+function linePartsOf(l){
+  if(Array.isArray(l.split) && l.split.length > 1){
+    const tot = l.split.reduce((a, p) => a + (+p.pct || 0), 0) || 1;
+    return l.split.map(p => ({ownerId:p.ownerId || 'common', accountId:p.accountId || null, f:(+p.pct || 0) / tot}));
+  }
+  return [{ownerId:l.ownerId, accountId:l.accountId, f:1}];
+}
+function commonFraction(l, S){
+  const known = id => id === 'common' || !S || S.members.some(x => x.id === id);
+  return linePartsOf(l).reduce((a, p) => a + ((p.ownerId === 'common' || !known(p.ownerId)) ? p.f : 0), 0);
+}
+
 /* ---------- Calcul d'un mois (m = 1..12) ou de la moyenne mensuelle (m = 0) ---------- */
 function computeMonth(S, m){
   const val = l => !l.active ? 0 : (m === 0 ? annualTotal(l)/12 : amountInMonth(l, m));
   const R = {m, common:{debit:0, credit:0, net:0}, cats:{}, accounts:{}, members:{}, unfunded:0, transfers:{}};
   S.members.forEach(mb => { R.members[mb.id] = {id:mb.id, income:0, personal:0, share:0, rest:0, byAccount:{}}; });
   for(const l of S.lines){
-    const v = val(l); if(!v) continue;
-    const owner = (l.ownerId === 'common' || !R.members[l.ownerId]) ? 'common' : l.ownerId;
-    const c = R.cats[l.catId] || (R.cats[l.catId] = {common:0, personal:0, credit:0});
-    if(l.kind === 'credit') c.credit += v; else if(owner === 'common') c.common += v; else c.personal += v;
-    const aid = l.accountId || '_none';
-    const a = R.accounts[aid] || (R.accounts[aid] = {debit:0, credit:0});
-    a[l.kind] += v;
-    if(owner === 'common') R.common[l.kind] += v;
-    else {
-      const M = R.members[owner];
-      if(l.kind === 'credit') M.income += v;
-      else { M.personal += v; M.byAccount[aid] = (M.byAccount[aid]||0) + v; }
+    const v0 = val(l); if(!v0) continue;
+    for(const part of linePartsOf(l)){
+      const v = v0 * part.f; if(!v) continue;
+      const owner = (part.ownerId === 'common' || !R.members[part.ownerId]) ? 'common' : part.ownerId;
+      const c = R.cats[l.catId] || (R.cats[l.catId] = {common:0, personal:0, credit:0});
+      if(l.kind === 'credit') c.credit += v; else if(owner === 'common') c.common += v; else c.personal += v;
+      const aid = part.accountId || '_none';
+      const a = R.accounts[aid] || (R.accounts[aid] = {debit:0, credit:0});
+      a[l.kind] += v;
+      if(owner === 'common') R.common[l.kind] += v;
+      else {
+        const M = R.members[owner];
+        if(l.kind === 'credit') M.income += v;
+        else { M.personal += v; M.byAccount[aid] = (M.byAccount[aid]||0) + v; }
+      }
     }
   }
   R.common.net = R.common.debit - R.common.credit;
@@ -528,7 +561,7 @@ function normalize(d){
     id: String(x.id || uid()), name: String(x.name || 'Sans nom'),
     type: MEMBER_TYPES.some(t=>t.id===x.type) ? x.type : 'adult',
     contributes: x.contributes !== undefined ? !!x.contributes : (x.type||'adult') === 'adult',
-    pocket: {amount: Math.abs(+((x.pocket||{}).amount)||0), payer: (x.pocket||{}).payer || 'split'},
+    pocket: {amount: Math.abs(+((x.pocket||{}).amount)||0), payer: (x.pocket||{}).payer || 'split', shares: (x.pocket && x.pocket.shares && typeof x.pocket.shares === 'object') ? x.pocket.shares : null, accounts: (x.pocket && x.pocket.accounts && typeof x.pocket.accounts === 'object') ? x.pocket.accounts : null},
     transferDay: Math.min(Math.max(parseInt(x.transferDay) || 1, 1), 31),
     transferNext: !!x.transferNext,
   }));
@@ -551,6 +584,7 @@ function normalize(d){
       goal: x.goal != null && x.goal !== '' ? Math.abs(+x.goal)||null : null,
       reserved: x.reserved != null && x.reserved !== '' ? +x.reserved : null,
       lastDate: x.lastDate || null, note: String(x.note||''), auto: x.auto || null, forMember: x.forMember || null,
+      zero: !!x.zero, split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
   // Références orphelines
@@ -559,6 +593,12 @@ function normalize(d){
     if(l.ownerId !== 'common' && !memberIds.has(l.ownerId)) l.ownerId = 'common';
     if(l.accountId && !accIds.has(l.accountId)) l.accountId = null;
     if(!l.catId || !catIds.has(l.catId)) l.catId = ensureCategory(S, 'Divers').id;
+    if(l.zero) l.amount = 0;
+    if(l.split){
+      l.split.forEach(p => { if(p.ownerId !== 'common' && !memberIds.has(p.ownerId)) p.ownerId = 'common'; if(p.accountId && !accIds.has(p.accountId)) p.accountId = null; });
+      const tot = l.split.reduce((a, p) => a + p.pct, 0);
+      l.split = (l.split.length > 1 && tot > 0) ? l.split.map(p => ({...p, pct:p.pct * 100 / tot})) : null;
+    }
   });
   if(S.settings.commonAccountId && !accIds.has(S.settings.commonAccountId)) S.settings.commonAccountId = null;
   return S;
@@ -573,7 +613,7 @@ function newLine(S, o={}){
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -604,11 +644,18 @@ function syncPocket(S, memberId){
   const base = {catId:cat, cycle:{every:1, unit:'month', times:1}, auto:'pocket', forMember:memberId, day:1};
   S.lines.push(newLine(S, {...base, name:`Argent de poche – ${mb.name}`, kind:'credit', amount, ownerId:memberId, method:'especes', accountId:defaultAccountFor(S, memberId)}));
   const payer = mb.pocket.payer || 'split';
-  let payers;
-  if(payer === 'common') payers = ['common'];
-  else if(payer === 'split'){ const ids = S.members.filter(x=>x.contributes).map(x=>x.id); payers = ids.length ? ids : ['common']; }
-  else payers = S.members.some(x=>x.id===payer) ? [payer] : ['common'];
-  payers.forEach(p => S.lines.push(newLine(S, {...base, name:`Argent de poche – ${mb.name}`, kind:'debit', amount: amount/payers.length, ownerId:p, method:'virement', accountId:defaultAccountFor(S, p)})));
+  let ids;
+  if(payer === 'common') ids = ['common'];
+  else if(payer === 'split'){ const c = S.members.filter(x => x.contributes).map(x => x.id); ids = c.length ? c : ['common']; }
+  else ids = S.members.some(x => x.id === payer) ? [payer] : ['common'];
+  const sh = mb.pocket.shares || {};
+  const hasSh = payer === 'split' && ids.some(id => sh[id] != null);
+  let raw = ids.map(id => hasSh ? Math.max(0, +sh[id] || 0) : 1);
+  if(!(raw.reduce((a, b) => a + b, 0) > 0)) raw = ids.map(() => 1);
+  const tot = raw.reduce((a, b) => a + b, 0);
+  const accOf = id => { const a = mb.pocket.accounts && mb.pocket.accounts[id]; return (a && S.accounts.some(x => x.id === a)) ? a : defaultAccountFor(S, id); };
+  const parts = ids.map((id, i) => ({ownerId:id, accountId:accOf(id), pct:raw[i] * 100 / tot}));
+  S.lines.push(newLine(S, {...base, name:`Argent de poche – ${mb.name}`, kind:'debit', amount, ownerId:ids[0], method:'virement', accountId:parts[0].accountId, split:parts.length > 1 ? parts : null}));
 }
 function syncAllPockets(S){ S.members.filter(m=>m.type!=='adult').forEach(m => syncPocket(S, m.id)); }
 
@@ -804,7 +851,7 @@ function provisionLine(l, now, clock){
   return out;
 }
 /* Lignes concernées par le suivi de provision */
-function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l))); }
+function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l)) && !l.zero); }
 /* Vue compacte pour l'onglet Provisions */
 function provisionInfo(l, now, clock){
   const p = provisionLine(l, now, clock);
@@ -881,8 +928,8 @@ function provisionSummary(S, now){
   const mlines = [];
   S.lines.forEach(l => {
     if(!l.active || !(l.amount > 0) || provIds.has(l.id)) return;
-    if(!(l.ownerId === 'common' || !S.members.some(x => x.id === l.ownerId))) return;
-    const v = amountInMonth(l, curM); if(!(v > 0)) return;
+    const cf = commonFraction(l, S); if(!(cf > 0)) return;
+    const v = amountInMonth(l, curM) * cf; if(!(v > 0)) return;
     const spread = !l.day || l.method === 'cb' || l.method === 'especes' || l.cycle.unit === 'day' || l.cycle.unit === 'week';
     mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread});
   });
@@ -959,10 +1006,10 @@ function computeAdvice(S, now){
     else push('good','epargne-ok',{pc:pcE, amount:ep, income});
   }
 
-  const todo = S.lines.filter(l => l.active && l.amount === 0);
+  const todo = S.lines.filter(l => l.active && l.amount === 0 && !l.zero);
   if(todo.length) push('warn','todo',{count:todo.length, names:todo.slice(0,4).map(l=>l.name)}, {tab:'budget', todo:true});
 
-  const incomplete = S.lines.filter(l => l.active && l.amount > 0 && (!l.accountId || !l.method));
+  const incomplete = S.lines.filter(l => l.active && l.amount > 0 && (!l.method || linePartsOf(l).some(p => !p.accountId)));
   if(incomplete.length) push('info','incomplete',{count:incomplete.length}, {tab:'budget', lineId:incomplete[0].id});
 
   const dups = [];
@@ -1012,7 +1059,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket};
 
 </script>
 <script>
@@ -1027,7 +1074,7 @@ const num = v => { const n = parseFloat(String(v).replace(',', '.')); return Num
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 let S = null;
-const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', todo:false,
+const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
 const LS_KEY = 'budget-foyer:sauvegarde';
@@ -1115,7 +1162,7 @@ async function saveFile(saveAs = false){
     try{
       let h = U.fileHandle;
       if(!h || saveAs){
-        h = await window.showSaveFilePicker({suggestedName:U.fileName || 'matirelire.json', types:JSON_TYPES});
+        h = await window.showSaveFilePicker({suggestedName:U.fileName || 'MaTirelire.json', types:JSON_TYPES});
         U.fileHandle = h; U.fileName = h.name; await idbSet('handle', h);
       } else if((await h.queryPermission({mode:'readwrite'})) !== 'granted'){
         if((await h.requestPermission({mode:'readwrite'})) !== 'granted') return;
@@ -1124,7 +1171,7 @@ async function saveFile(saveAs = false){
       U.dirty = false; U.lastSaved = new Date(); U.needPerm = false; U.pending = null; toast('Enregistré dans ' + h.name);
     }catch(e){ if(e.name !== 'AbortError') toast('Enregistrement impossible : ' + e.message); }
   } else {
-    download(U.fileName || 'matirelire.json', text);
+    download(U.fileName || 'MaTirelire.json', text);
     U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé');
   }
   updateStatus();
@@ -1212,6 +1259,49 @@ function welcome(){
   </section>`;
 }
 
+/* ----- Aide intégrée : un « ? » à côté du titre de chaque bloc ----- */
+const HELP = {
+  rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
+    <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
+    <p class="note">Exemple : 6 000 € de revenus − 4 200 € de budget commun − 170 € de dépenses personnelles = 1 630 € à vivre.</p>`},
+  'prov-block':{title:'Compte provisions', body:`<p>Ce bloc répond à deux questions : <b>combien y a-t-il sur le compte aujourd’hui</b>, et <b>combien restera-t-il de provisions une fois les prélèvements du mois passés</b> (l’objectif).</p>
+    <ul><li><b>Provisions</b> : l’argent mis de côté pour les dépenses qui ne tombent pas tous les mois (pneus, assurance annuelle…).</li><li><b>Trésorerie du mois</b> : l’argent des virements qui n’est pas encore prélevé (prêt, EDF…).</li></ul>
+    <p>État du compte = provisions + trésorerie. Ce n’est pas un solde bancaire : c’est ce que ton budget prévoit.</p>
+    <p class="note">Calcul : pour chaque ligne, mensualité × mensualités reçues depuis son dernier paiement, arrondie à l’euro inférieur, comme dans ton Excel. La somme n’est jamais plafonnée : au-delà du coût, c’est un dépassement d’objectif, jusqu’à « Payé ». Une mensualité compte quand les virements de tous les contributeurs sont arrivés (réglage dans Foyer). Les mois précédents sont supposés équilibrés.</p>`},
+  'prov-next':{title:'Prochains prélèvements du mois', body:`<p>Les prélèvements mensuels pas encore passés (prêts, factures, abonnements), regroupés par date. Le montant d’une ligne sans jour ou payée par carte est étalé sur le mois et n’apparaît pas ici.</p>`},
+  'prov-due':{title:'Dépenses de provision à régler', body:`<p>Les dépenses qui ne tombent pas tous les mois et dont la date de fin est ce mois-ci, ou déjà dépassée.</p><p>Quand tu les as réglées, appuie sur <b>Payé</b> : le suivi repart de zéro à la date du jour.</p>`},
+  'prov-flow':{title:'Du compte d’aujourd’hui à l’objectif', body:`<p>On part de l’argent présent aujourd’hui sur le compte et on retire ce qui va sortir ce mois-ci : les prélèvements mensuels à venir, puis les dépenses de provision du mois.</p><p>Il reste la <b>provision restante</b> : ton objectif, le matelas sur lequel tu peux compter une fois le mois passé.</p>`},
+  'prov-traj':{title:'Trajectoire de la provision', body:`<p>La courbe montre ce que devrait contenir le compte provisions à la fin de chacun des 12 prochains mois, une fois les prélèvements mensuels passés.</p><p>Les creux correspondent aux grosses dépenses (permis, voiture…). Hypothèse : chaque dépense est payée à sa date de fin, puis le suivi repart de zéro.</p>`},
+  repartition:{title:'Répartition du budget commun', body:`<p>Le budget commun (loyer, prêts, courses…) est financé par les adultes qui participent. Tu choisis comment le partager :</p>
+    <ul><li><b>Reste à vivre égal</b> : chacun garde la même somme après le commun ; celui qui gagne plus verse plus.</li><li><b>Prorata des revenus</b> : chacun verse la même part de son revenu.</li><li><b>Parts égales</b> : chacun verse le même montant.</li><li><b>Pourcentages</b> : tu fixes toi-même les parts (onglet Foyer).</li></ul>`},
+  virements:{title:'Virements à programmer', body:`<p>Pour chaque membre : sa part du budget commun, à virer vers le compte de provision, plus ses dépenses personnelles, à virer vers ses propres comptes.</p><p class="note">Le jour du virement se règle dans Foyer.</p>`},
+  'categories-syn':{title:'Dépenses par catégorie', body:`<p>Les familles de dépenses du mois, de la plus lourde à la plus légère. La barre distingue le commun (vert) du personnel (bleu).</p><p>Appuie sur une catégorie pour voir ses lignes ; une seule reste ouverte à la fois. Le détail se modifie dans Budget.</p>`},
+  annee:{title:'Sur l’année', body:`<p>Mois par mois : le budget commun, ce que chaque contributeur verse et le reste à vivre. Appuie sur un mois pour l’afficher en haut.</p><p>Les dépenses non mensuelles sont provisionnées chaque mois ; les lignes limitées à certains mois (école, taxe…) n’apparaissent que ces mois-là.</p>`},
+  'par-compte':{title:'Par compte', body:`<p>Pour le mois affiché : ce qui sort (débits) et ce qui entre (crédits) sur chaque compte, d’après le compte cible de chaque ligne. Une ligne répartie entre plusieurs comptes est ventilée.</p>`},
+  conseils:{title:'Conseils', body:`<p>Des observations calculées sur tes propres chiffres : poids du logement, épargne, lignes à compléter, provisions, compte provisions…</p><p>Les repères (33 % pour le logement, 10 à 20 % d’épargne) sont indicatifs. Aucune donnée ne quitte l’appareil. Appuie sur un conseil pour aller à l’élément concerné.</p>`},
+  idees:{title:'Pense à budgéter', body:`<p>Les gros achats ne préviennent pas. Les lisser sur leur durée de vie évite le coup dur.</p><p class="note">Exemple : 4 pneus à 400 € tous les 4 ans → 400 ÷ 48 mois ≈ 8,33 € à mettre de côté chaque mois.</p><p>« Ajouter au budget » préremplit la ligne ; indique ensuite la date du dernier achat pour suivre l’échéance dans Provisions.</p>`},
+  budget:{title:'Budget', body:`<p>Toutes tes lignes de dépenses et de revenus, rangées par catégorie. Appuie sur une ligne pour la modifier.</p>
+    <ul><li>Les filtres (catégorie, propriétaire, type, « à compléter ») se combinent ; « Effacer les filtres » les remet à zéro.</li><li>La case à gauche d’une ligne l’inclut ou non dans le calcul.</li><li>Une ligne a un cycle (mensuel, annuel…), un jour, un compte et, si besoin, une répartition entre plusieurs comptes.</li><li>Un montant nul à chaque échéance est possible (frais remboursés par la banque, par exemple).</li></ul>`},
+  membres:{title:'Membres du foyer', body:`<p>Chaque personne du foyer : adulte, adolescent ou enfant. Un adulte a un salaire et peut participer au budget commun. Un enfant peut recevoir de l’argent de poche, versé par un ou plusieurs adultes : une seule ligne répartie entre leurs comptes.</p><p class="note">Pour chaque contributeur : la date de versement du salaire et le mois qu’il finance.</p>`},
+  provisions:{title:'Provisions', body:`<p>Les dépenses qui ne tombent pas tous les mois, avec pour chacune :</p>
+    <ul><li><b>Mensualité</b> mise de côté</li><li><b>Somme en cours</b> : mensualités reçues depuis la date de départ, arrondie à l’euro inférieur</li><li><b>Reste</b> à provisionner, ou <b>dépassement</b> d’objectif</li><li><b>Date de fin</b> : départ + cycle</li></ul>
+    <p>La somme n’est jamais plafonnée. Quand tu règles une dépense, appuie sur <b>Payé</b> : la date de départ passe à aujourd’hui.</p>`},
+  donnees:{title:'Données', body:`<p>Tes données sont dans un fichier JSON sur ton appareil (<b>MaTirelire.json</b> par défaut), jamais envoyées sur Internet. Sur Chrome ou Edge, le fichier se met à jour automatiquement ; ailleurs, utilise « Exporter » puis « Ouvrir ».</p><p>Une copie de secours reste dans ce navigateur, au cas où.</p>`},
+  comptes:{title:'Comptes', body:`<p>Tes comptes bancaires. Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses.</p><p>Chaque ligne du budget peut être rattachée à un compte cible, ce qui alimente les virements à programmer.</p>`},
+  'prov-reglage':{title:'Compte provisions (réglage)', body:`<p>Affiche ou masque le bloc « Compte provisions » de la Synthèse. Masqué, les réglages de versement du salaire disparaissent aussi de Foyer.</p>`},
+  cats:{title:'Catégories', body:`<p>Les familles qui regroupent tes lignes (Logement, Transports…). Tu peux les renommer, changer leur couleur et les réordonner. Supprimer une catégorie remet ses lignes dans « Divers ».</p>`},
+  moyens:{title:'Moyens de paiement', body:`<p>Prélèvement, virement, chèque, carte… Chaque ligne en a un. Les lignes payées par carte ou en espèces sont étalées sur le mois dans le bloc Compte provisions.</p>`},
+  devise:{title:'Devise', body:`<p>La monnaie d’affichage des montants. Elle ne convertit rien : elle change seulement le symbole.</p>`},
+};
+const H = (id, cls) => HELP[id] ? `<button type="button" class="qbtn ${cls || ''}" data-act="help" data-id="${id}" aria-label="Aide : ${esc(HELP[id].title)}" title="Aide">?</button>` : '';
+function openHelp(id){
+  const h = HELP[id]; if(!h) return;
+  const dlg = $('#dlg'); U.editing = null;
+  dlg.innerHTML = `<div class="dlg-h"><h2>${esc(h.title)}</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div><div class="dlg-b form help">${h.body}</div>
+   <div class="dlg-f"><span></span><div class="r"><button class="btn primary" data-act="close-dlg">Compris</button></div></div>`;
+  dlg.showModal();
+}
+
 /* ----- Compte provisions : état à J, objectif (provision restante) et trajectoire ----- */
 function isoToday(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function fmtDay(o){ return new Date(o.y, o.m - 1, o.d).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}); }
@@ -1234,16 +1324,16 @@ function provisionCardHTML(){
   const P = provisionSummary(S), now = new Date(), C = P.cash;
   const plural = (n, a, b) => n > 1 ? b : a;
   const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
-  if(!P.count) return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
+  if(!P.count) return `<section class="card joint"><header><h2>Compte provisions ${H('prov-block')}</h2><span class="badge">attendu</span></header>
     <p class="hint" style="margin-top:8px">Aucune ligne de provision n’a de date de départ. Renseigne le dernier paiement (Provision et suivi) sur tes dépenses non mensuelles : la somme attendue se calcule alors toute seule.</p>
     <div style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Ouvrir Provisions</button></div></section>`;
   const monthName = MONTHS[now.getMonth()];
   const over = P.over >= 1 ? `<p class="note" style="margin-top:4px">Les provisions comprennent <b>${money(P.over)}</b> de dépassement d’objectif (${P.overList.slice(0, 3).map(o => esc(o.name)).join(', ')}${P.overList.length > 3 ? '…' : ''}), disponible pour l’épargne.</p>` : '';
   const pend = C.pending.length ? `<p class="note" style="margin-top:6px">${C.pending.map(p => `Virement de ${esc(p.name)} attendu le ${fmtDay(p.date)}`).join(', ')} : ${plural(C.pending.length, 'sa part n’est', 'leurs parts ne sont')} pas encore sur le compte.</p>` : '';
   const dl = C.upcomingDebits;
-  const nxt = dl.length ? `<h3 class="who">Prochains prélèvements du mois</h3><ul class="leaders">${dl.slice(0, 4).map(g =>
+  const nxt = dl.length ? `<h3 class="who">Prochains prélèvements du mois ${H('prov-next')}</h3><ul class="leaders">${dl.slice(0, 4).map(g =>
     `<li><span>${fmtDay(g.date)} <small>${g.names.slice(0, 3).map(esc).join(', ')}${g.names.length > 3 ? ` et ${g.names.length - 3} autre${plural(g.names.length - 3, '', 's')}` : ''}</small></span><i class="dots"></i><b class="debit">−${money(g.total)}</b></li>`).join('')}</ul>${dl.length > 4 ? `<p class="note">… et ${dl.length - 4} autre${plural(dl.length - 4, '', 's')} date${plural(dl.length - 4, '', 's')} d’ici la fin du mois.</p>` : ''}` : '';
-  const due = P.dueNow.length ? `<h3 class="who">Dépenses de provision à régler ce mois-ci</h3><ul class="leaders dueList">${P.dueNow.map(d =>
+  const due = P.dueNow.length ? `<h3 class="who">Dépenses de provision à régler ce mois-ci ${H('prov-due')}</h3><ul class="leaders dueList">${P.dueNow.map(d =>
     `<li><span>${esc(d.name)} <small>${d.overdue ? 'échéance dépassée' : `le ${fmtDay(d.end)}`}</small></span><i class="dots"></i><b class="debit">−${money(d.goal)}</b><button class="btn small paid" data-act="paid" data-id="${esc(d.id)}" aria-label="Marquer ${esc(d.name)} comme payé">Payé</button></li>`).join('')}</ul>` : '';
   const nextName = MONTHS[(now.getMonth() + 1) % 12];
   const sgn = (v, cls) => `<dd class="${cls}">${v < 0 ? '+' : '−'}${money(Math.abs(v))}</dd>`;
@@ -1256,9 +1346,9 @@ function provisionCardHTML(){
               `<div><dt>dont trésorerie déjà reçue pour ${nextName}</dt><dd>${money(C.treasuryEnd)}</dd></div>`,
               `<div class="total"><dt>Provision restante (objectif)</dt><dd>${money(C.provisionsEnd)}</dd></div>`);
   } else rows.push(`<div class="total"><dt>Provision restante fin ${monthName} (objectif)</dt><dd>${money(C.provisionsEnd)}</dd></div>`);
-  const flow = `<h3 class="who">Du compte d’aujourd’hui à l’objectif</h3><dl class="legend waterfall">${rows.join('')}</dl>`;
+  const flow = `<h3 class="who">Du compte d’aujourd’hui à l’objectif ${H('prov-flow')}</h3><dl class="legend waterfall">${rows.join('')}</dl>`;
   const vals = P.proj.map(x => x.balance), hi = P.proj[vals.indexOf(Math.max(...vals))], lo = P.proj[vals.indexOf(Math.min(...vals))];
-  const traj = `<h3 class="who">Trajectoire de la provision sur 12 mois</h3>${sparkHTML(P.proj)}
+  const traj = `<h3 class="who">Trajectoire de la provision sur 12 mois ${H('prov-traj')}</h3>${sparkHTML(P.proj)}
     <p class="note" style="margin-top:2px">Point haut ${money(hi.balance, 0)} (${MONTHS_SHORT[hi.m - 1]} ${hi.y}) · point bas ${money(lo.balance, 0)} (${MONTHS_SHORT[lo.m - 1]} ${lo.y}).</p>
     <details class="how"><summary>Mois par mois</summary><ul class="leaders" style="margin-top:8px">${P.proj.map(x =>
       `<li><span>${cap1(MONTHS[x.m - 1])} ${x.y}${x.debitTotal > 0.005 ? ` <small>−${money(x.debitTotal)} : ${x.debits.slice(0, 3).map(d => esc(d.name)).join(', ')}${x.debits.length > 3 ? '…' : ''}</small>` : ''}</span><i class="dots"></i><b>${money(x.balance, 0)}</b></li>`).join('')}</ul>
@@ -1268,12 +1358,11 @@ function provisionCardHTML(){
     P.overdue.length ? `${P.overdue.length} échéance${plural(P.overdue.length, '', 's')} dépassée${plural(P.overdue.length, '', 's')} (${P.overdue.slice(0, 3).join(', ')}${P.overdue.length > 3 ? '…' : ''}) : appuie sur « Payé » si c’est réglé.` : '',
     P.noStart.length ? `${P.noStart.length} ligne${plural(P.noStart.length, '', 's')} sans date de départ ${plural(P.noStart.length, 'n’est', 'ne sont')} pas comptée${plural(P.noStart.length, '', 's')} dans les provisions (${P.noStart.slice(0, 3).join(', ')}${P.noStart.length > 3 ? '…' : ''}).` : '',
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
-  return `<section class="card joint"><header><h2>Compte provisions</h2><span class="badge">attendu</span></header>
+  return `<section class="card joint"><header><h2>Compte provisions ${H('prov-block')}</h2><span class="badge">attendu</span></header>
     <div class="rest"><b>${money(C.state)}</b><span>état du compte au ${fmtDay(objOf(now))}</span></div>
     <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div><div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
     ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
-    <details class="how"><summary>Comment c’est calculé ?</summary><p class="note">Le compte à J = provisions accumulées + trésorerie du mois. Provisions : pour chaque dépense qui ne tombe pas tous les mois, mensualité × mensualités reçues depuis le dernier paiement (date de départ), arrondie à l’euro inférieur comme dans ton Excel ; jamais plafonnée, le surplus est un dépassement d’objectif jusqu’à « Payé ». Trésorerie du mois : les parts virées par chacun (à leur jour de versement, pour le mois qu’elles financent), moins la part déjà affectée aux provisions, moins les prélèvements mensuels déjà passés, plus les crédits déjà reçus. Chaque prélèvement tombe à son jour du mois ; sans jour, ou en carte ou espèces, il est étalé sur le mois. Les mois précédents sont supposés équilibrés. Ce n’est pas le solde réel d’un compte bancaire : c’est ce que le budget prévoit.</p></details>
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
 }
 function openTransferHelp(){
@@ -1327,7 +1416,7 @@ function viewSynthese(){
     ${nothing ? `<div class="banner"><span>La tirelire est vide pour l’instant. Commence par les salaires dans l’onglet Foyer, puis les montants dans l’onglet Budget.</span><button class="btn small" data-act="tab" data-tab="foyer">Ouvrir Foyer</button></div>` : ''}
     <div class="monthbar">${todayBtn}<div class="chips" role="group" aria-label="Période">${chips}</div></div>
     <section class="hero" aria-label="Reste à vivre du foyer">
-      <div class="hero-txt"><p class="hero-k">Reste à vivre du foyer, ${esc(title.toLowerCase())}</p><p class="hero-v">${money(R.totals.rest)}</p></div>
+      <div class="hero-txt"><p class="hero-k">Reste à vivre du foyer, ${esc(title.toLowerCase())} ${H('rav', 'light')}</p><p class="hero-v">${money(R.totals.rest)}</p></div>
       <div class="hero-pig" data-mood="${bubbleMood()}">${bubbleHTML()}</div>
       <dl class="hero-d">
         <div><dt>Revenus</dt><dd>${money(R.totals.income)}</dd></div>
@@ -1337,7 +1426,7 @@ function viewSynthese(){
     </section>
     ${R.unfunded > 0 ? `<div class="banner"><span>Le budget commun (${money(R.unfunded)}) n’est financé par personne : coche « Participe au budget commun » pour au moins un membre dans l’onglet Foyer.</span></div>` : ''}
     ${provisionOn() ? provisionCardHTML() : ''}
-    <section class="card"><h2>Répartition du budget commun</h2>
+    <section class="card"><h2>Répartition du budget commun ${H('repartition')}</h2>
       <div class="chips wrapchips" role="group" aria-label="Mode de répartition">${MODES.map(([id,l]) =>
         `<button class="chip" data-act="mode" data-mode="${id}" aria-pressed="${d.mode===id}">${l}</button>`).join('')}</div>
       <p class="hint" style="margin-top:8px">${mode[2]}</p>
@@ -1345,11 +1434,11 @@ function viewSynthese(){
     </section>
     <section class="cards" aria-label="Par membre">${cards || '<p class="hint">Aucun membre à afficher.</p>'}</section>
     <div class="split">
-      <section class="card"><h2>Virements à programmer</h2>${transfersHTML(R, contrib)}</section>
-      <section class="card"><h2>Dépenses par catégorie</h2>${catBarsHTML(R)}</section>
+      <section class="card"><h2>Virements à programmer ${H('virements')}</h2>${transfersHTML(R, contrib)}</section>
+      <section class="card"><h2>Dépenses par catégorie ${H('categories-syn')}</h2>${catBarsHTML(R)}</section>
     </div>
-    <section class="card"><h2>Sur l’année</h2><p class="hint" style="margin-bottom:8px">Les lignes payées à un rythme non mensuel sont provisionnées chaque mois ; les lignes limitées à certains mois n’apparaissent que ces mois-là.</p>${yearTableHTML(contrib)}</section>
-    <section class="card"><h2>Par compte, ${esc(title.toLowerCase())}</h2>${accountsTableHTML(R)}</section>`;
+    <section class="card"><h2>Sur l’année ${H('annee')}</h2>${yearTableHTML(contrib)}</section>
+    <section class="card"><h2>Par compte, ${esc(title.toLowerCase())} ${H('par-compte')}</h2>${accountsTableHTML(R)}</section>`;
 }
 /* ----- Bulle du cochon : conseils cliquables en alternance avec des phrases drôles ----- */
 const JOKES = [
@@ -1537,11 +1626,11 @@ function everyText(c){
 function ideasSection(){
   const all = IDEAS.filter(i => ideaRelevant(i) && !ideaPresent(i));
   const shown = U.ideasAll ? all : all.slice(0, 4);
-  const method = `<article class="method"><h3>Comment provisionner un achat qui revient tous les N ans</h3>
+  const method = `<details class="method"><summary>Comment provisionner un achat qui revient tous les N ans</summary>
     <ol><li>Estime le prix d’achat et la durée de vie. Exemple : 4 pneus à ${money(400,0)}, à refaire tous les 4 ans.</li>
     <li>Divise le prix par la durée en mois : ${money(400,0)} ÷ 48 mois ≈ <b>${money(400/48)}</b> à mettre de côté chaque mois.</li>
     <li>Crée la ligne dans Budget : montant ${money(400,0)}, cycle « Tous les 4 ans » (pour 7, 8 ou 12 ans, choisis « Personnalisé »). Laisse la prise en compte sur « Automatique » : MaTirelire met ${money(400/48)} par mois dans le budget, même les mois sans dépense.</li>
-    <li>Note la date du dernier achat (Provision et suivi) : l’onglet Provisions affiche alors la prochaine échéance et ce qu’il reste à mettre de côté.</li></ol></article>`;
+    <li>Note la date du dernier achat (Provision et suivi) : l’onglet Provisions affiche alors la prochaine échéance et ce qu’il reste à mettre de côté.</li></ol></details>`;
   const cards = shown.map(i => {
     const monthly = i.cycle.unit === 'month' && i.cycle.every === 1;
     const ex = monthly ? `Exemple : ${money(i.amount,0)} par mois.` : `Exemple : ${money(i.amount,0)} ${everyText(i.cycle)} ≈ <b>${money(ideaPerMonth(i))}/mois</b> à mettre de côté.`;
@@ -1552,8 +1641,8 @@ function ideasSection(){
       <div style="margin-top:8px"><button class="btn small" data-act="add-idea" data-id="${i.id}">Ajouter au budget</button></div></article>`;
   }).join('');
   const more = all.length > 4 ? `<div style="margin-top:10px"><button class="btn small" data-act="ideas-all">${U.ideasAll ? 'Voir moins' : `Voir les ${all.length - 4} autres idées`}</button></div>` : '';
-  return `<section class="sect ideas"><h2>Pense à budgéter</h2>
-    <p class="hint" style="margin-bottom:10px">Les gros achats ne préviennent pas. Les lisser sur leur durée de vie évite le coup dur. Montants indicatifs : adapte-les à ta situation.</p>
+  return `<section class="sect ideas"><h2>Pense à budgéter ${H('idees')}</h2>
+    <p class="hint" style="margin-bottom:10px">Lisse les gros achats sur leur durée de vie. Montants indicatifs : adapte-les.</p>
     ${method}${all.length ? `<div class="advice-list" style="margin-top:10px">${cards}</div>${more}` : '<p class="hint" style="margin-top:10px">Tu as déjà pensé à l’essentiel : rien à ajouter pour l’instant.</p>'}</section>`;
 }
 
@@ -1599,7 +1688,7 @@ const ADVICE_META = {
 };
 function viewConseils(){
   const items = computeAdvice(S);
-  if(!items.length) return `<section class="card"><div class="conseils-head">${piggy('happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">Complète quelques montants dans l’onglet Budget : les conseils s’affinent à partir de tes vrais chiffres.</p></div></div></section>${ideasSection()}`;
+  if(!items.length) return `<section class="card"><div class="conseils-head">${piggy('happy',56,'nocoin')}<div><h2>Conseils ${H('conseils')}</h2><p class="hint">Complète quelques montants dans l’onglet Budget : les conseils s’affinent à partir de tes vrais chiffres.</p></div></div></section>${ideasSection()}`;
   const order = {alert:0, warn:1, info:2, good:3};
   items.sort((a,b) => order[a.severity] - order[b.severity]);
   const n = items.filter(x => x.severity === 'alert' || x.severity === 'warn').length;
@@ -1610,28 +1699,39 @@ function viewConseils(){
       <div class="a-h"><span class="a-tag">${SEV_LABEL[it.severity]}</span><h3>${esc(meta.title)}</h3></div>
       <p>${meta.text}</p></article>`;
   }).join('');
-  return `<section class="sect"><div class="conseils-head">${piggy(n?'worried':'happy',56,'nocoin')}<div><h2>Conseils</h2><p class="hint">${n ? `${n} point${n>1?'s':''} à regarder en priorité.` : 'Tout est plutôt sain, d’après tes chiffres actuels.'}</p></div></div>
+  return `<section class="sect"><div class="conseils-head">${piggy(n?'worried':'happy',56,'nocoin')}<div><h2>Conseils ${H('conseils')}</h2><p class="hint">${n ? `${n} point${n>1?'s':''} à regarder en priorité.` : 'Tout est plutôt sain, d’après tes chiffres actuels.'}</p></div></div>
     <div class="advice-list">${cards}</div></section>
     ${ideasSection()}
     <p class="note">Ces repères sont indicatifs (comparaisons courantes), pas un conseil financier personnalisé ni professionnel. Aucune donnée ne quitte cet appareil pour produire cette analyse.</p>`;
 }
 
 /* ----- Budget : liste des lignes ----- */
+const activeFilters = () => (U.q.trim() ? 1 : 0) + (U.owner !== 'all' ? 1 : 0) + (U.kind !== 'all' ? 1 : 0) + ((U.cat && U.cat !== 'all') ? 1 : 0) + (U.todo ? 1 : 0);
+const lineOwners = l => linePartsOf(l).map(p => p.ownerId);
 function viewBudget(){
   const owners = [['all','Tout le monde'],['common','Commun'],...S.members.map(m => [m.id, m.name])];
-  const todoCount = S.lines.filter(l => l.active && l.amount === 0).length;
-  return `<section class="toolbar">
+  if(U.cat && U.cat !== 'all' && !S.categories.some(c => c.id === U.cat)) U.cat = 'all';
+  const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero).length, nf = activeFilters();
+  return `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
       <input class="inp grow" id="q" type="search" placeholder="Rechercher une ligne…" value="${esc(U.q)}" aria-label="Rechercher">
+      <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${S.categories.map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="inp" id="flt-owner" style="width:auto" aria-label="Filtrer par propriétaire">${owners.map(([v,l]) => `<option value="${esc(v)}" ${U.owner===v?'selected':''}>${esc(l)}</option>`).join('')}</select>
       <select class="inp" id="flt-kind" style="width:auto" aria-label="Filtrer par type"><option value="all" ${U.kind==='all'?'selected':''}>Débits et crédits</option><option value="debit" ${U.kind==='debit'?'selected':''}>Débits</option><option value="credit" ${U.kind==='credit'?'selected':''}>Crédits</option></select>
       <button class="chip" data-act="todo" aria-pressed="${U.todo}">À compléter (${todoCount})</button>
       <button class="btn primary" data-act="add-line">Ajouter une ligne</button>
-    </section><div id="list">${listHTML()}</div>`;
+    </section>
+    <div id="clearbar">${clearBarHTML()}</div>
+    <div id="list">${listHTML()}</div>`;
 }
+function clearBarHTML(){
+  const n = activeFilters();
+  return n ? `<div class="clearbar"><span class="muted">${n} filtre${n > 1 ? 's' : ''} actif${n > 1 ? 's' : ''}</span><button class="btn small" data-act="clear-filters">Effacer les filtres</button></div>` : '';
+}
+function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.innerHTML = listHTML(); if(c) c.innerHTML = clearBarHTML(); const t = $('[data-act=todo]'); if(t) t.setAttribute('aria-pressed', U.todo); }
 function listHTML(){
-  const q = U.q.trim().toLowerCase(), filtering = !!q || U.owner !== 'all' || U.kind !== 'all' || U.todo;
-  const match = l => (U.owner === 'all' || l.ownerId === U.owner) && (U.kind === 'all' || l.kind === U.kind) &&
-    (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0));
+  const q = U.q.trim().toLowerCase(), filtering = activeFilters() > 0;
+  const match = l => (U.owner === 'all' || lineOwners(l).includes(U.owner)) && (U.kind === 'all' || l.kind === U.kind) && (!U.cat || U.cat === 'all' || l.catId === U.cat) &&
+    (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   S.categories.forEach(c => {
     const all = S.lines.filter(l => l.catId === c.id), lines = all.filter(match);
@@ -1658,19 +1758,39 @@ function summaryNote(sum){
     default: return '';
   }
 }
+function splitText(l){
+  if(!(Array.isArray(l.split) && l.split.length > 1)) return '';
+  const tot = l.split.reduce((a, p) => a + p.pct, 0) || 1;
+  return l.split.map(p => `${Math.round(p.pct * 100 / tot)} % ${p.accountId ? accName(p.accountId) : memberName(p.ownerId)}`).join(' · ');
+}
 function lineRow(l){
-  const c = l.cycle, acc = l.accountId ? accName(l.accountId) : '';
-  const metas = [cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method), acc, l.ownerId !== 'common' ? memberName(l.ownerId) : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
+  const c = l.cycle, parts = Array.isArray(l.split) && l.split.length > 1;
+  const metas = [cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method),
+    parts ? splitText(l) : (l.accountId ? accName(l.accountId) : ''), !parts && l.ownerId !== 'common' ? memberName(l.ownerId) : '',
+    l.zero ? 'montant nul à chaque échéance' : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
     .filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('');
-  const zero = l.amount === 0, sum = (zero || !l.active) ? null : lineSummary(l);
+  const empty = l.amount === 0 && !l.zero, sum = (l.amount === 0 || !l.active) ? null : lineSummary(l);
   return `<div class="line ${l.active?'':'off'}" data-act="edit-line" data-id="${l.id}" role="button" tabindex="0" aria-label="Modifier ${esc(l.name)}">
     <label class="sw" title="Inclure dans le calcul"><input type="checkbox" data-b="line:${l.id}:active" ${l.active?'checked':''} aria-label="Inclure ${esc(l.name)} dans le calcul"></label>
     <div class="lmain"><span class="lname">${esc(l.name)}</span><i class="dots"></i></div>
-    <div class="amt"><b class="${zero?'todo':l.kind}">${zero ? 'à renseigner' : signed(l.kind, l.amount)}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
+    <div class="amt"><b class="${empty?'todo':l.kind}">${empty ? 'à renseigner' : (l.zero ? money(0) : signed(l.kind, l.amount))}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
     <div class="meta">${metas}</div></div>`;
 }
 
 /* ----- Foyer ----- */
+function pocketSplitHTML(m){
+  const adults = S.members.filter(x => x.contributes), payer = m.pocket.payer || 'split';
+  const accOpts = id => { const cur = (m.pocket.accounts || {})[id] || defaultAccountFor(S, id); return S.accounts.map(a => `<option value="${esc(a.id)}" ${cur === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join(''); };
+  const accField = a => `<label class="field">Compte de ${esc(a.name)}<select class="inp" data-b="member:${m.id}:acc.${a.id}">${accOpts(a.id)}</select></label>`;
+  if(payer === 'split'){
+    if(adults.length < 2) return '';
+    const sh = m.pocket.shares || {}, has = adults.some(a => sh[a.id] != null);
+    return `<div class="grid2">${adults.map(a => `<label class="field">Part de ${esc(a.name)} (%)<input class="inp" type="number" min="0" max="100" step="1" inputmode="decimal" data-b="member:${m.id}:share.${a.id}" value="${has ? (sh[a.id] ?? 0) : Math.round(10000 / adults.length) / 100}"></label>${accField(a)}`).join('')}</div>
+      <p class="note">Une seule ligne de débit, répartie entre les comptes des adultes (à parts égales par défaut).</p>`;
+  }
+  const one = adults.find(a => a.id === payer);
+  return one ? `<div class="grid2">${accField(one)}</div>` : '';
+}
 function viewFoyer(){
   const d = S.settings.distribution, contrib = S.members.filter(m => m.contributes);
   const payerOpts = m => [['split','Partagé entre les adultes participants'],['common','Budget commun'],...S.members.filter(x=>x.type==='adult').map(x=>[x.id, x.name])]
@@ -1690,15 +1810,16 @@ function viewFoyer(){
         <p class="note">C’est aussi le jour du virement vers le compte de provision (31 = dernier jour du mois).</p>` : ''}
       ${m.type !== 'adult' ? `<div class="grid2">
         <label class="field">Argent de poche reçu par mois<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:pocketAmount" value="${m.pocket.amount || ''}"></label>
-        <label class="field">Versé par<select class="inp" data-b="member:${m.id}:pocketPayer">${payerOpts(m)}</select></label></div>` : ''}
+        <label class="field">Versé par<select class="inp" data-b="member:${m.id}:pocketPayer">${payerOpts(m)}</select></label></div>
+      ${m.type !== 'adult' && m.pocket.amount > 0 ? pocketSplitHTML(m) : ''}` : ''}
       <div><button class="btn danger small" data-act="del-member" data-id="${m.id}">Retirer ${esc(m.name)}</button></div>
     </div></article>`;
   }).join('');
   const customs = contrib.map(m => `<label class="field">${esc(m.name)} (%)<input class="inp" type="number" min="0" step="1" data-b="distc:${m.id}:pct" value="${d.custom && d.custom[m.id] != null ? d.custom[m.id] : Math.round(100/contrib.length)}"></label>`).join('');
-  return `<section class="sect"><h2>Membres du foyer</h2><div class="rowlist">${members || '<p class="hint">Aucun membre.</p>'}</div>
+  return `<section class="sect"><h2>Membres du foyer ${H('membres')}</h2><div class="rowlist">${members || '<p class="hint">Aucun membre.</p>'}</div>
       <div class="toolbar" style="margin-top:12px"><button class="btn" data-act="add-member" data-type="adult">Ajouter un adulte</button><button class="btn" data-act="add-member" data-type="child">Ajouter un enfant</button></div>
       <p class="note" style="margin-top:8px">Les autres revenus (primes, pensions, loyers perçus…) s’ajoutent comme lignes de type crédit dans l’onglet Budget, avec le membre concerné comme propriétaire.</p></section>
-    <section class="card"><h2>Répartition du budget commun</h2><div class="form">
+    <section class="card"><h2>Répartition du budget commun ${H('repartition')}</h2><div class="form">
       ${MODES.map(([id,l,desc]) => `<label class="opt"><input type="radio" name="mode" data-b="dist:_:mode" value="${id}" ${d.mode===id?'checked':''}><span><b>${l}</b><small>${desc}</small></span></label>`).join('')}
       ${d.mode === 'equal_remainder' ? `<label class="check"><input type="checkbox" data-b="dist:_:includePersonal" ${d.includePersonal?'checked':''}> Égaliser après les dépenses personnelles (sinon avant)</label>` : ''}
       ${d.mode === 'custom' ? `<div class="grid2">${customs || '<p class="hint">Aucun membre participant.</p>'}</div><p class="note">Les pourcentages sont ramenés à 100 % automatiquement.</p>` : ''}
@@ -1731,8 +1852,8 @@ function viewProvisions(){
     <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
     <td data-cell="next:${l.id}">${nextText(p)}</td>
     <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="Marquer ${esc(l.name)} comme payé">Payé</button></td></tr>`; }).join('');
-  return `<section class="card"><h2>Provisions</h2>
-    <p class="hint" style="margin-bottom:10px">Pour chaque dépense qui ne tombe pas tous les mois : la mensualité mise de côté, le coût, la somme en cours (mensualités reçues depuis la date de départ, arrondie à l’euro inférieur), ce qu’il reste à provisionner ou le dépassement d’objectif, et la date de fin. La somme n’est jamais plafonnée : elle augmente jusqu’à ce que tu appuies sur « Payé », qui remet la date de départ à aujourd’hui.</p>
+  return `<section class="card"><h2>Provisions ${H('provisions')}</h2>
+    <p class="hint" style="margin-bottom:10px">La somme en cours se calcule toute seule. Appuie sur « Payé » quand une dépense est réglée.</p>
     ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
       <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}</td><td colspan="3"></td></tr></tfoot></table></div>`
       : '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>'}</section>`;
@@ -1762,23 +1883,23 @@ function viewReglages(){
       <div class="acts"><button class="btn small" data-act="cat-up" data-id="${c.id}" aria-label="Monter" ${i===0?'disabled':''}>↑</button><button class="btn small" data-act="cat-down" data-id="${c.id}" aria-label="Descendre" ${i===S.categories.length-1?'disabled':''}>↓</button><button class="btn danger small" data-act="del-cat" data-id="${c.id}">Supprimer</button></div></div>`).join('');
   const methods = S.settings.methods.map(m => `<div class="rowitem" style="grid-template-columns:1fr auto"><label class="field">Moyen de paiement<input class="inp" data-b="method:${m.id}:label" value="${esc(m.label)}"></label>
       <div class="acts"><button class="btn danger small" data-act="del-method" data-id="${m.id}">Supprimer</button></div></div>`).join('');
-  return `<section class="card"><h2>Données</h2><div class="form">
+  return `<section class="card"><h2>Données ${H('donnees')}</h2><div class="form">
       <p class="hint">${U.fileHandle ? `Fichier lié : <b>${esc(U.fileName)}</b>. Chaque modification y est enregistrée automatiquement.` : FSA ? 'Aucun fichier lié. Choisis un fichier JSON sur l’appareil : il sera mis à jour automatiquement.' : 'Ce navigateur ne permet pas de lier un fichier : utilise « Exporter » pour enregistrer une copie, et « Ouvrir » pour la recharger.'}</p>
       <div class="toolbar"><button class="btn primary" data-act="save">${FSA && !U.fileHandle ? 'Choisir un fichier' : 'Enregistrer'}</button>
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Garder une copie de secours dans ce navigateur (elle ne quitte jamais l’appareil)</label>
       <div class="toolbar"><button class="btn danger small" data-act="reset-template">Repartir d’un modèle vierge</button><button class="btn danger small" data-act="forget">Fermer et effacer de ce navigateur</button></div>
     </div></section>
-    <section class="card"><h2>Comptes</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun pour le budget commun et règle les dépenses.</p>
+    <section class="card"><h2>Comptes ${H('comptes')}</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun.</p>
       <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
       <div class="rowlist">${accounts}</div><div style="margin-top:10px"><button class="btn" data-act="add-acc">Ajouter un compte</button></div></section>
-    <section class="card"><h2>Compte provisions</h2><div class="form">
+    <section class="card"><h2>Compte provisions ${H('prov-reglage')}</h2><div class="form">
       <label class="check"><input type="checkbox" data-b="set:_:provisionBlock" ${provisionOn() ? 'checked' : ''}> Afficher le bloc « Compte provisions » dans la Synthèse</label>
       <p class="note">${provisionOn() ? 'Le bloc additionne les provisions de toutes les lignes (mensualité × mensualités reçues depuis leur date de départ). Il ne dépend pas d’un solde bancaire.' : 'Le bloc est masqué dans la Synthèse, ainsi que les réglages de versement du salaire dans Foyer.'}</p>
     </div></section>
-    <section class="card"><h2>Catégories</h2><div class="rowlist">${cats}</div><div style="margin-top:10px"><button class="btn" data-act="add-cat">Ajouter une catégorie</button></div></section>
-    <section class="card"><h2>Moyens de paiement</h2><div class="rowlist">${methods}</div><div style="margin-top:10px"><button class="btn" data-act="add-method">Ajouter un moyen de paiement</button></div></section>
-    <section class="card"><h2>Devise</h2><label class="field">Devise d’affichage<select class="inp" style="max-width:260px" data-b="set:_:currency">${[['EUR','Euro (€)'],['CHF','Franc suisse (CHF)'],['USD','Dollar US ($)'],['GBP','Livre sterling (£)'],['CAD','Dollar canadien (CA$)']].map(([v,l]) => `<option value="${v}" ${S.settings.currency===v?'selected':''}>${l}</option>`).join('')}</select></label></section>`;
+    <section class="card"><h2>Catégories ${H('cats')}</h2><div class="rowlist">${cats}</div><div style="margin-top:10px"><button class="btn" data-act="add-cat">Ajouter une catégorie</button></div></section>
+    <section class="card"><h2>Moyens de paiement ${H('moyens')}</h2><div class="rowlist">${methods}</div><div style="margin-top:10px"><button class="btn" data-act="add-method">Ajouter un moyen de paiement</button></div></section>
+    <section class="card"><h2>Devise ${H('devise')}</h2><label class="field">Devise d’affichage<select class="inp" style="max-width:260px" data-b="set:_:currency">${[['EUR','Euro (€)'],['CHF','Franc suisse (CHF)'],['USD','Dollar US ($)'],['GBP','Livre sterling (£)'],['CAD','Dollar canadien (CA$)']].map(([v,l]) => `<option value="${v}" ${S.settings.currency===v?'selected':''}>${l}</option>`).join('')}</select></label></section>`;
 }
 
 /* ---------- Éditeur de ligne ---------- */
@@ -1793,20 +1914,37 @@ function openLine(id, catId, prefill){
   dlg.showModal(); refreshLineForm();
   if(isNew) $('#f-name').focus();
 }
+function splitRowHTML(p, i){
+  const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(label)}</option>`;
+  return `<div class="splitrow" data-i="${i}">
+    <label class="field">Propriétaire<select class="inp sp-owner">${opt('common', 'Commun (foyer)', p.ownerId === 'common')}${S.members.map(m => opt(m.id, m.name, p.ownerId === m.id)).join('')}</select></label>
+    <label class="field">Compte<select class="inp sp-acc">${opt('', '— aucun —', !p.accountId)}${S.accounts.map(a => opt(a.id, a.name, p.accountId === a.id)).join('')}</select></label>
+    <label class="field">Part (%)<input class="inp sp-pct" type="number" min="0" max="100" step="0.01" inputmode="decimal" value="${p.pct ? Math.round(p.pct * 100) / 100 : ''}" placeholder="0"></label>
+    <button type="button" class="btn small danger" data-act="split-del" data-i="${i}" aria-label="Retirer cette source">✕</button></div>`;
+}
+function readSplit(){ return $$('#dlg .splitrow').map(r => ({ownerId:$('.sp-owner', r).value, accountId:$('.sp-acc', r).value || null, pct:Math.max(0, num($('.sp-pct', r).value))})); }
+function writeSplit(parts){ $('#f-splitrows').innerHTML = parts.map(splitRowHTML).join(''); }
+function defaultSplit(){
+  const o1 = $('#f-owner').value, a1 = $('#f-account').value || defaultAccountFor(S, o1);
+  const other = S.members.find(m => m.contributes && m.id !== o1) || S.members.find(m => m.id !== o1);
+  const o2 = o1 === 'common' ? (other ? other.id : 'common') : (other ? other.id : 'common');
+  return [{ownerId:o1, accountId:a1 || null, pct:50}, {ownerId:o2, accountId:defaultAccountFor(S, o2) || null, pct:50}];
+}
 function lineFormHTML(l, isNew){
   const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel?'selected':''}>${esc(label)}</option>`;
   const pid = presetIdOf(l.cycle);
-  const monthsOn = new Set(activeMonthsOf(l));
+  const monthsOn = new Set(activeMonthsOf(l)), splitOn = Array.isArray(l.split) && l.split.length > 1;
   return `<div class="dlg-h"><h2>${isNew ? 'Nouvelle ligne' : 'Modifier la ligne'}</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div>
   <div class="dlg-b form">
     <label class="field">Nom<input class="inp" id="f-name" value="${esc(l.name)}" placeholder="Ex. Assurance habitation" autocomplete="off"></label>
     <div class="grid2">
       <div class="field">Type<div class="seg" role="radiogroup" aria-label="Type"><label><input type="radio" name="f-kind" value="debit" ${l.kind==='debit'?'checked':''}>Débit</label><label><input type="radio" name="f-kind" value="credit" ${l.kind==='credit'?'checked':''}>Crédit</label></div></div>
-      <label class="field">Montant à chaque échéance<input class="inp" id="f-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${l.amount || ''}" placeholder="0,00"></label>
+      <label class="field">Montant à chaque échéance<input class="inp" id="f-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${l.amount || ''}" placeholder="0,00" ${l.zero ? 'disabled' : ''}></label>
     </div>
+    <label class="check" id="r-zero"><input type="checkbox" id="f-zero" ${l.zero ? 'checked' : ''}> <span>Montant nul à chaque échéance <small class="muted">(ex. frais de carte remboursés par la banque)</small></span></label>
     <div class="grid2">
       <label class="field">Catégorie<select class="inp" id="f-cat">${S.categories.map(c => opt(c.id, c.name, l.catId===c.id)).join('')}${opt('__new','＋ Nouvelle catégorie…',false)}</select></label>
-      <label class="field">Propriétaire<select class="inp" id="f-owner">${opt('common','Commun (foyer)', l.ownerId==='common')}${S.members.map(m => opt(m.id, m.name, l.ownerId===m.id)).join('')}</select></label>
+      <label class="field" id="r-owner">Propriétaire<select class="inp" id="f-owner">${opt('common','Commun (foyer)', l.ownerId==='common')}${S.members.map(m => opt(m.id, m.name, l.ownerId===m.id)).join('')}</select></label>
     </div>
     <label class="field">Cycle de paiement<select class="inp" id="f-cycle">${CYCLE_PRESETS.map(p => opt(p.id, p.label, pid===p.id)).join('')}${opt('custom','Personnalisé…', pid==='custom')}</select></label>
     <div class="grid2" id="r-custom"><label class="field">Tous les<input class="inp" id="f-every" type="number" min="1" step="1" value="${l.cycle.every}"></label>
@@ -1819,8 +1957,11 @@ function lineFormHTML(l, isNew){
     <div class="field" id="r-months">Mois de paiement<div class="mchips" role="group" aria-label="Mois de paiement">${MONTHS_SHORT.map((m,i) => `<label class="mchip"><input type="checkbox" value="${i+1}" ${monthsOn.has(i+1)?'checked':''}><span>${m}</span></label>`).join('')}</div></div>
     <div class="grid2">
       <label class="field">Moyen de paiement<select class="inp" id="f-method">${opt('','—', !l.method)}${S.settings.methods.map(m => opt(m.id, m.label, l.method===m.id)).join('')}</select></label>
-      <label class="field">Compte cible<select class="inp" id="f-account">${opt('','— aucun —', !l.accountId)}${S.accounts.map(a => opt(a.id, a.name + (a.bank ? ' (' + a.bank + ')' : ''), l.accountId===a.id)).join('')}</select></label>
+      <label class="field" id="r-account">Compte cible<select class="inp" id="f-account">${opt('','— aucun —', !l.accountId)}${S.accounts.map(a => opt(a.id, a.name + (a.bank ? ' (' + a.bank + ')' : ''), l.accountId===a.id)).join('')}</select></label>
     </div>
+    <label class="check" id="r-spliton"><input type="checkbox" id="f-splitOn" ${splitOn ? 'checked' : ''}> <span>Répartir entre plusieurs comptes <small class="muted">(ex. 50 % / 50 %)</small></span></label>
+    <div id="r-split" class="split ${splitOn ? '' : 'hidden'}"><div id="f-splitrows">${splitOn ? l.split.map(splitRowHTML).join('') : ''}</div>
+      <div class="toolbar" style="margin-top:8px"><button type="button" class="btn small" data-act="split-add">Ajouter une source</button><span class="note" id="f-splitsum" aria-live="polite"></span></div></div>
     <label class="field" id="r-smooth">Prise en compte dans le budget<select class="inp" id="f-smooth">${opt('auto','Automatique (recommandé)', l.smooth===null)}${opt('yes','Provisionner chaque mois (lissé)', l.smooth===true)}${opt('no','Compter le mois de l’échéance', l.smooth===false)}</select></label>
     <details ${l.goal!=null||l.lastDate?'open':''}><summary style="cursor:pointer;font-weight:600">Provision et suivi (facultatif)</summary>
       <div class="grid2" style="margin-top:10px"><label class="field">Objectif ou coût total<input class="inp" id="f-goal" type="number" step="0.01" min="0" inputmode="decimal" value="${l.goal ?? ''}" placeholder="Par défaut : le montant"></label>
@@ -1842,10 +1983,12 @@ function readLineForm(){
   const months = exact && checked.length && checked.length < 12 ? checked : null;
   const sm = g('f-smooth').value;
   const cur = S.lines.find(x => x.id === (U.editing||{}).id) || {};
+  const parts = g('f-splitOn').checked ? readSplit() : null, zero = g('f-zero').checked;
   return {
     id:(U.editing||{}).id, name:g('f-name').value.trim(), catId:g('f-cat').value, kind:$('input[name=f-kind]:checked', $('#dlg')).value,
-    amount:Math.abs(num(g('f-amount').value)), cycle, day:parseInt(g('f-day').value) || null, startMonth:parseInt(g('f-start').value) || null, months,
-    method:g('f-method').value || null, accountId:g('f-account').value || null, ownerId:g('f-owner').value,
+    amount:zero ? 0 : Math.abs(num(g('f-amount').value)), cycle, day:parseInt(g('f-day').value) || null, startMonth:parseInt(g('f-start').value) || null, months,
+    method:g('f-method').value || null, accountId:(parts && parts.length) ? parts[0].accountId : (g('f-account').value || null), ownerId:(parts && parts.length) ? parts[0].ownerId : g('f-owner').value,
+    split:parts && parts.length > 1 ? parts : null, zero,
     active:g('f-active').checked, smooth: sm === 'yes' ? true : sm === 'no' ? false : null,
     goal:g('f-goal').value !== '' ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null,
     lastDate:g('f-last').value || null, note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null,
@@ -1861,7 +2004,16 @@ function refreshLineForm(){
   $('#l-start', dlg).textContent = c.unit === 'year' ? 'Mois d’échéance' : 'Mois de la première échéance';
   show('r-months', exact);
   show('r-smooth', (c.unit === 'month' || (c.unit === 'year' && c.every === 1)));
-  $('#f-preview', dlg).innerHTML = previewText(lineSummary(l));
+  const on = $('#f-splitOn', dlg).checked;
+  show('r-split', on); show('r-owner', !on); show('r-account', !on);
+  $('#f-amount', dlg).disabled = l.zero;
+  let split = '';
+  if(on && l.split){
+    const tot = l.split.reduce((a, p) => a + p.pct, 0);
+    $('#f-splitsum', dlg).textContent = Math.abs(tot - 100) < 0.01 ? 'Total : 100 %' : `Total : ${Math.round(tot * 100) / 100} % (ramené à 100 %)`;
+    if(l.amount > 0 && tot > 0) split = '<br>' + l.split.map(p => `${esc(p.accountId ? accName(p.accountId) : memberName(p.ownerId))} : <b>${money(l.amount * p.pct / tot)}</b>`).join(' · ') + ' à chaque échéance.';
+  } else if(on) $('#f-splitsum', dlg).textContent = '';
+  $('#f-preview', dlg).innerHTML = (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l))) + split;
 }
 function previewText(sum){
   switch(sum.mode){
@@ -1879,6 +2031,11 @@ function saveLine(){
   const l = readLineForm();
   if(!l.name){ toast('Donner un nom à la ligne.'); $('#f-name').focus(); return; }
   if(!l.catId || l.catId === '__new'){ toast('Choisir une catégorie.'); return; }
+  if($('#f-splitOn').checked){
+    const tot = (l.split || []).reduce((a, p) => a + p.pct, 0);
+    if(!l.split || tot <= 0){ toast('Renseigne la part de chaque source (au moins 2 sources, total supérieur à 0).'); return; }
+    l.split = l.split.map(p => ({...p, pct:p.pct * 100 / tot}));
+  }
   const i = S.lines.findIndex(x => x.id === l.id);
   if(i >= 0) S.lines[i] = l; else S.lines.push(l);
   $('#dlg').close(); touch(); toast(i >= 0 ? 'Ligne enregistrée' : 'Ligne ajoutée à la tirelire');
@@ -1915,6 +2072,7 @@ document.addEventListener('click', async e => {
       break; }
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
+    case 'help': openHelp(id); break;
     case 'help-transfer': openTransferHelp(); break;
     case 'paid': {
       const l = S.lines.find(x => x.id === id); if(!l) break;
@@ -1930,7 +2088,8 @@ document.addEventListener('click', async e => {
       break; }
     case 'month': U.month = +t.dataset.m; render(); break;
     case 'mode': S.settings.distribution.mode = t.dataset.mode; touch(); break;
-    case 'todo': U.todo = !U.todo; t.setAttribute('aria-pressed', U.todo); $('#list').innerHTML = listHTML(); break;
+    case 'todo': U.todo = !U.todo; refreshBudgetList(); break;
+    case 'clear-filters': U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; render(); break;
     case 'toggle-cat': U.collapsed[id] = !U.collapsed[id]; $('#list').innerHTML = listHTML(); break;
     case 'add-line': openLine(null, t.dataset.cat); break;
     case 'edit-line': openLine(id); break;
@@ -1941,13 +2100,18 @@ document.addEventListener('click', async e => {
       S.lines.push(c); $('#dlg').close(); touch(); toast('Ligne dupliquée'); break; }
     case 'del-line':
       if(confirm('Supprimer cette ligne ?')){ S.lines = S.lines.filter(l => l.id !== U.editing.id); $('#dlg').close(); touch(); toast('Ligne supprimée'); } break;
+    case 'split-add': { const parts = readSplit(); const used = new Set(parts.map(p => p.ownerId)); const nxt = ['common', ...S.members.map(m => m.id)].find(o => !used.has(o)) || 'common';
+      parts.push({ownerId:nxt, accountId:defaultAccountFor(S, nxt) || null, pct:0}); const eq = Math.round(10000 / parts.length) / 100; writeSplit(parts.map(p => ({...p, pct:eq}))); refreshLineForm(); break; }
+    case 'split-del': { const parts = readSplit(); parts.splice(+t.dataset.i, 1);
+      if(parts.length < 2){ $('#f-splitOn').checked = false; const p = parts[0]; if(p){ $('#f-owner').value = p.ownerId; $('#f-account').value = p.accountId || ''; } }
+      else writeSplit(parts); refreshLineForm(); break; }
     case 'close-dlg': $('#dlg').close(); break;
     case 'setup': openSetup(); break;
     case 'create-home': createHome(); break;
     case 'open': openFile(); break;
     case 'save': saveFile(false); break;
     case 'save-as': saveFile(true); break;
-    case 'export': download('matirelire.json', JSON.stringify(S, null, 2)); U.lastSaved = new Date(); updateStatus(); toast('Copie téléchargée'); break;
+    case 'export': download('MaTirelire.json', JSON.stringify(S, null, 2)); U.lastSaved = new Date(); updateStatus(); toast('Copie téléchargée'); break;
     case 'reconnect': reconnect(); break;
     case 'dismiss': U.notice = null; render(); break;
     case 'add-member': {
@@ -1996,18 +2160,25 @@ document.addEventListener('keydown', e => {
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.advice.click')){ e.preventDefault(); e.target.click(); }
 });
 document.addEventListener('input', e => {
-  if(e.target.id === 'q'){ U.q = e.target.value; $('#list').innerHTML = listHTML(); return; }
+  if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
   if(e.target.closest('#dlg') && $('#f-preview')) refreshLineForm();
 });
 document.addEventListener('change', e => {
   const el = e.target;
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
-  if(el.id === 'flt-owner'){ U.owner = el.value; $('#list').innerHTML = listHTML(); return; }
-  if(el.id === 'flt-kind'){ U.kind = el.value; $('#list').innerHTML = listHTML(); return; }
+  if(el.id === 'flt-cat'){ U.cat = el.value; refreshBudgetList(); return; }
+  if(el.id === 'flt-owner'){ U.owner = el.value; refreshBudgetList(); return; }
+  if(el.id === 'flt-kind'){ U.kind = el.value; refreshBudgetList(); return; }
   const b = el.dataset.b; if(b) onBind(el, b);
 });
 function onDialogChange(el){
+  if(el.id === 'f-splitOn'){ if(el.checked) writeSplit(defaultSplit()); else { const p = readSplit()[0]; if(p){ $('#f-owner').value = p.ownerId; $('#f-account').value = p.accountId || ''; } } }
+  if(el.id === 'f-zero' && el.checked) $('#f-amount').value = '';
+  if(el.classList && el.classList.contains('sp-owner')){
+    const row = el.closest('.splitrow'), acc = $('.sp-acc', row), cur = accById(acc.value);
+    if(!cur || (el.value === 'common' ? cur.ownerId : cur.ownerId !== el.value)) acc.value = defaultAccountFor(S, el.value) || '';
+  }
   if(el.id === 'f-owner'){
     const acc = $('#f-account'), cur = accById(acc.value), oid = el.value;
     if(!cur || (oid === 'common' ? cur.ownerId : cur.ownerId !== oid)) acc.value = defaultAccountFor(S, oid) || '';
@@ -2033,8 +2204,10 @@ function onBind(el, b){
     else if(f === 'transferDay'){ m.transferDay = Math.min(Math.max(parseInt(v) || 1, 1), 31); touch(false); }
     else if(f === 'transferNext'){ m.transferNext = v === 'next'; touch(false); }
     else if(f === 'salary'){ setSalary(S, id, num(v)); touch(false); }
-    else if(f === 'pocketAmount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, id); touch(false); }
-    else if(f === 'pocketPayer'){ m.pocket.payer = v; syncPocket(S, id); touch(false); }
+    else if(f === 'pocketAmount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, id); touch(true); }
+    else if(f === 'pocketPayer'){ m.pocket.payer = v; syncPocket(S, id); touch(true); }
+    else if(f.startsWith('acc.')){ m.pocket.accounts = Object.assign({}, m.pocket.accounts || {}); m.pocket.accounts[f.slice(4)] = v || null; syncPocket(S, id); touch(false); }
+    else if(f.startsWith('share.')){ m.pocket.shares = Object.assign({}, m.pocket.shares || {}); m.pocket.shares[f.slice(6)] = Math.max(0, num(v)); syncPocket(S, id); touch(false); }
   }
   else if(k === 'dist'){
     const d = S.settings.distribution;
