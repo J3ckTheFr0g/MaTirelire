@@ -309,8 +309,6 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .legend small{font-weight:500}
 .dueList li{align-items:center}
 .dueList .paid{flex:0 0 auto;margin-left:4px}
-.qbtn{display:inline-grid;place-items:center;width:28px;height:28px;margin-left:4px;border-radius:50%;border:1.5px solid var(--brand);background:var(--surface);color:var(--brand);font-weight:800;font-size:.8rem;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
-.qbtn:hover{background:var(--brand);color:var(--on-brand)}
 .help h3{font-size:.98rem;font-weight:800;margin-top:4px}
 .help h3 small{font-weight:500;color:var(--muted)}
 .help p{color:var(--ink)}
@@ -325,13 +323,27 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .splitrow .btn{margin-bottom:2px}
 @media(max-width:520px){.splitrow{grid-template-columns:1fr 1fr;}.splitrow .btn{justify-self:start}}
 
-.qbtn.light{background:transparent;border-color:rgba(255,255,255,.75);color:#fff;width:24px;height:24px;font-size:.72rem}
-.qbtn.light:hover{background:#fff;color:var(--brand)}
-h2 .qbtn,h3 .qbtn{margin-left:6px;position:relative;top:-1px}
 .pagehead{display:flex;align-items:center}
 .pagehead h2{font-size:1.15rem;font-weight:800}
 details.method summary{cursor:pointer;font-weight:800;font-size:.98rem}
 details.method[open] summary{margin-bottom:6px}
+
+/* « i » discret + bulle d'aide */
+.ibtn{display:inline-grid;place-items:center;width:16px;height:16px;margin-left:6px;padding:0;border:0;background:none;color:var(--muted);opacity:.72;cursor:pointer;vertical-align:-2px;position:relative;border-radius:50%;flex:0 0 auto}
+.ibtn::after{content:'';position:absolute;inset:-12px}
+.ibtn:hover,.ibtn[aria-expanded=true]{opacity:1;color:var(--brand)}
+.ibtn:focus-visible{outline:2px solid var(--focus);outline-offset:3px;opacity:1}
+.ibtn.light{color:#fff;opacity:.78}
+.ibtn.light:hover,.ibtn.light[aria-expanded=true]{opacity:1;color:#fff}
+.pop{position:absolute;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,48,46,.2);font-size:.88rem;line-height:1.42;--ax:50%}
+.pop::before{content:'';position:absolute;top:-7px;left:var(--ax);margin-left:-6px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg);border-top-left-radius:3px}
+.pop.up::before{top:auto;bottom:-7px;transform:rotate(225deg)}
+.pop-in{padding:12px 14px;overflow:auto;overscroll-behavior:contain;border-radius:14px}
+.pop h4{margin:0 0 4px;font-size:.96rem;font-weight:800}
+.pop p{margin:6px 0}
+.pop ul{margin:6px 0;padding-left:18px;display:grid;gap:4px}
+.pop .note{color:var(--muted);font-size:.82rem}
+@media(prefers-reduced-motion:no-preference){.pop{animation:popin .14s ease-out}@keyframes popin{from{opacity:0;transform:translateY(-3px)}}}
 </style>
 </head>
 <body>
@@ -1228,6 +1240,7 @@ function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHT
 const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
+  closePop();
   $('#app').innerHTML = S ? shell() : welcome();
   window.scrollTo(0, y);
   centerMonthChip();
@@ -1261,6 +1274,12 @@ function welcome(){
 
 /* ----- Aide intégrée : un « ? » à côté du titre de chaque bloc ----- */
 const HELP = {
+  transfer:{title:'Ce versement compte pour…', body:`<p>Tu choisis le <b>jour</b> où ton salaire arrive (de 1 à 31 ; 31 veut dire « dernier jour du mois »), puis le <b>mois que ce versement finance</b>.</p>
+    <p><b>Le mois en cours</b> (par défaut) : le salaire reçu le 5 octobre finance le budget d’octobre.</p>
+    <p><b>Le mois suivant</b> : le salaire reçu le 28 octobre (ou le 30, le 31, le 15… n’importe quel jour) finance le budget de <b>novembre</b>. C’est le cas quand ton salaire arrive en fin de mois pour payer le mois d’après.</p>
+    <p><b>Ce que ça change</b></p>
+    <ul><li><b>Budget</b> (Synthèse, reste à vivre) : le salaire saisi compte toujours dans le mois qu’il finance, quel que soit son jour d’arrivée.</li><li><b>Compte provisions</b> : la mensualité est comptée sur le compte dès que le versement arrive (le 28 octobre dans l’exemple), mais attribuée à novembre.</li><li><b>Prochain virement</b> et <b>trajectoire</b> : les dates tiennent compte de ce décalage.</li><li><b>Plusieurs contributeurs</b> : une mensualité est comptée quand tous les versements sont arrivés.</li></ul>
+    <p class="note">Ce jour est aussi celui du virement vers le compte de provision. Si ton salaire et ton virement n’arrivent pas le même jour, saisis le jour du virement.</p>`},
   rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
     <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
     <p class="note">Exemple : 6 000 € de revenus − 4 200 € de budget commun − 170 € de dépenses personnelles = 1 630 € à vivre.</p>`},
@@ -1293,14 +1312,43 @@ const HELP = {
   moyens:{title:'Moyens de paiement', body:`<p>Prélèvement, virement, chèque, carte… Chaque ligne en a un. Les lignes payées par carte ou en espèces sont étalées sur le mois dans le bloc Compte provisions.</p>`},
   devise:{title:'Devise', body:`<p>La monnaie d’affichage des montants. Elle ne convertit rien : elle change seulement le symbole.</p>`},
 };
-const H = (id, cls) => HELP[id] ? `<button type="button" class="qbtn ${cls || ''}" data-act="help" data-id="${id}" aria-label="Aide : ${esc(HELP[id].title)}" title="Aide">?</button>` : '';
-function openHelp(id){
-  const h = HELP[id]; if(!h) return;
-  const dlg = $('#dlg'); U.editing = null;
-  dlg.innerHTML = `<div class="dlg-h"><h2>${esc(h.title)}</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div><div class="dlg-b form help">${h.body}</div>
-   <div class="dlg-f"><span></span><div class="r"><button class="btn primary" data-act="close-dlg">Compris</button></div></div>`;
-  dlg.showModal();
+const IICON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".75"/><circle cx="8" cy="5.1" r=".95" fill="currentColor"/><path d="M8 7.5v4.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+const H = (id, cls) => HELP[id] ? `<button type="button" class="ibtn ${cls || ''}" data-act="help" data-id="${id}" aria-label="Aide : ${esc(HELP[id].title)}" aria-expanded="false" aria-haspopup="dialog" title="Aide">${IICON}</button>` : '';
+/* Bulle d'aide ancrée sous le « i » (une seule à la fois) */
+let POP = null;
+function closePop(focusBack){
+  if(!POP) return;
+  POP.el.remove(); POP.btn.setAttribute('aria-expanded', 'false'); POP.btn.removeAttribute('aria-controls');
+  if(focusBack && document.body.contains(POP.btn)) POP.btn.focus();
+  POP = null;
 }
+function placePop(){
+  const {el, btn} = POP, r = btn.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight, inner = $('.pop-in', el);
+  const w = Math.min(330, vw - 24); el.style.width = w + 'px';
+  const left = Math.min(Math.max(r.left + r.width / 2 - w / 2, 12), vw - 12 - w);
+  el.style.left = (left + window.scrollX) + 'px';
+  el.style.setProperty('--ax', Math.round(r.left + r.width / 2 - left) + 'px');
+  inner.style.maxHeight = Math.max(180, Math.min(0.6 * vh, vh - 160)) + 'px';
+  const navH = 78, h = el.offsetHeight, below = vh - navH - r.bottom - 10, above = r.top - 70 - 10;
+  const up = h > below && above > below && above >= Math.min(h, 200);
+  el.classList.toggle('up', up);
+  el.style.top = (up ? r.top + window.scrollY - h - 10 : r.bottom + window.scrollY + 10) + 'px';
+  if(!up){ const need = r.bottom + 10 + h - (vh - navH); if(need > 0) window.scrollBy({top:Math.min(need, Math.max(0, r.top - 70)), behavior:'smooth'}); }
+}
+function openPop(btn, id){
+  const h = HELP[id]; if(!h) return;
+  if(POP && POP.btn === btn){ closePop(); return; }
+  closePop();
+  const el = document.createElement('div');
+  el.className = 'pop'; el.id = 'pop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', h.title);
+  el.innerHTML = `<div class="pop-in"><h4>${esc(h.title)}</h4>${h.body}</div>`;
+  document.body.appendChild(el);
+  btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-controls', 'pop');
+  POP = {el, btn}; placePop();
+}
+document.addEventListener('pointerdown', e => { if(POP && !e.target.closest('.pop') && !e.target.closest('.ibtn')) closePop(); }, true);
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && POP){ e.preventDefault(); closePop(true); } });
+window.addEventListener('resize', () => closePop());
 
 /* ----- Compte provisions : état à J, objectif (provision restante) et trajectoire ----- */
 function isoToday(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1364,27 +1412,6 @@ function provisionCardHTML(){
     ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="tab" data-tab="provisions">Voir le détail par ligne</button></div></section>`;
-}
-function openTransferHelp(){
-  const dlg = $('#dlg'); U.editing = null;
-  dlg.innerHTML = `<div class="dlg-h"><h2>Ce versement compte pour…</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div>
-   <div class="dlg-b form help">
-    <p>Tu choisis le <b>jour</b> où ton salaire arrive (de 1 à 31 ; 31 veut dire « dernier jour du mois »), puis le <b>mois que ce versement finance</b>.</p>
-    <h3>Le mois en cours <small>(par défaut)</small></h3>
-    <p>Le salaire reçu le 5 octobre finance le budget d’octobre.</p>
-    <h3>Le mois suivant</h3>
-    <p>Le salaire reçu le 28 octobre (ou le 30, le 31, le 15… n’importe quel jour) finance le budget de <b>novembre</b>. C’est le cas quand ton salaire arrive en fin de mois pour payer le mois d’après.</p>
-    <h3>Ce que ça change</h3>
-    <ul>
-      <li><b>Budget</b> (Synthèse, reste à vivre) : le salaire saisi compte toujours dans le mois qu’il finance, quel que soit son jour d’arrivée.</li>
-      <li><b>Compte provisions</b> : la mensualité est comptée sur le compte dès que le versement arrive (le 28 octobre dans l’exemple), mais attribuée à novembre.</li>
-      <li><b>Prochain virement</b> et <b>trajectoire</b> : les dates tiennent compte de ce décalage.</li>
-      <li><b>Plusieurs contributeurs</b> : une mensualité est comptée quand tous les versements sont arrivés.</li>
-    </ul>
-    <p class="note">Ce jour est aussi celui du virement vers le compte de provision. Si ton salaire et ton virement n’arrivent pas le même jour, saisis le jour du virement.</p>
-   </div>
-   <div class="dlg-f"><span></span><div class="r"><button class="btn primary" data-act="close-dlg">Compris</button></div></div>`;
-  dlg.showModal();
 }
 function centerMonthChip(){
   const box = $('.monthbar .chips'); if(!box) return;
@@ -1805,7 +1832,7 @@ function viewFoyer(){
         <label class="check" style="align-self:end;min-height:40px"><input type="checkbox" data-b="member:${m.id}:contributes" ${m.contributes?'checked':''}> Participe au budget commun</label>
       </div>
       ${m.contributes && provisionOn() ? `<div class="grid2"><label class="field">Date de versement du salaire (jour du mois)<input class="inp" type="number" min="1" max="31" step="1" inputmode="numeric" data-b="member:${m.id}:transferDay" value="${m.transferDay || 1}"></label>
-        <div class="field"><span>Ce versement compte pour <button type="button" class="qbtn" data-act="help-transfer" aria-label="Comment ça marche ?" title="Comment ça marche ?">?</button></span>
+        <div class="field"><span>Ce versement compte pour ${H('transfer')}</span>
           <select class="inp" data-b="member:${m.id}:transferNext"><option value="same" ${m.transferNext ? '' : 'selected'}>Le mois en cours</option><option value="next" ${m.transferNext ? 'selected' : ''}>Le mois suivant</option></select></div></div>
         <p class="note">C’est aussi le jour du virement vers le compte de provision (31 = dernier jour du mois).</p>` : ''}
       ${m.type !== 'adult' ? `<div class="grid2">
@@ -2072,8 +2099,7 @@ document.addEventListener('click', async e => {
       break; }
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
-    case 'help': openHelp(id); break;
-    case 'help-transfer': openTransferHelp(); break;
+    case 'help': openPop(t, id); break;
     case 'paid': {
       const l = S.lines.find(x => x.id === id); if(!l) break;
       const p = provInfo(l, undefined, provisionClock(S));
