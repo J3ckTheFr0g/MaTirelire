@@ -25,12 +25,13 @@
     --debit:#F08A73; --credit:#6FCB93; --slate:#8FB0CF; --shadow:none; --pig:#4A2338; --pig-strong:#F7A8BC; }
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;
+html{-webkit-text-size-adjust:100%;overflow-x:clip;touch-action:manipulation}
+body{margin:0;overflow-x:clip;overscroll-behavior-x:none;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;
   padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3,p{margin:0}
 h1,h2,h3,.hero-v,.rest b{font-family:var(--display)}
 button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px}   /* sous 16 px, Safari iPhone zoome et décale la page à la saisie */
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
 .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
 .hidden{display:none!important}
@@ -47,7 +48,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .status{display:block;font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 .status.warn{color:var(--debit)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:25}
-nav.tabs .wrap{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px 6px}
 nav.tabs button{position:relative;background:none;border:0;border-radius:999px;padding:9px 2px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;line-height:1.2}
 .navdot{position:absolute;top:2px;right:8px;background:var(--debit);color:#fff;font-size:.62rem;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 nav.tabs button[aria-current=page]{background:var(--brand);color:var(--on-brand)}
@@ -80,10 +81,10 @@ main > * + *{margin-top:16px}
 .wrapchips{flex-wrap:wrap;overflow:visible}
 
 /* Synthèse : encart principal */
-.hero{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--brand);color:#fff;border-radius:var(--radius);padding:18px;overflow:hidden}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--brand);color:#fff;border-radius:var(--radius);padding:18px;overflow:hidden}
 .hero-txt{grid-area:txt;align-self:center}
 .hero-k{font-size:.95rem;opacity:.85}
-.hero-v{font-size:clamp(2.1rem,7vw,3rem);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.hero-v{font-size:clamp(1.7rem,7.4vw,3rem);font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hero-pig{grid-area:pig;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:170px}
 .bubble{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;min-height:4.6em;border:0;font:inherit;font-size:.78rem;line-height:1.25;text-align:center;background:#fff;color:#2A2233;border-radius:14px;padding:8px 10px;position:relative;cursor:pointer}
 .bubble .txt{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
@@ -97,13 +98,13 @@ main > * + *{margin-top:16px}
 .bubble:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 @media(prefers-reduced-motion:no-preference){.hero-pig{transition:opacity .18s ease}.hero-pig.swap{opacity:0}}
 .bubble::before{content:"";position:absolute;left:50%;top:-6px;margin-left:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#fff}
-.hero-d{grid-area:dl;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 18px;margin:8px 0 0;border-top:2px dotted rgba(255,255,255,.4);padding-top:12px}
+.hero-d{grid-area:dl;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px 18px;margin:8px 0 0;border-top:2px dotted rgba(255,255,255,.4);padding-top:12px}
 .hero-d dt{font-size:.82rem;opacity:.8}
 .hero-d dd{margin:0;font-size:1.1rem;font-weight:750}
-@media(min-width:560px){.hero{grid-template-columns:1fr 190px;padding:22px 26px}.hero-pig .pig{width:120px;height:auto}}
+@media(min-width:560px){.hero{grid-template-columns:minmax(0,1fr) 190px;padding:22px 26px}.hero-pig .pig{width:120px;height:auto}}
 @media(prefers-color-scheme:dark){.hero{background:#1B3A38;color:#E6F0EE}}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px}
 .mcard h3{font-size:1.05rem}
 .mcard header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .badge{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--muted)}
@@ -127,7 +128,7 @@ main > * + *{margin-top:16px}
 .leaders .dots{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-4px);min-width:16px}
 .leaders b{font-weight:650}
 .leaders small{color:var(--muted);display:block;font-size:.78rem;line-height:1.1}
-.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px}
 .who{font-size:1rem;font-weight:700;margin:12px 0 6px}
 .who:first-child{margin-top:0}
 .catrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;width:100%;appearance:none;background:none;border:0;border-radius:8px;text-align:left;font:inherit;color:inherit;cursor:pointer}
@@ -149,12 +150,14 @@ tfoot td{font-weight:700;border-bottom:0}
 /* Budget : liste */
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .toolbar .grow{flex:1 1 220px}
+.toolbar select.inp{min-width:0;max-width:100%;flex:1 1 130px}
 @media(max-width:600px){.toolbar .grow{flex-basis:100%}}
 .inp,select.inp,input.inp{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;min-height:40px}
 .catbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
 .cathead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--line)}
-.cathead .tog{flex:1;display:flex;align-items:center;gap:9px;background:none;border:0;text-align:left;font-weight:700;cursor:pointer;padding:4px 0}
-.cathead .tot{font-weight:650;font-size:.92rem}
+.cathead .tog{flex:1;min-width:0;display:flex;align-items:center;gap:9px;background:none;border:0;text-align:left;font-weight:700;cursor:pointer;padding:4px 0}
+.cathead .tot{font-weight:650;font-size:.92rem;white-space:nowrap}
+.cathead .tog{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .line{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"sw main amt" "sw meta meta";gap:4px 12px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:baseline}
 .line:last-child{border-bottom:0}
 .line:hover{background:var(--surface2)}
@@ -175,14 +178,14 @@ tfoot td{font-weight:700;border-bottom:0}
 
 /* Formulaires */
 .form{display:grid;gap:12px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px}
 .field{display:grid;gap:4px;font-size:.88rem;font-weight:600;color:var(--muted)}
 .field .inp{color:var(--ink);font-weight:400}
 .check{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink);font-weight:500}
 .check input{width:18px;height:18px;accent-color:var(--brand)}
 .rowlist{display:grid;gap:10px}
-.rowitem{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr)) auto;gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
-.rowitem .acts{display:flex;gap:6px}
+.rowitem{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:8px;align-items:end;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.rowitem .acts{display:flex;gap:6px;grid-column:1/-1;justify-content:flex-end}
 input[type=color]{padding:2px;height:40px;min-width:52px}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--surface)}
 .opt:has(input:checked){border-color:var(--brand);background:var(--surface2)}
@@ -344,6 +347,28 @@ details.method[open] summary{margin-bottom:6px}
 .pop ul{margin:6px 0;padding-left:18px;display:grid;gap:4px}
 .pop .note{color:var(--muted);font-size:.82rem}
 @media(prefers-reduced-motion:no-preference){.pop{animation:popin .14s ease-out}@keyframes popin{from{opacity:0;transform:translateY(-3px)}}}
+
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.grid2>*,.rowitem>*,.field{min-width:0}
+/* Assistant de création du foyer */
+.wizard{max-width:560px;margin:0 auto;padding:12px 16px calc(28px + env(safe-area-inset-bottom,0px));padding-top:calc(12px + env(safe-area-inset-top,0px))}
+.wz-head{display:grid;gap:12px;margin-bottom:14px}
+.wz-brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:1.3rem}
+.wz-steps{display:flex;gap:8px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+.wz-steps li{display:flex;align-items:center;gap:7px;font-size:.88rem;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 5px;background:var(--surface)}
+.wz-steps li span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--line);font-size:.78rem}
+.wz-steps li[aria-current=step]{color:var(--on-brand);background:var(--brand);border-color:var(--brand)}
+.wz-steps li[aria-current=step] span{background:rgba(255,255,255,.22);border-color:transparent;color:var(--on-brand)}
+.wz-steps li.done span{background:var(--credit);border-color:var(--credit);color:#fff}
+.wz-body{display:grid;gap:12px}
+.wz-body h1{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.wz-card{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.wz-foot{display:grid;gap:10px;margin-top:6px}
+.wz-issues{min-height:1.2em;color:var(--debit)}
+.wz-btns{display:flex;justify-content:space-between;gap:10px}
+
+.tl-short{display:none}
+@media(max-width:350px){.tl-full{display:none}.tl-short{display:inline}nav.tabs button{font-size:.68rem}.navdot{right:2px}}
 </style>
 </head>
 <body>
@@ -747,19 +772,13 @@ const TEMPLATE = [
   ]],
 ];
 
-function buildTemplate(adultNames, kidNames){
-  const S = emptyState();
-  const mk = (name, type) => ({id:uid(), name, type, contributes:type==='adult', pocket:{amount:0, payer:'split'}, transferDay:1, transferNext:false});
-  adultNames.forEach(n => S.members.push(mk(n, 'adult')));
-  kidNames.forEach(n => S.members.push(mk(n, 'child')));
-  const joint = {id:uid(), name:'Compte joint', bank:'', ownerId:null};
-  S.accounts.push(joint);
-  S.settings.commonAccountId = joint.id;
-  S.members.filter(m=>m.type==='adult').forEach(m => S.accounts.push({id:uid(), name:`Compte de ${m.name}`, bank:'', ownerId:m.id}));
+/* Remplit un foyer (membres et comptes déjà créés) avec les catégories, les lignes standards et les salaires */
+function fillTemplate(S){
+  const adults = S.members.filter(m => m.type === 'adult');
   TEMPLATE.forEach(([cat, lines]) => {
     const c = ensureCategory(S, cat);
     if(cat === 'Revenus'){
-      S.members.filter(m=>m.type==='adult').forEach(m => S.lines.push(newLine(S, {
+      adults.forEach(m => S.lines.push(newLine(S, {
         name:`Salaire net – ${m.name}`, catId:c.id, kind:'credit', method:'virement', ownerId:m.id,
         accountId:defaultAccountFor(S, m.id), auto:'salary', forMember:m.id, day:28})));
     }
@@ -768,6 +787,22 @@ function buildTemplate(adultNames, kidNames){
     });
   });
   return S;
+}
+/* Création guidée : membres {name, type, contributes} + comptes {name, bank, owner: index du membre | null} + index du compte de provision */
+function buildHousehold(members, accounts, provIndex){
+  const S = emptyState();
+  const ids = members.map(() => uid());
+  members.forEach((m, i) => S.members.push({id:ids[i], name:String(m.name).trim(), type:MEMBER_TYPES.some(t => t.id === m.type) ? m.type : 'adult',
+    contributes:m.type === 'adult' && m.contributes !== false, pocket:{amount:0, payer:'split', shares:null, accounts:null}, transferDay:1, transferNext:false}));
+  const accIds = accounts.map(() => uid());
+  accounts.forEach((a, i) => S.accounts.push({id:accIds[i], name:String(a.name).trim(), bank:String(a.bank || '').trim(), ownerId:(a.owner != null && ids[a.owner]) ? ids[a.owner] : null, balance:null}));
+  S.settings.commonAccountId = accIds[provIndex] || accIds[0] || null;
+  return fillTemplate(S);
+}
+function buildTemplate(adultNames, kidNames){
+  const members = [...adultNames.map(n => ({name:n, type:'adult'})), ...kidNames.map(n => ({name:n, type:'child'}))];
+  const accounts = [{name:'Compte joint', bank:'', owner:null}, ...members.map((m, i) => m.type === 'adult' ? {name:`Compte de ${m.name}`, bank:'', owner:i} : null).filter(Boolean)];
+  return buildHousehold(members, accounts, 0);
 }
 
 
@@ -1071,7 +1106,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate};
 
 </script>
 <script>
@@ -1237,11 +1272,12 @@ function statusHTML(){
 function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHTML(); }
 
 /* ---------- Rendu ---------- */
+const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
 const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
   closePop();
-  $('#app').innerHTML = S ? shell() : welcome();
+  $('#app').innerHTML = U.wizard ? wizardPage() : (S ? shell() : welcome());
   window.scrollTo(0, y);
   centerMonthChip();
 }
@@ -1251,7 +1287,7 @@ function shell(){
   const n = adviceCount();
   return `<header class="top"><div class="wrap topin"><h1 class="brand">${piggy('happy', 40)}<span>MaTirelire</span></h1><div class="topact">${statusHTML()}</div></div>
     <nav class="tabs" aria-label="Sections"><div class="wrap">${TABS.map(([id,l]) =>
-      `<button data-act="tab" data-tab="${id}" ${U.tab===id?'aria-current="page"':''}>${l}${id==='conseils'&&n?`<span class="navdot">${n}</span>`:''}</button>`).join('')}</div></nav></header>
+      `<button data-act="tab" data-tab="${id}" ${U.tab===id?'aria-current="page"':''} aria-label="${l}${id==='conseils'&&n?` (${n} à regarder)`:''}">${TABSHORT[id] ? `<span class="tl-full">${l}</span><span class="tl-short" aria-hidden="true">${TABSHORT[id]}</span>` : l}${id==='conseils'&&n?`<span class="navdot">${n}</span>`:''}</button>`).join('')}</div></nav></header>
     <main class="wrap" id="main">${bannerHTML()}${views[U.tab]()}</main>
     <footer class="foot wrap">${piggy('happy', 28, 'nocoin')}<span>MaTirelire garde tes sous chez toi : rien ne quitte cet appareil.</span></footer>`;
 }
@@ -1280,6 +1316,8 @@ const HELP = {
     <p><b>Ce que ça change</b></p>
     <ul><li><b>Budget</b> (Synthèse, reste à vivre) : le salaire saisi compte toujours dans le mois qu’il finance, quel que soit son jour d’arrivée.</li><li><b>Compte provisions</b> : la mensualité est comptée sur le compte dès que le versement arrive (le 28 octobre dans l’exemple), mais attribuée à novembre.</li><li><b>Prochain virement</b> et <b>trajectoire</b> : les dates tiennent compte de ce décalage.</li><li><b>Plusieurs contributeurs</b> : une mensualité est comptée quand tous les versements sont arrivés.</li></ul>
     <p class="note">Ce jour est aussi celui du virement vers le compte de provision. Si ton salaire et ton virement n’arrivent pas le même jour, saisis le jour du virement.</p>`},
+  'wiz-membres':{title:'Les membres du foyer', body:`<p>Chaque personne du foyer : <b>adulte</b>, <b>adolescent</b> ou <b>enfant</b>.</p><p>Un adulte a un salaire et peut <b>participer au budget commun</b> : c’est lui qui alimente le compte de provision. Un enfant ou un adolescent peut recevoir de l’argent de poche.</p><p class="note">Il faut au moins un adulte. Les prénoms servent partout : virements, reste à vivre, répartition.</p>`},
+  'wiz-comptes':{title:'Les comptes du foyer', body:`<p>Déclare les comptes bancaires que vous utilisez : un compte joint, un compte par personne, un livret pour l’argent de poche…</p><p>Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses. Les lignes du budget sont ensuite rattachées à ces comptes, ce qui alimente les virements à programmer.</p><p class="note">Un compte par adulte est proposé. Tu peux tout renommer, ajouter ou retirer.</p>`},
   rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
     <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
     <p class="note">Exemple : 6 000 € de revenus − 4 200 € de budget commun − 170 € de dépenses personnelles = 1 630 € à vivre.</p>`},
@@ -1939,7 +1977,7 @@ function openLine(id, catId, prefill){
   const dlg = $('#dlg');
   dlg.innerHTML = lineFormHTML(JSON.parse(JSON.stringify(l)), isNew);
   dlg.showModal(); refreshLineForm();
-  if(isNew) $('#f-name').focus();
+  if(isNew && window.matchMedia && matchMedia('(hover: hover)').matches) $('#f-name').focus();
 }
 function splitRowHTML(p, i){
   const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(label)}</option>`;
@@ -2068,22 +2106,105 @@ function saveLine(){
   $('#dlg').close(); touch(); toast(i >= 0 ? 'Ligne enregistrée' : 'Ligne ajoutée à la tirelire');
 }
 
-/* ---------- Création du foyer ---------- */
-function openSetup(){
-  const dlg = $('#dlg');
-  dlg.innerHTML = `<div class="dlg-h"><h2>Composition du foyer</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div>
-   <div class="dlg-b form"><p class="hint">Qui vit sous le même toit ? Je prépare la tirelire avec les membres, les comptes, les catégories et les lignes classiques. Tout reste modifiable ensuite.</p>
-    <div class="grid2"><label class="field">Adulte 1<input class="inp" id="s-a1" placeholder="Prénom" autocomplete="off"></label><label class="field">Adulte 2 (facultatif)<input class="inp" id="s-a2" placeholder="Prénom" autocomplete="off"></label></div>
-    <label class="field">Enfants (prénoms séparés par des virgules)<input class="inp" id="s-kids" placeholder="Ex. Camille, Noé" autocomplete="off"></label></div>
-   <div class="dlg-f"><span></span><div class="r"><button class="btn" data-act="close-dlg">Annuler</button><button class="btn primary" data-act="create-home">Remplir la tirelire</button></div></div>`;
-  dlg.showModal(); $('#s-a1').focus();
+/* ---------- Assistant de création du foyer : pleine page, deux étapes obligatoires (membres, comptes) ---------- */
+const TYPE_OPTS = MEMBER_TYPES.filter(t => t.id !== 'other');
+const wzName = s => String(s || '').trim();
+const wzAdult = () => ({id:uid(), name:'', type:'adult', contributes:true});
+function startWizard(){
+  U.wizard = {step:1, members:[wzAdult()], accounts:[], provId:null};
+  closePop(); render(); window.scrollTo(0, 0);
 }
-function createHome(){
-  const a1 = $('#s-a1').value.trim() || 'Adulte 1', a2 = $('#s-a2').value.trim();
-  const kids = $('#s-kids').value.split(',').map(s => s.trim()).filter(Boolean);
-  S = buildTemplate(a2 ? [a1, a2] : [a1], kids);
-  U.fileHandle = null; U.fileName = null; U.notice = null; U.tab = 'foyer'; U.dirty = true;
-  $('#dlg').close(); touch(); toast('Foyer créé ! Commence par les salaires, puis les montants dans Budget.');
+function wizardIssues(){
+  const w = U.wizard, out = [];
+  if(w.step === 1){
+    if(w.members.some(m => !wzName(m.name))) out.push('Renseigne le prénom de chaque membre.');
+    if(!w.members.some(m => m.type === 'adult')) out.push('Prévois au moins un adulte.');
+    const k = w.members.filter(m => wzName(m.name)).map(m => advNorm(m.name)); if(new Set(k).size !== k.length) out.push('Deux membres portent le même prénom.');
+  } else {
+    if(!w.accounts.length) out.push('Ajoute au moins un compte.');
+    if(w.accounts.some(a => !wzName(a.name))) out.push('Donne un nom à chaque compte.');
+    const k = w.accounts.filter(a => wzName(a.name)).map(a => advNorm(a.name)); if(new Set(k).size !== k.length) out.push('Deux comptes portent le même nom.');
+    if(!w.accounts.some(a => a.id === w.provId)) out.push('Choisis le compte de provision (celui qui reçoit les virements).');
+  }
+  return out;
+}
+function syncWizardAccounts(){
+  const w = U.wizard, has = id => w.members.some(m => m.id === id);
+  w.accounts = w.accounts.filter(a => !(a.auto && a.auto !== 'joint' && !has(a.auto) && !a.edited));
+  if(!w.accounts.length){ const j = {id:uid(), name:'Compte joint', bank:'', owner:'common', auto:'joint'}; w.accounts.push(j); w.provId = j.id; }
+  w.accounts.forEach(a => { if(a.owner !== 'common' && !has(a.owner)) a.owner = 'common'; });
+  w.members.filter(m => m.type === 'adult').forEach(m => { if(!w.accounts.some(a => a.owner === m.id)) w.accounts.push({id:uid(), name:`Compte de ${wzName(m.name)}`, bank:'', owner:m.id, auto:m.id}); });
+  w.accounts.forEach(a => { if(a.auto && a.auto !== 'joint' && !a.edited){ const m = w.members.find(x => x.id === a.auto); if(m) a.name = `Compte de ${wzName(m.name)}`; } });
+  if(!w.accounts.some(a => a.id === w.provId)) w.provId = w.accounts[0].id;
+}
+function wizardFoot(){
+  const w = U.wizard, issues = wizardIssues();
+  return `<div class="wz-foot"><p class="note wz-issues" id="wz-issues" aria-live="polite">${issues.length ? esc('Pour continuer : ' + issues.join(' ')) : ''}</p>
+    <div class="wz-btns">${w.step === 1 ? '<button type="button" class="btn" data-act="wiz-cancel">Annuler</button>' : '<button type="button" class="btn" data-act="wiz-back">Retour</button>'}
+    <button type="button" class="btn primary" id="wz-next" data-act="${w.step === 1 ? 'wiz-next' : 'wiz-finish'}" ${issues.length ? 'disabled' : ''}>${w.step === 1 ? 'Suivant' : 'Terminer'}</button></div></div>`;
+}
+function updateWizardUI(){
+  if(!U.wizard) return;
+  const issues = wizardIssues(), n = $('#wz-next'), i = $('#wz-issues');
+  if(n) n.disabled = !!issues.length;
+  if(i) i.textContent = issues.length ? 'Pour continuer : ' + issues.join(' ') : '';
+}
+function wizardStep1(){
+  const w = U.wizard;
+  const rows = w.members.map(m => `<article class="wz-card">
+    <div class="grid2"><label class="field">Prénom<input class="inp" data-w="m:${m.id}:name" value="${esc(m.name)}" placeholder="${m.type === 'adult' ? 'Ex. Camille' : 'Ex. Noé'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"></label>
+      <label class="field">Profil<select class="inp" data-w="m:${m.id}:type">${TYPE_OPTS.map(t => `<option value="${t.id}" ${m.type === t.id ? 'selected' : ''}>${t.label}</option>`).join('')}</select></label></div>
+    ${m.type === 'adult' ? `<label class="check"><input type="checkbox" data-w="m:${m.id}:contributes" ${m.contributes ? 'checked' : ''}> Participe au budget commun</label>` : ''}
+    ${w.members.length > 1 ? `<div><button type="button" class="btn danger small" data-act="wiz-del-member" data-id="${m.id}">Retirer</button></div>` : ''}</article>`).join('');
+  return `<section class="wz-body"><h1>Qui vit sous le même toit ? ${H('wiz-membres')}</h1>
+    <p class="hint">Étape obligatoire : les membres du foyer. Tu pourras en ajouter d’autres plus tard, dans l’onglet Foyer.</p>
+    <div class="rowlist">${rows}</div>
+    <div class="toolbar"><button type="button" class="btn" data-act="wiz-add-member" data-type="adult">Ajouter un adulte</button><button type="button" class="btn" data-act="wiz-add-member" data-type="child">Ajouter un enfant</button></div>
+    ${wizardFoot()}</section>`;
+}
+function wizardStep2(){
+  const w = U.wizard;
+  const ownerOpts = a => ['common', ...w.members.map(m => m.id)].map(id => `<option value="${esc(id)}" ${a.owner === id ? 'selected' : ''}>${id === 'common' ? 'Commun (foyer)' : esc(wzName(w.members.find(m => m.id === id).name))}</option>`).join('');
+  const rows = w.accounts.map(a => `<article class="wz-card">
+    <div class="grid2"><label class="field">Nom du compte<input class="inp" data-w="a:${a.id}:name" value="${esc(a.name)}" autocomplete="off" enterkeyhint="done"></label>
+      <label class="field">Banque (facultatif)<input class="inp" data-w="a:${a.id}:bank" value="${esc(a.bank)}" autocomplete="off" enterkeyhint="done"></label></div>
+    <label class="field">Titulaire<select class="inp" data-w="a:${a.id}:owner">${ownerOpts(a)}</select></label>
+    <label class="check"><input type="radio" name="wz-prov" data-w="prov:${a.id}" ${w.provId === a.id ? 'checked' : ''}> <span>Compte de provision <small class="muted">(reçoit les virements)</small></span></label>
+    ${w.accounts.length > 1 ? `<div><button type="button" class="btn danger small" data-act="wiz-del-account" data-id="${a.id}">Retirer</button></div>` : ''}</article>`).join('');
+  return `<section class="wz-body"><h1>Quels sont vos comptes ? ${H('wiz-comptes')}</h1>
+    <p class="hint">Étape obligatoire : déclare les comptes du foyer. Les lignes du budget y seront rattachées.</p>
+    <div class="rowlist">${rows}</div>
+    <div class="toolbar"><button type="button" class="btn" data-act="wiz-add-account">Ajouter un compte</button></div>
+    ${wizardFoot()}</section>`;
+}
+function wizardPage(){
+  const w = U.wizard, steps = ['Les membres', 'Les comptes'];
+  return `<div class="wizard"><header class="wz-head"><div class="wz-brand">${piggy('happy', 40, 'nocoin')}<span>MaTirelire</span></div>
+    <ol class="wz-steps" aria-label="Étapes de création du foyer">${steps.map((t, i) => `<li class="${w.step > i + 1 ? 'done' : ''}" ${w.step === i + 1 ? 'aria-current="step"' : ''}><span>${i + 1}</span>${t}</li>`).join('')}</ol></header>
+    ${w.step === 1 ? wizardStep1() : wizardStep2()}</div>`;
+}
+function onWizardField(el){
+  const [k, id, f] = el.dataset.w.split(':'), w = U.wizard; if(!w) return;
+  if(k === 'm'){
+    const m = w.members.find(x => x.id === id); if(!m) return;
+    if(f === 'name'){ m.name = el.value; updateWizardUI(); }
+    else if(f === 'type'){ m.type = el.value; m.contributes = m.type === 'adult'; render(); }
+    else if(f === 'contributes') m.contributes = el.checked;
+  } else if(k === 'a'){
+    const a = w.accounts.find(x => x.id === id); if(!a) return;
+    if(f === 'name'){ a.name = el.value; a.edited = true; updateWizardUI(); }
+    else if(f === 'bank') a.bank = el.value;
+    else if(f === 'owner') a.owner = el.value;
+  } else if(k === 'prov'){ w.provId = id; updateWizardUI(); }
+}
+function finishWizard(){
+  const w = U.wizard; if(!w || wizardIssues().length) return;
+  const idx = {}; w.members.forEach((m, i) => idx[m.id] = i);
+  S = buildHousehold(w.members.map(m => ({name:wzName(m.name), type:m.type, contributes:m.type === 'adult' && m.contributes})),
+    w.accounts.map(a => ({name:wzName(a.name), bank:wzName(a.bank), owner:a.owner === 'common' ? null : idx[a.owner]})), Math.max(0, w.accounts.findIndex(a => a.id === w.provId)));
+  U.wizard = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.notice = null; U.tab = 'foyer'; U.dirty = true;
+  U.collapsed = {}; U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.bubbleIdx = 0; U.bubbleChanged = 0;
+  idbDel('handle'); touch(); window.scrollTo(0, 0); toast('Foyer créé ! Commence par les salaires, puis les montants dans Budget.');
 }
 
 /* ---------- Événements ---------- */
@@ -2132,8 +2253,15 @@ document.addEventListener('click', async e => {
       if(parts.length < 2){ $('#f-splitOn').checked = false; const p = parts[0]; if(p){ $('#f-owner').value = p.ownerId; $('#f-account').value = p.accountId || ''; } }
       else writeSplit(parts); refreshLineForm(); break; }
     case 'close-dlg': $('#dlg').close(); break;
-    case 'setup': openSetup(); break;
-    case 'create-home': createHome(); break;
+    case 'setup': startWizard(); break;
+    case 'wiz-add-member': U.wizard.members.push({id:uid(), name:'', type:t.dataset.type, contributes:t.dataset.type === 'adult'}); render(); break;
+    case 'wiz-del-member': U.wizard.members = U.wizard.members.filter(m => m.id !== id); if(!U.wizard.members.length) U.wizard.members.push(wzAdult()); render(); break;
+    case 'wiz-next': if(!wizardIssues().length){ U.wizard.step = 2; syncWizardAccounts(); render(); window.scrollTo(0, 0); } break;
+    case 'wiz-back': U.wizard.step = 1; render(); window.scrollTo(0, 0); break;
+    case 'wiz-cancel': U.wizard = null; render(); window.scrollTo(0, 0); break;
+    case 'wiz-add-account': U.wizard.accounts.push({id:uid(), name:'', bank:'', owner:'common'}); render(); break;
+    case 'wiz-del-account': { const w = U.wizard; w.accounts = w.accounts.filter(a => a.id !== id); if(!w.accounts.some(a => a.id === w.provId) && w.accounts.length) w.provId = w.accounts[0].id; render(); break; }
+    case 'wiz-finish': finishWizard(); break;
     case 'open': openFile(); break;
     case 'save': saveFile(false); break;
     case 'save-as': saveFile(true); break;
@@ -2174,8 +2302,8 @@ document.addEventListener('click', async e => {
       S.lines.forEach(l => { if(l.method === id) l.method = null; });
       S.settings.methods = S.settings.methods.filter(m => m.id !== id); touch(); break;
     case 'reset-template':
-      if(!confirm('Remplacer toutes les données par un modèle vierge ? Cette action est immédiate (penser à exporter avant).')) break;
-      S = null; U.notice = null; render(); openSetup(); break;
+      if(!confirm('Repartir d’un modèle vierge ? Tes données actuelles ne sont remplacées qu’à la fin de la création du foyer.')) break;
+      startWizard(); break;
     case 'forget':
       if(!confirm('Fermer ce foyer et effacer la copie de secours de ce navigateur ? Le fichier JSON sur l’appareil n’est pas touché.')) break;
       localStorage.removeItem(LS_KEY); await idbDel('handle'); S = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.dirty = false; render(); break;
@@ -2186,11 +2314,14 @@ document.addEventListener('keydown', e => {
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.advice.click')){ e.preventDefault(); e.target.click(); }
 });
 document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset && t.dataset.w && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio'){ onWizardField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
   if(e.target.closest('#dlg') && $('#f-preview')) refreshLineForm();
 });
 document.addEventListener('change', e => {
   const el = e.target;
+  if(el.dataset && el.dataset.w){ onWizardField(el); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
   if(el.id === 'flt-cat'){ U.cat = el.value; refreshBudgetList(); return; }
