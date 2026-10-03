@@ -433,6 +433,10 @@ details.method[open] summary{margin-bottom:6px}
 :root[data-skin=contraste]{--bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F2F2F2;--ink:#000000;--muted:#333333;--line:#5A5A5A;--brand:#0B3D91;--brand-strong:#08306F;--on-brand:#FFFFFF;--amber:#8A5A00;--amber-soft:#FFF0C2;--debit:#A00018;--credit:#005A1E;--slate:#1F4E79;--focus:#0000FF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:none;--hero:#0B3D91;--hero-ink:#FFFFFF;--warn-ink:#6B4500;--solid-debit:#A00018;--solid-credit:#005A1E;--solid-slate:#1F4E79;--solid-warn:#6B4500}
 :root[data-skin=contraste][data-theme=dark]{--bg:#000000;--surface:#000000;--surface2:#161616;--ink:#FFFFFF;--muted:#E0E0E0;--line:#B0B0B0;--brand:#FFD400;--brand-strong:#FFE55C;--on-brand:#000000;--amber:#FFD400;--amber-soft:#332B00;--debit:#FF8A80;--credit:#7CFFB0;--slate:#9CC9FF;--focus:#00E5FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1A1A1A;--hero-ink:#FFFFFF;--warn-ink:#FFD400;--solid-debit:#C62828;--solid-credit:#00692A;--solid-slate:#1F5F99;--solid-warn:#7A5200}
 :root[data-theme=dark]{color-scheme:dark}
+
+.iconrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.icon-prev{display:inline-block;width:72px;height:72px;border-radius:16px;overflow:hidden;border:1px solid var(--line);flex:0 0 auto}
+.icon-prev svg{display:block;width:72px;height:72px}
 </style>
 </head>
 <body>
@@ -642,7 +646,7 @@ function computeMonth(S, m){
 
 /* ---------- Données ---------- */
 function defaultSettings(){
-  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false, skin:'tirelire', mode:'auto', mascot:'pig',
+  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false, skin:'tirelire', mode:'auto', mascot:'pig', icon:'follow',
           distribution:{mode:'equal_remainder', includePersonal:false, custom:{}},
           methods: DEFAULT_METHODS.map(x=>({...x}))};
 }
@@ -662,6 +666,7 @@ function normalize(d){
   if(!SKINS.includes(S.settings.skin)) S.settings.skin = 'tirelire';
   if(!['auto', 'light', 'dark'].includes(S.settings.mode)) S.settings.mode = 'auto';
   if(!MASCOT_IDS.includes(S.settings.mascot)) S.settings.mascot = 'pig';
+  if(!['follow', 'pig'].includes(S.settings.icon)) S.settings.icon = 'follow';
   delete S.settings.provisionStart;   // ancien réglage (point de départ global), remplacé par le calcul ligne par ligne
   if(!Array.isArray(S.settings.methods) || !S.settings.methods.length) S.settings.methods = DEFAULT_METHODS.map(x=>({...x}));
   S.members = arr(d.members).map(x => ({
@@ -1305,11 +1310,38 @@ const MASCOT_INFO = {
   fox:{name:'Renard', de:'du renard', cry:'Rusé comme un renard !', tag:'Malin, rien ne lui échappe',
     jokes:['Malin comme un renard : aucune dépense ne passe inaperçue.', 'Un renard averti en vaut deux budgets.', 'Je flaire les bonnes affaires à des kilomètres.', 'Discret, rapide, et toujours dans les clous.']},
 };
+const SKIN_ICON = {tirelire:'#1E6B66', ocean:'#1D5FA6', foret:'#2F6B3A', pastel:'#6D4FB0', minuit:'#1A2760', contraste:'#0B3D91'};
+const ICON_ORIG = {touch:(document.querySelector('link[rel=apple-touch-icon]') || {getAttribute(){ return null; }}).getAttribute('href'), fav:(document.querySelector('link[rel=icon]') || {getAttribute(){ return null; }}).getAttribute('href')};
+function iconSVG(mascot, skin, size){
+  const m = MASC[mascot] || MASC.pig, w = size ? ` width="${size}" height="${size}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"${w}><rect width="180" height="180" fill="${SKIN_ICON[skin] || SKIN_ICON.tirelire}"/><g transform="translate(18,27) scale(.9)">${m.happy}</g></svg>`;
+}
+let ICON_KEY = '';
+function swapLink(rel, href, type){
+  const old = document.querySelector(`link[rel=${rel}]`); if(!old || !href) return;
+  const n = old.cloneNode(); n.setAttribute('href', href); if(type) n.setAttribute('type', type); old.replaceWith(n);
+}
+/* L'icône de l'écran d'accueil (apple-touch-icon) et celle de l'onglet suivent la mascotte et le skin.
+   iOS ne lit l'icône d'une application web qu'à l'ajout à l'écran d'accueil : la bascule en direct n'est pas possible. */
+function refreshIcons(){
+  const L = currentLook(), key = (L.icon === 'pig' || (L.mascot === 'pig' && L.skin === 'tirelire')) ? 'orig' : `${L.mascot}|${L.skin}`;
+  if(key === ICON_KEY) return; ICON_KEY = key;
+  if(key === 'orig'){ swapLink('apple-touch-icon', ICON_ORIG.touch); swapLink('icon', ICON_ORIG.fav, 'image/svg+xml'); return; }
+  const img = new Image();
+  img.onload = () => {
+    try{
+      const c = document.createElement('canvas'); c.width = c.height = 180; c.getContext('2d').drawImage(img, 0, 0, 180, 180);
+      const uri = c.toDataURL('image/png'); if(ICON_KEY !== key) return;
+      swapLink('apple-touch-icon', uri); swapLink('icon', uri, 'image/png');
+    }catch{}
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(iconSVG(L.mascot, L.skin));
+}
 const lookPrefs = () => { try{ return JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') || {}; }catch{ return {}; } };
 function currentLook(){
   const st = S ? S.settings : {}, ls = lookPrefs();
   const pick = (v, list, d) => list.includes(v) ? v : d;
-  return {skin:pick(st.skin || ls.skin, Object.keys(SKIN_INFO), 'tirelire'), mode:pick(st.mode || ls.mode, ['auto', 'light', 'dark'], 'auto'), mascot:pick(st.mascot || ls.mascot, Object.keys(MASCOT_INFO), 'pig')};
+  return {skin:pick(st.skin || ls.skin, Object.keys(SKIN_INFO), 'tirelire'), mode:pick(st.mode || ls.mode, ['auto', 'light', 'dark'], 'auto'), mascot:pick(st.mascot || ls.mascot, Object.keys(MASCOT_INFO), 'pig'), icon:pick(st.icon || ls.icon, ['follow', 'pig'], 'follow')};
 }
 function applyLook(){
   const L = currentLook(), root = document.documentElement;
@@ -1317,6 +1349,7 @@ function applyLook(){
   root.dataset.skin = L.skin; root.dataset.theme = dark ? 'dark' : 'light'; root.dataset.mascot = L.mascot;
   const meta = document.querySelector('meta[name=theme-color]'); if(meta){ const h = getComputedStyle(root).getPropertyValue('--hero').trim(); if(h) meta.content = h; }
   try{ localStorage.setItem(LOOK_KEY, JSON.stringify(L)); }catch{}
+  refreshIcons();
 }
 if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyLook());
 function piggy(mood = 'happy', size = 96, cls = ''){
@@ -1699,6 +1732,9 @@ const HELP = {
     <p>La somme n’est jamais plafonnée. Quand tu règles une dépense, appuie sur <b>Payé</b> : paiement partiel (la ligne reste à compléter) ou final (le suivi repart, l’écart va dans la cagnotte).</p>`},
   donnees:{title:'Données', body:`<p>Tes données sont dans un fichier JSON sur ton appareil (<b>MaTirelire.json</b> par défaut), jamais envoyées sur Internet. Sur Chrome ou Edge, le fichier se met à jour automatiquement ; ailleurs, utilise « Exporter » puis « Ouvrir ».</p><p>Une copie de secours reste dans ce navigateur, au cas où.</p>`},
   apparence:{title:'Apparence', body:`<p>Personnalise MaTirelire sans toucher à tes chiffres.</p><ul><li><b>Skin</b> : les couleurs de l’appli (Tirelire, Océan, Forêt, Pastel, Minuit, Contraste élevé).</li><li><b>Mode</b> : clair, sombre, ou automatique selon ton appareil. Minuit est toujours sombre.</li><li><b>Mascotte</b> : cochon, toucan, écureuil, hibou ou renard. Elle se choisit indépendamment du skin et a ses propres répliques.</li></ul><p class="note">Ces choix sont enregistrés dans ton fichier.</p>`},
+  icone:{title:'Icône de l’écran d’accueil', body:`<p>iOS lit l’icône d’une application web <b>une seule fois, au moment où tu l’ajoutes</b> à l’écran d’accueil. MaTirelire prépare donc l’icône de ta mascotte et de ton skin, mais pour la changer sur l’écran d’accueil :</p>
+    <ol><li><b>Exporte ton fichier</b> (Réglages › Données › Exporter) : la copie de secours est liée à l’icône installée.</li><li>Retire l’ancienne icône : appui long, puis « Supprimer l’app ».</li><li>Dans Safari, ouvre MaTirelire, puis Partager › « Sur l’écran d’accueil ».</li><li>Ouvre la nouvelle icône et rouvre ton fichier si besoin.</li></ol>
+    <p class="note">« Suit la mascotte » : l’icône change avec ton choix. « Reste le cochon » : l’icône d’origine est conservée. L’icône de l’onglet du navigateur change tout de suite.</p>`},
   comptes:{title:'Comptes', body:`<p>Tes comptes bancaires. Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses.</p><p>Chaque ligne du budget peut être rattachée à un compte cible, ce qui alimente les virements à programmer.</p>`},
   'prov-reglage':{title:'Compte provisions (réglage)', body:`<p>Affiche ou masque le bloc « Compte provisions » de la Synthèse. Masqué, les réglages de versement du salaire disparaissent aussi de Foyer.</p>`},
   cats:{title:'Catégories', body:`<p>Les familles qui regroupent tes lignes (Logement, Transports…). Tu peux les renommer, changer leur couleur et les réordonner. Supprimer une catégorie remet ses lignes dans « Divers ».</p>`},
@@ -1949,7 +1985,7 @@ const MODES = [
 function viewSynthese(){
   U.bubbleIdx = U.bubbleIdx || 0; if(!U.bubbleChanged) U.bubbleChanged = Date.now();
   const R = computeMonth(S, U.month), d = S.settings.distribution;
-  U.bubbleList = bubbleMessages(R); U.bubbleRest = R.totals.rest;
+  U.bubbleList = bubbleMessages(R);
   const title = U.month === 0 ? 'Moyenne mensuelle sur l’année' : cap(MONTHS[U.month-1]);
   const now = new Date(), realMonth = now.getMonth() + 1;
   const chips = [0,1,2,3,4,5,6,7,8,9,10,11,12].map(m =>
@@ -2003,8 +2039,9 @@ const JOKES_COMMON = [
 const BUBBLE_MS = 60000;   // au moins une minute entre deux messages
 const reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function bubbleMessages(R){
-  const order = {alert:0, warn:1, info:2, good:3};
-  const adv = computeAdvice(S).sort((a, b) => order[a.severity] - order[b.severity])
+  const order = {alert:0, warn:1, info:2, good:3}, all = computeAdvice(S);
+  U.moodNow = mascotMoodFor(R, new Set(all.map(a => a.kind)));
+  const adv = all.sort((a, b) => order[a.severity] - order[b.severity])
     .map(it => ({type:'advice', kind:it.kind, severity:it.severity, go:!!(it.action && it.action.tab), text:((ADVICE_META[it.kind] || (() => ({title:''})))(it.data, it.severity)).title}))
     .filter(m => m.text);
   const own = MASCOT_INFO[currentLook().mascot].jokes, jokes = [{type:'joke', text:heroMsg(R)}, ...own.slice(0, 2), ...JOKES_COMMON.slice(0, 4), ...own.slice(2), ...JOKES_COMMON.slice(4)].map(x => typeof x === 'string' ? {type:'joke', text:x} : x);
@@ -2014,10 +2051,15 @@ function bubbleMessages(R){
   return out;
 }
 function bubbleCurrent(){ const L = U.bubbleList || []; return L.length ? L[(U.bubbleIdx || 0) % L.length] : null; }
-function bubbleMood(){
-  const m = bubbleCurrent();
-  return ((m && m.type === 'advice' && m.severity === 'alert') || (U.bubbleRest || 0) < -0.005) ? 'worried' : 'happy';
+/* Humeur : contente par défaut. Inquiète seulement si les comptes sont dans le rouge (reste à vivre, solde annuel,
+   compte provisions ou cagnotte négatifs) ou s'il n'y a aucune épargne. Une ligne trop lourde (logement…) ne l'assombrit pas. */
+function mascotMoodFor(R, kinds){
+  if(R.totals.rest < -0.005) return 'worried';
+  if(kinds.has('annuel-negatif') || kinds.has('epargne-absente')) return 'worried';
+  if(provisionOn()){ const C = provisionSummary(S).cash; if(C.state < -0.005 || C.pot < -0.005) return 'worried'; }
+  return 'happy';
 }
+function bubbleMood(){ return U.moodNow || 'happy'; }
 function bubbleHTML(){
   const m = bubbleCurrent(); if(!m) return '';
   const label = m.type === 'advice' ? (m.go ? `Conseil : ${m.text}. Ouvrir.` : `Conseil : ${m.text}. Appuyer pour le suivant.`) : `Message ${MASCOT_INFO[currentLook().mascot].de} : ${m.text}. Appuyer pour le suivant.`;
@@ -2445,6 +2487,9 @@ function viewReglages(){
       <div class="field">Skin<div class="look-grid" role="group" aria-label="Skin">${Object.entries(SKIN_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-skin" data-id="${id}" aria-pressed="${L.skin === id}"><span class="sw3">${k.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(k.name)}</button>`).join('')}</div></div>
       <div class="field">Mode<div class="chips wrapchips" role="group" aria-label="Mode">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([id, l]) => `<button type="button" class="chip" data-act="set-mode" data-id="${id}" aria-pressed="${L.mode === id}" ${L.skin === 'minuit' ? 'disabled' : ''}>${l}</button>`).join('')}</div>${L.skin === 'minuit' ? '<small class="muted">Minuit est toujours sombre.</small>' : '<small class="muted">Automatique suit le réglage de ton appareil.</small>'}</div>
       <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${(MASC[id] || MASC.pig).happy}</svg></span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
+      <div class="field">Icône de l’écran d’accueil ${H('icone')}<div class="iconrow"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 72)}</span>
+        <div class="chips wrapchips" role="group" aria-label="Icône">${[['follow', 'Suit la mascotte'], ['pig', 'Reste le cochon']].map(([id, l]) => `<button type="button" class="chip" data-act="set-icon" data-id="${id}" aria-pressed="${L.icon === id}">${l}</button>`).join('')}</div></div>
+        <small class="muted">Pour mettre à jour l’icône déjà installée, appuie sur « i ».</small></div>
     </div></section>
     <section class="card"><h2>Comptes ${H('comptes')}</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun.</p>
       <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
@@ -2721,6 +2766,7 @@ document.addEventListener('click', async e => {
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
     case 'help': openPop(t, id); break;
     case 'set-skin': S.settings.skin = id; applyLook(); touch(true); break;
+    case 'set-icon': S.settings.icon = id; applyLook(); touch(true); break;
     case 'set-mode': S.settings.mode = id; applyLook(); touch(true); break;
     case 'set-mascot': S.settings.mascot = id; applyLook(); U.bubbleIdx = 0; U.bubbleChanged = Date.now(); touch(true); break;
     case 'env-new': openNewEnvelope(); break;
