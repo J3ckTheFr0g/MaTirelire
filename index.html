@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MaTirelire">
 <meta name="description" content="MaTirelire : le budget du foyer, sans prise de tête. Vos données restent dans un fichier JSON sur votre appareil.">
 <title>MaTirelire – le budget du foyer</title>
-<script>(function(){try{var l=JSON.parse(localStorage.getItem('matirelire:look')||'{}'),r=document.documentElement,s=l.skin||'tirelire',m=l.mode||'auto',d=s==='minuit'||m==='dark'||(m==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);r.dataset.skin=s;r.dataset.theme=d?'dark':'light';r.dataset.mascot=l.mascot||'pig'}catch(e){}})()</script>
+<script>(function(){try{var l=JSON.parse(localStorage.getItem('matirelire:look')||'{}'),r=document.documentElement,s=l.skin||'tirelire',m=l.mode||'auto',L=['rose','bleu','vert','marron','orange','jaune'].indexOf(s)>=0,d=!L&&(s==='minuit'||m==='dark'||(m==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches));r.dataset.skin=s;r.dataset.theme=d?'dark':'light';r.dataset.mascot=l.mascot||'pig'}catch(e){}})()</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2215%22 fill=%22%231E6B66%22/%3E%3Cg transform=%22translate%28-1 6%29 scale%28.4%29%22%3E%3Cg class=%22pig-coin%22%3E%3Ccircle cx=%2275%22 cy=%2226%22 r=%2214%22 fill=%22%23F5B82E%22 stroke=%22%23D08C0F%22 stroke-width=%223%22/%3E%3Ccircle cx=%2275%22 cy=%2226%22 r=%228%22 fill=%22none%22 stroke=%22%23D08C0F%22 stroke-width=%222%22/%3E%3Cpath d=%22M69 21q3-3 8-2%22 stroke=%22%23FFE08A%22 stroke-width=%222%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3Cg class=%22pig-body%22%3E%3Cpath d=%22M28 82C14 79 12 64 23 63c8-1 9 8 2 9%22 fill=%22none%22 stroke=%22%23EE8FA9%22 stroke-width=%225%22 stroke-linecap=%22round%22/%3E%3Crect x=%2240%22 y=%22106%22 width=%2217%22 height=%2222%22 rx=%228%22 fill=%22%23EE8FA9%22/%3E%3Crect x=%2294%22 y=%22106%22 width=%2217%22 height=%2222%22 rx=%228%22 fill=%22%23EE8FA9%22/%3E%3Cellipse cx=%2278%22 cy=%2284%22 rx=%2252%22 ry=%2238%22 fill=%22%23F7A8BC%22/%3E%3Cellipse cx=%2266%22 cy=%2268%22 rx=%2224%22 ry=%2210%22 fill=%22%23FCCBD8%22 opacity=%22.75%22 transform=%22rotate%28-8 66 68%29%22/%3E%3Cpath d=%22M93 52l11-21 13 27z%22 fill=%22%23EE8FA9%22 stroke=%22%23EE8FA9%22 stroke-width=%224%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M99 50l5-10 6 13z%22 fill=%22%23F7A8BC%22/%3E%3Crect x=%2258%22 y=%2247%22 width=%2234%22 height=%228%22 rx=%224%22 fill=%22%23A63A5B%22/%3E%3Cellipse cx=%22128%22 cy=%2286%22 rx=%2215%22 ry=%2213%22 fill=%22%23EE8FA9%22/%3E%3Cellipse cx=%22123%22 cy=%2286%22 rx=%222.4%22 ry=%223.8%22 fill=%22%23A63A5B%22/%3E%3Cellipse cx=%22133%22 cy=%2286%22 rx=%222.4%22 ry=%223.8%22 fill=%22%23A63A5B%22/%3E%3Ccircle cx=%22103%22 cy=%2289%22 r=%226.5%22 fill=%22%23F27C9D%22 opacity=%22.55%22/%3E%3Ccircle cx=%22110%22 cy=%2272%22 r=%224.2%22 fill=%22%232A2233%22/%3E%3Ccircle cx=%22111.4%22 cy=%2270.6%22 r=%221.4%22 fill=%22%23fff%22/%3E%3Cpath d=%22M112 101q8 6 16 0%22 stroke=%22%23A63A5B%22 stroke-width=%222.6%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
@@ -17,13 +17,14 @@
   --bg:#FFF3F0; --surface:#FFFFFF; --surface2:#FFF9F7; --ink:#15302E; --muted:#587170; --line:#EBDAD6;
   --brand:#1E6B66; --brand-strong:#14504C; --on-brand:#FFFFFF;
   --amber:#E2A02A; --amber-soft:#FBEED0; --debit:#AF3F2B; --credit:#2A7A4B; --slate:#5F7F9E; --focus:#2B7FFF;
+  --hero-bg:var(--hero); --page-bg:none; --page-size:auto; --kbw:2px; --kframe:var(--line); --kbtn:var(--surface); --kj-spend:var(--amber); --kj-save:var(--credit); --kj-give:var(--pig-strong); --kprimary:var(--brand); --kprimary-ink:var(--on-brand);
   --hero:#1E6B66; --hero-ink:#FFFFFF; --warn-ink:#8F6200; --solid-debit:#AF3F2B; --solid-credit:#2A7A4B; --solid-slate:#4F6F8E; --solid-warn:#8F6200;
   --radius:18px; --pig:#F7A8BC; --pig-strong:#EE8FA9; --display:ui-rounded,"SF Pro Rounded","Nunito","Varela Round","Arial Rounded MT Bold","Avenir Next",system-ui,sans-serif; --shadow:0 2px 0 rgba(238,143,169,.18);
   --font:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;overflow-x:clip;touch-action:manipulation}
-body{margin:0;overflow-x:clip;overscroll-behavior-x:none;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;
+body{margin:0;overflow-x:clip;overscroll-behavior-x:none;background-color:var(--bg);background-image:var(--page-bg);background-size:var(--page-size);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;
   padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 h1,h2,h3,p{margin:0}
 h1,h2,h3,.hero-v,.rest b{font-family:var(--display)}
@@ -78,7 +79,7 @@ main > * + *{margin-top:16px}
 .wrapchips{flex-wrap:wrap;overflow:visible}
 
 /* Synthèse : encart principal */
-.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--hero);color:var(--hero-ink);border-radius:var(--radius);padding:18px;overflow:hidden}
+.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"txt pig" "dl dl";gap:6px 12px;background:var(--hero-bg);color:var(--hero-ink);border-radius:var(--radius);padding:18px;overflow:hidden}
 .hero-txt{grid-area:txt;align-self:center}
 .hero-k{font-size:.95rem;opacity:.85}
 .hero-v{font-size:clamp(1.7rem,7.4vw,3rem);font-weight:800;letter-spacing:-.02em;line-height:1.1}
@@ -186,8 +187,8 @@ input[type=color]{padding:2px;height:40px;min-width:52px}
 .opt:has(input:checked){border-color:var(--brand);background:var(--surface2)}
 .opt input{margin-top:4px;accent-color:var(--brand)}
 .opt small{display:block;color:var(--muted)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg label{padding:8px 16px;cursor:pointer;font-weight:600;background:var(--surface)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;width:100%}
+.seg label{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 12px;cursor:pointer;font-weight:600;background:var(--surface)}
 .seg input{position:absolute;opacity:0;pointer-events:none}
 .seg label:has(input:checked){background:var(--brand);color:var(--on-brand)}
 .seg label:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:-3px}
@@ -414,6 +415,8 @@ details.method[open] summary{margin-bottom:6px}
 .look-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(104px,100%),1fr));gap:10px}
 .look-tile{display:grid;gap:6px;justify-items:center;padding:10px 6px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);cursor:pointer;font-weight:600;font-size:.85rem;text-align:center;min-width:0}
 .look-tile[aria-pressed=true]{border-color:var(--brand);background:var(--surface2);box-shadow:0 0 0 2px var(--brand) inset}
+.kidapp .look-tile,.kidwiz .look-tile{border-color:var(--kframe);box-shadow:0 3px 0 var(--kframe)}
+.kidapp .look-tile[aria-pressed=true],.kidwiz .look-tile[aria-pressed=true]{background:var(--kbtn);box-shadow:0 3px 0 var(--kframe),0 0 0 3px var(--brand) inset}
 .look-tile .sw3{display:flex;gap:4px}
 .look-tile .sw3 i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
 .look-tile .mpic{width:64px;height:56px;border-radius:12px;background:var(--hero);display:grid;place-items:center;overflow:hidden}
@@ -432,6 +435,12 @@ details.method[open] summary{margin-bottom:6px}
 :root[data-skin=minuit][data-theme=dark]{--bg:#090E1C;--surface:#111830;--surface2:#172040;--ink:#E8EDFB;--muted:#9AA7CC;--line:#25315C;--brand:#7C9CFF;--brand-strong:#A9BEFF;--on-brand:#0A1230;--amber:#F0B441;--amber-soft:#3A2F14;--debit:#FF8F85;--credit:#6FE3A8;--slate:#93A8E0;--focus:#5AA0FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1A2760;--hero-ink:#E8EDFB;--warn-ink:#F0B441;--solid-debit:#B83A3A;--solid-credit:#1F7A4D;--solid-slate:#4F66A8;--solid-warn:#8F6200}
 :root[data-skin=contraste]{--bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F2F2F2;--ink:#000000;--muted:#333333;--line:#5A5A5A;--brand:#0B3D91;--brand-strong:#08306F;--on-brand:#FFFFFF;--amber:#8A5A00;--amber-soft:#FFF0C2;--debit:#A00018;--credit:#005A1E;--slate:#1F4E79;--focus:#0000FF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:none;--hero:#0B3D91;--hero-ink:#FFFFFF;--warn-ink:#6B4500;--solid-debit:#A00018;--solid-credit:#005A1E;--solid-slate:#1F4E79;--solid-warn:#6B4500}
 :root[data-skin=contraste][data-theme=dark]{--bg:#000000;--surface:#000000;--surface2:#161616;--ink:#FFFFFF;--muted:#E0E0E0;--line:#B0B0B0;--brand:#FFD400;--brand-strong:#FFE55C;--on-brand:#000000;--amber:#FFD400;--amber-soft:#332B00;--debit:#FF8A80;--credit:#7CFFB0;--slate:#9CC9FF;--focus:#00E5FF;--pig:#4A2338;--pig-strong:#F7A8BC;--shadow:none;--hero:#1A1A1A;--hero-ink:#FFFFFF;--warn-ink:#FFD400;--solid-debit:#C62828;--solid-credit:#00692A;--solid-slate:#1F5F99;--solid-warn:#7A5200}
+:root[data-skin=rose]{--bg:#FFE6F0;--surface:#FFF4D6;--surface2:#FFE3D3;--ink:#4A1233;--muted:#7E3F63;--line:#F4B9CF;--brand:#C81E67;--brand-strong:#A0114F;--on-brand:#FFFFFF;--amber:#FF9F1C;--amber-soft:#FFE3A8;--debit:#B3124F;--credit:#1A7A32;--slate:#6C3FC4;--focus:#2B6BFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #FF4D8D;--hero:#FF9AB8;--hero-ink:#3A0F2A;--warn-ink:#7A4A00;--solid-debit:#B3124F;--solid-credit:#1A7A32;--solid-slate:#6C3FC4;--solid-warn:#7A4A00;--kframe:#FF4D8D;--kbtn:#FFD0E1;--kprimary:#FF8FB8;--kprimary-ink:#3A0F2A;--hero-bg:linear-gradient(135deg,#FFC24D,#FF7FB0);--dot1:rgba(255,77,141,0.13);--dot2:rgba(255,159,28,0.15);--stripe:rgba(255,77,141,0.055);--grid1:rgba(255,77,141,0.05);--grid2:rgba(255,159,28,0.06)}
+:root[data-skin=bleu]{--bg:#D6EBFF;--surface:#FFF3CF;--surface2:#E3F1FF;--ink:#0F2A52;--muted:#34568A;--line:#A9D2F5;--brand:#1B5FC4;--brand-strong:#134A9E;--on-brand:#FFFFFF;--amber:#FFA726;--amber-soft:#FFE3A8;--debit:#B3261E;--credit:#17722E;--slate:#5A48C8;--focus:#FF6B00;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #2D8CFF;--hero:#7CC4FF;--hero-ink:#0B2348;--warn-ink:#7A4A00;--solid-debit:#B3261E;--solid-credit:#17722E;--solid-slate:#5A48C8;--solid-warn:#7A4A00;--kframe:#2D8CFF;--kbtn:#BFE0FF;--kprimary:#7DB9FF;--kprimary-ink:#0B2348;--hero-bg:linear-gradient(135deg,#6EC1FF,#A99BFF);--dot1:rgba(45,140,255,0.13);--dot2:rgba(255,167,38,0.15);--stripe:rgba(45,140,255,0.055);--grid1:rgba(45,140,255,0.05);--grid2:rgba(255,167,38,0.06)}
+:root[data-skin=vert]{--bg:#E3FAD0;--surface:#FFFAD2;--surface2:#FFE8D8;--ink:#12361A;--muted:#3A6428;--line:#B5E58A;--brand:#1E7A2E;--brand-strong:#145C22;--on-brand:#FFFFFF;--amber:#FFB800;--amber-soft:#FFEBA0;--debit:#B3261E;--credit:#12722E;--slate:#B8470A;--focus:#2B6BFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #3FB618;--hero:#A6EE4D;--hero-ink:#12361A;--warn-ink:#6B4C00;--solid-debit:#B3261E;--solid-credit:#12722E;--solid-slate:#B8470A;--solid-warn:#6B4C00;--kframe:#3FB618;--kbtn:#C9F2A0;--kprimary:#8EDC50;--kprimary-ink:#12361A;--hero-bg:linear-gradient(135deg,#A6EE4D,#FFE14D);--dot1:rgba(63,182,24,0.13);--dot2:rgba(255,196,0,0.15);--stripe:rgba(63,182,24,0.055);--grid1:rgba(63,182,24,0.05);--grid2:rgba(255,196,0,0.06)}
+:root[data-skin=marron]{--bg:#F4E1CA;--surface:#FFEFD2;--surface2:#F8DCC0;--ink:#3B1F0E;--muted:#6B4528;--line:#DDB68A;--brand:#8A4210;--brand-strong:#6A3008;--on-brand:#FFFFFF;--amber:#E8890C;--amber-soft:#FFDFA0;--debit:#A8201C;--credit:#1B6E2C;--slate:#7A4E9A;--focus:#2B6BFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #A8541A;--hero:#E0A56B;--hero-ink:#2A1306;--warn-ink:#6B4000;--solid-debit:#A8201C;--solid-credit:#1B6E2C;--solid-slate:#7A4E9A;--solid-warn:#6B4000;--kframe:#A8541A;--kbtn:#F2CFA6;--kprimary:#E0A56B;--kprimary-ink:#2A1306;--hero-bg:linear-gradient(135deg,#E8B27A,#C97B3D);--dot1:rgba(168,84,26,0.13);--dot2:rgba(232,137,12,0.15);--stripe:rgba(168,84,26,0.055);--grid1:rgba(168,84,26,0.05);--grid2:rgba(232,137,12,0.06)}
+:root[data-skin=orange]{--bg:#FFE6CC;--surface:#FFF6C4;--surface2:#FFDFEB;--ink:#4A2200;--muted:#7A4310;--line:#F7C48F;--brand:#B14400;--brand-strong:#8A3400;--on-brand:#FFFFFF;--amber:#FF8A00;--amber-soft:#FFE0A0;--debit:#B3123A;--credit:#17722E;--slate:#7A4CC8;--focus:#2B6BFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #FF7A00;--hero:#FFA23C;--hero-ink:#3A1500;--warn-ink:#7A4300;--solid-debit:#B3123A;--solid-credit:#17722E;--solid-slate:#7A4CC8;--solid-warn:#7A4300;--kframe:#FF7A00;--kbtn:#FFD9A8;--kprimary:#FFB066;--kprimary-ink:#3A1500;--hero-bg:linear-gradient(135deg,#FFB020,#FF6B6B);--dot1:rgba(255,122,0,0.13);--dot2:rgba(255,77,141,0.15);--stripe:rgba(255,122,0,0.055);--grid1:rgba(255,122,0,0.05);--grid2:rgba(255,77,141,0.06)}
+:root[data-skin=jaune]{--bg:#FFF4B0;--surface:#FFE7C8;--surface2:#FFF9D6;--ink:#3A2E00;--muted:#6B5600;--line:#F0D36A;--brand:#7A5600;--brand-strong:#5E4200;--on-brand:#FFFFFF;--amber:#F5B800;--amber-soft:#FFEFA0;--debit:#A8201C;--credit:#17722E;--slate:#2F6BA0;--focus:#2B6BFF;--pig:#F7A8BC;--pig-strong:#EE8FA9;--shadow:0 4px 0 #F5B800;--hero:#FFD43B;--hero-ink:#3A2E00;--warn-ink:#5E4200;--solid-debit:#A8201C;--solid-credit:#17722E;--solid-slate:#2F6BA0;--solid-warn:#5E4200;--kframe:#F5B800;--kbtn:#FFEE8A;--kprimary:#FFD43B;--kprimary-ink:#3A2E00;--hero-bg:linear-gradient(135deg,#FFE14D,#FFC24D);--dot1:rgba(245,184,0,0.13);--dot2:rgba(255,122,0,0.15);--stripe:rgba(245,184,0,0.055);--grid1:rgba(245,184,0,0.05);--grid2:rgba(255,122,0,0.06)}
 :root[data-theme=dark]{color-scheme:dark}
 
 .iconrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -444,11 +453,11 @@ details.method[open] summary{margin-bottom:6px}
 .kid-id{display:flex;align-items:center;gap:10px;min-width:0}
 .kid-hello{margin:0;font-family:var(--display);font-weight:800;font-size:1.3rem;overflow-wrap:anywhere}
 .kid-rank{margin:0;color:var(--muted);font-size:.9rem}
-.kid-lock{width:48px;height:48px;border-radius:50%;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-size:1.2rem;flex:0 0 auto}
+.kid-lock{width:48px;height:48px;border-radius:50%;border:var(--kbw) solid var(--kframe);background:var(--kbtn);cursor:pointer;font-size:1.2rem;flex:0 0 auto}
 .kid-main{display:grid;gap:12px}
 .kh{font-family:var(--display);font-size:1.25rem;font-weight:800;margin-top:6px;display:flex;align-items:center;gap:4px}
 .khint{margin:0;color:var(--muted);font-size:.95rem}
-.kcard{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:16px;display:grid;gap:8px}
+.kcard{background:var(--surface);border:var(--kbw) solid var(--kframe);box-shadow:var(--shadow);border-radius:var(--radius);padding:16px;display:grid;gap:8px}
 .kcard.flat{border-width:1px;box-shadow:none}
 .kc-k{margin:0;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px}
 .kc-v{margin:0;font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1.1}
@@ -464,9 +473,10 @@ details.method[open] summary{margin-bottom:6px}
 .kdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .kactions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .kactions.one{grid-template-columns:1fr}
-.kbtn{min-height:56px;font-size:1.05rem;font-weight:700;border-radius:18px;width:100%}
-.kbtn.primary{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
-.kgoal{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px;cursor:pointer;min-height:76px;color:var(--ink)}
+.kbtn{min-height:56px;font-size:1.05rem;font-weight:700;border-radius:calc(var(--radius) * .8);width:100%;border-width:var(--kbw);border-color:var(--kframe);background:var(--kbtn);color:var(--ink);box-shadow:0 4px 0 var(--kframe);transition:transform .08s,box-shadow .08s}
+.kbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--kframe)}
+.kbtn.primary{background:var(--kprimary);color:var(--kprimary-ink);border-color:var(--kframe)}
+.kgoal{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:var(--kbw) solid var(--kframe);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;cursor:pointer;min-height:76px;color:var(--ink)}
 .kgoal.ready{border-color:var(--credit);background:var(--surface2)}
 .kgoal.done{cursor:default;opacity:.85}
 .kg-ico{font-size:2rem;flex:0 0 auto;line-height:1}
@@ -484,7 +494,7 @@ details.method[open] summary{margin-bottom:6px}
 .kbadge.got{border:2px solid var(--amber);background:var(--amber-soft);color:var(--ink)}
 .kbadge .kb-ico{font-size:1.8rem;line-height:1;color:var(--amber)}
 .kbadge small{font-size:.8rem;color:var(--muted)}
-.kid-tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:25}
+.kid-tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:var(--kbw) solid var(--kframe);padding-bottom:env(safe-area-inset-bottom,0px);z-index:25}
 .kid-tabs .kwrap{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:6px}
 .kid-tabs button{min-height:52px;border:0;border-radius:14px;background:none;font-weight:700;font-size:.9rem;color:var(--muted);cursor:pointer}
 .kid-tabs button[aria-current=page]{background:var(--brand);color:var(--on-brand)}
@@ -525,6 +535,40 @@ details.method[open] summary{margin-bottom:6px}
 
 .verline{color:var(--muted);font-size:.78rem;letter-spacing:.01em}
 .welcome .verline{margin-top:6px}
+
+/* Scène de la mascotte : grande pour les plus jeunes, avec sa récompense */
+.kscene{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:end;background:var(--hero-bg);color:var(--hero-ink);border-radius:var(--radius);padding:14px 14px 12px;overflow:hidden}
+.ks-mascot{display:grid;place-items:end center;min-width:0}
+.ks-mascot svg{display:block;height:auto;filter:drop-shadow(0 6px 0 rgba(0,0,0,.12))}
+.ks-bubble{position:relative;background:var(--surface);color:var(--ink);border-radius:20px;padding:12px 14px;font-weight:700;line-height:1.3;align-self:center;box-shadow:0 3px 0 rgba(0,0,0,.14)}
+.ks-bubble::before{content:'';position:absolute;left:-9px;top:50%;margin-top:-9px;width:18px;height:18px;background:var(--surface);transform:rotate(45deg);border-radius:4px}
+.ks-bubble small{display:block;font-weight:600;color:var(--muted);margin-top:2px}
+.ks-bubble .ks-ico{font-size:1.6rem;margin-left:4px;vertical-align:-3px}
+.ks-bar{display:block;height:12px;background:var(--bg);border:2px solid var(--kframe);box-sizing:content-box;border-radius:8px;overflow:hidden;margin-top:8px}
+.ks-bar i{display:block;height:100%;background:var(--kj-save,#1E9E5A);border-radius:8px}
+.lv-petit .ks-bubble{font-size:1.15rem}
+@media(prefers-reduced-motion:no-preference){.ks-mascot svg{animation:ksbob 3.6s ease-in-out infinite}@keyframes ksbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}}
+
+/* Forme selon l'âge de l'enfant (html[data-age]) : arrondis et motif de fond très discret, avec les couleurs du skin */
+html[data-age=petit]{--radius:30px;--page-bg:radial-gradient(circle at 14px 14px,var(--dot1) 3.5px,transparent 4px),radial-gradient(circle at 44px 44px,var(--dot2) 3.5px,transparent 4px);--page-size:58px 58px}
+html[data-age=junior]{--radius:24px;--page-bg:repeating-linear-gradient(135deg,var(--stripe) 0 8px,transparent 8px 26px);--page-size:auto}
+html[data-age=ado]{--radius:16px;--page-bg:linear-gradient(var(--grid1) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px);--page-size:30px 30px}
+
+/* Choix de l'âge */
+.agegrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.agechip{min-height:48px;border:var(--kbw) solid var(--kframe);border-radius:calc(var(--radius) * .6);background:var(--kbtn);color:var(--ink);font-weight:800;font-size:1.1rem;cursor:pointer;box-shadow:0 3px 0 var(--kframe)}
+.agechip[aria-pressed=true]{background:var(--kprimary);color:var(--kprimary-ink);box-shadow:0 1px 0 var(--kframe);transform:translateY(2px)}
+@media(max-width:360px){.agegrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* « Tu es… » */
+.whorow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.whochip{min-height:56px;padding:6px 8px;border:var(--kbw) solid var(--kframe);border-radius:calc(var(--radius) * .6);background:var(--kbtn);color:var(--ink);font-weight:700;font-size:.95rem;line-height:1.2;cursor:pointer;box-shadow:0 3px 0 var(--kframe)}
+.whochip[aria-pressed=true]{background:var(--kprimary);color:var(--kprimary-ink);box-shadow:0 1px 0 var(--kframe);transform:translateY(2px)}
+
+.monthgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.monthgrid .agechip{min-height:44px;font-size:.85rem;padding:0 2px}
+@media(max-width:360px){.monthgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kcard.passage{background:var(--kbtn)}
 </style>
 </head>
 <body>
@@ -573,7 +617,12 @@ const DEFAULT_METHODS = [
 ];
 const CAT_COLORS = ['#1E6B66','#AF3F2B','#5F7F9E','#C68A1E','#7A5C99','#3F8F5B','#B5536F','#4E6E3B','#8A6B4F','#3D7FA3','#9A7B2F','#6B6F8E'];
 
-const SKINS = ['tirelire', 'ocean', 'foret', 'pastel', 'minuit', 'contraste'];
+const SKINS = ['tirelire', 'ocean', 'foret', 'pastel', 'minuit', 'contraste', 'rose', 'bleu', 'vert', 'marron', 'orange', 'jaune'];
+const SKIN_DARK_ONLY = ['minuit'];
+const SKIN_LIGHT_ONLY = ['rose', 'bleu', 'vert', 'marron', 'orange', 'jaune'];
+const KID_SKIN_DEFAULTS = {f:{petit:'rose', junior:'orange', ado:'rose'}, m:{petit:'bleu', junior:'vert', ado:'bleu'}, x:{petit:'jaune', junior:'vert', ado:'marron'}, none:{petit:'rose', junior:'orange', ado:'bleu'}};
+const KID_WHO = ['f', 'm', 'x'];   // fille, garçon, « je ne veux pas dire » : sert uniquement à suggérer des couleurs
+const kidDefaultSkin = k => (KID_SKIN_DEFAULTS[KID_WHO.includes(k.who) ? k.who : 'none'] || KID_SKIN_DEFAULTS.none)[k.level] || 'tirelire';
 const MASCOT_IDS = ['pig', 'toucan', 'squirrel', 'owl', 'fox'];
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
@@ -967,8 +1016,9 @@ function fillTemplate(S){
 function buildHousehold(members, accounts, provIndex){
   const S = emptyState();
   const ids = members.map(() => uid());
-  members.forEach((m, i) => S.members.push({id:ids[i], name:String(m.name).trim(), type:MEMBER_TYPES.some(t => t.id === m.type) ? m.type : 'adult',
-    contributes:m.type === 'adult' && m.contributes !== false, pocket:{amount:0, payer:'split', shares:null, accounts:null}, transferDay:1, transferNext:false, kid:kidDefaults()}));
+  members.forEach((m, i) => { const kid = kidDefaults(); if(m.type !== 'adult' && m.age !== undefined && m.age !== null && m.age !== '') kidSetAge(kid, m.age, m.now, m.month);
+    S.members.push({id:ids[i], name:String(m.name).trim(), type:MEMBER_TYPES.some(t => t.id === m.type) ? m.type : 'adult',
+    contributes:m.type === 'adult' && m.contributes !== false, pocket:{amount:0, payer:'split', shares:null, accounts:null}, transferDay:1, transferNext:false, kid}); });
   const accIds = accounts.map(() => uid());
   accounts.forEach((a, i) => S.accounts.push({id:accIds[i], name:String(a.name).trim(), bank:String(a.bank || '').trim(), ownerId:(a.owner != null && ids[a.owner]) ? ids[a.owner] : null, balance:null}));
   S.settings.commonAccountId = accIds[provIndex] || accIds[0] || null;
@@ -998,11 +1048,15 @@ const KID_BADGES = [
 ];
 const round2 = v => Math.round((+v || 0) * 100) / 100;
 const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-function kidDefaults(){ return {on:false, level:'junior', freq:'month', day:1, amount:null, split:{spend:50, save:40, give:10}, ledger:[], goals:[], mascot:null, paidUntil:null, countCoins:0}; }
+const KID_AGE_MIN = 6, KID_AGE_MAX = 17;
+const kidLevelFromAge = a => a <= 9 ? 'petit' : (a <= 13 ? 'junior' : 'ado');
+function kidDefaults(){ return {on:false, level:'junior', who:null, birth:null, passage:null, adultSeen:false, skin:null, freq:'month', day:1, amount:null, split:{spend:50, save:40, give:10}, ledger:[], goals:[], mascot:null, paidUntil:null, countCoins:0}; }
 function normKid(k){
   const d = kidDefaults(); if(!k || typeof k !== 'object') return d;
   const isoRe = /^\d{4}-\d{2}-\d{2}$/, out = {on:!!k.on, level:KID_LEVELS_AGE.includes(k.level) ? k.level : d.level, freq:k.freq === 'week' ? 'week' : 'month'};
   out.day = Math.min(Math.max(parseInt(k.day) || 1, 1), out.freq === 'week' ? 7 : 31);
+  out.birth = /^\d{4}-(0[1-9]|1[0-2])$/.test(k.birth) ? k.birth : null; out.skin = SKINS.includes(k.skin) ? k.skin : null; out.who = KID_WHO.includes(k.who) ? k.who : null;
+  out.passage = (k.passage && KID_LEVELS_AGE.includes(k.passage.from) && KID_LEVELS_AGE.includes(k.passage.to) && isoRe.test(k.passage.date)) ? {from:k.passage.from, to:k.passage.to, date:k.passage.date} : null; out.adultSeen = !!k.adultSeen;
   out.amount = (k.amount === null || k.amount === undefined || k.amount === '') ? null : Math.max(0, round2(k.amount));
   const sp = k.split && typeof k.split === 'object' ? k.split : {}, raw = KID_JARS.map(j => Math.max(0, +sp[j] || 0)), tot = raw.reduce((a, b) => a + b, 0);
   out.split = tot > 0 ? {spend:raw[0] * 100 / tot, save:raw[1] * 100 / tot, give:raw[2] * 100 / tot} : d.split;
@@ -1013,6 +1067,35 @@ function normKid(k){
   out.mascot = MASCOT_IDS.includes(k.mascot) ? k.mascot : null; out.paidUntil = isoRe.test(k.paidUntil) ? k.paidUntil : null; out.countCoins = Math.max(0, parseInt(k.countCoins) || 0);
   return out;
 }
+/* Âge : on mémorise le mois de naissance estimé (année - âge, mois courant). Le niveau d'âge suit tout seul chaque année. */
+function kidAge(kid, now){
+  if(!kid || !kid.birth) return null; const d = now || new Date();
+  return d.getFullYear() - (+kid.birth.slice(0, 4)) - ((d.getMonth() + 1) < (+kid.birth.slice(5, 7)) ? 1 : 0);
+}
+function kidSetAge(kid, age, now, month){
+  const d = now || new Date(), a = Math.min(Math.max(parseInt(age), 0), 40) || 0, mo = (parseInt(month) >= 1 && parseInt(month) <= 12) ? parseInt(month) : d.getMonth() + 1;
+  const by = d.getFullYear() - a - (mo > d.getMonth() + 1 ? 1 : 0);   // le mois de naissance est connu : l'anniversaire de cette année est passé ou non
+  kid.birth = `${by}-${String(mo).padStart(2, '0')}`; kid.level = kidLevelFromAge(Math.max(a, KID_AGE_MIN)); return kid.level;
+}
+/* Met le niveau à jour d'après l'âge. À chaque bascule : fête (kid.passage) et la couleur proposée est figée pour ne pas surprendre. */
+function kidSyncLevel(kid, now){
+  const a = kidAge(kid, now); if(a === null) return false;
+  const lv = kidLevelFromAge(Math.max(KID_AGE_MIN, Math.min(KID_AGE_MAX, a))); if(lv === kid.level) return false;
+  if(!kid.skin) kid.skin = kidDefaultSkin(kid);
+  kid.passage = {from:kid.level, to:lv, date:isoOf(now || new Date())}; kid.level = lv; return true;
+}
+/* Étape de vie : âge, espace verrouillé avant 6 ans, majorité à 18 ans, mois de la prochaine bascule */
+function kidStage(kid, now){
+  const d = now || new Date(), a = kidAge(kid, d); if(a === null) return {age:null, locked:false, adult:false, next:null, opensIn:null};
+  const bm = +kid.birth.slice(5, 7), by = +kid.birth.slice(0, 4);
+  const upcoming = [{age:10, to:'junior'}, {age:14, to:'ado'}, {age:18, to:'adult'}].find(x => x.age > a);
+  const when = upcoming ? new Date(by + upcoming.age, bm - 1, 1) : null;
+  const monthsLeft = when ? (when.getFullYear() - d.getFullYear()) * 12 + (when.getMonth() - d.getMonth()) : null;
+  const opens = a < KID_AGE_MIN ? new Date(by + KID_AGE_MIN, bm - 1, 1) : null;
+  return {age:a, locked:a < KID_AGE_MIN, adult:a >= 18, next:upcoming ? {to:upcoming.to, age:upcoming.age, monthsLeft, year:when.getFullYear(), month:when.getMonth() + 1} : null, opens:opens ? {year:opens.getFullYear(), month:opens.getMonth() + 1} : null};
+}
+const kidMascotSize = (kid, now) => { const a = kidAge(kid, now); if(a === null) return {petit:150, junior:120, ado:88}[kid.level] || 120; return a <= 9 ? 150 : (a <= 13 ? 120 : (a <= 15 ? 88 : 54)); };
+const kidSkinFor = kid => kid.skin || kidDefaultSkin(kid);
 function ensureKid(m){ if(!m.kid) m.kid = kidDefaults(); return m.kid; }
 function kidJars(kid){ const j = {spend:0, save:0, give:0}; kid.ledger.forEach(e => { j[e.jar] += e.amount; }); KID_JARS.forEach(x => { j[x] = round2(j[x]); }); return j; }
 function kidTotal(kid){ const j = kidJars(kid); return round2(j.spend + j.save + j.give); }
@@ -1122,11 +1205,12 @@ function newKidMember(name, kid){
 }
 function buildKidSpace(o){
   const S = emptyState(); S.kind = 'kid';
-  const kid = normKid({on:true, level:o.level, freq:o.freq === 'week' ? 'week' : 'month', day:o.day || 1, amount:o.amount > 0 ? o.amount : 0, mascot:o.mascot, paidUntil:isoOf(o.now || new Date())});
+  const kid = normKid({on:true, who:o.who, skin:SKINS.includes(o.skin) ? o.skin : null, level:o.age ? kidLevelFromAge(o.age) : o.level, freq:o.freq === 'week' ? 'week' : 'month', day:o.day || 1, amount:o.amount > 0 ? o.amount : 0, mascot:o.mascot, paidUntil:isoOf(o.now || new Date())});
+  if(o.age) kidSetAge(kid, o.age, o.now, o.month);
   if(o.goal && o.goal.name && o.goal.price > 0) kidAddGoal(kid, o.goal);
   S.members.push(newKidMember(o.name, kid));
   if(MASCOT_IDS.includes(o.mascot)) S.settings.mascot = o.mascot;
-  if(SKINS.includes(o.skin)) S.settings.skin = o.skin;
+  S.settings.skin = kidSkinFor(kid);
   if(o.pin && o.pin.salt && o.pin.hash) S.settings.parentPin = {salt:o.pin.salt, hash:o.pin.hash};
   return S;
 }
@@ -1454,6 +1538,13 @@ function advCatWeight(S, R, words){
 function computeAdvice(S, now){
   const out = [];
   const push = (severity, kind, data, action) => out.push({severity, kind, data, action: action || null});
+  S.members.filter(m => m.type !== 'adult').forEach(m => {
+    const kd = m.kid || kidDefaults(), st = kidStage(kd, now);
+    if(st.age === null){ push('info', 'kid-age', {name:m.name}, {tab:'foyer'}); return; }
+    if(st.adult) push('info', 'kid-18', {name:m.name}, {tab:'synthese'});
+    else if(st.locked && st.opens) push('info', 'kid-locked', {name:m.name, year:st.opens.year, month:st.opens.month}, {tab:'foyer'});
+    else if(st.next && st.next.monthsLeft === 1 && st.next.to !== 'adult') push('info', 'kid-soon', {name:m.name, to:st.next.to, year:st.next.year, month:st.next.month}, {tab:'synthese'});
+  });
   if(!S.lines.some(l => l.amount > 0)) return out;
 
   const R = computeMonth(S, 0); // moyenne mensuelle sur l'année
@@ -1541,7 +1632,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
 
 </script>
 <script>
@@ -1559,7 +1650,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.1', APP_DATE = '3 octobre 2026', APP_BUILD = 'b22423';
+const APP_VERSION = '2.4', APP_DATE = '4 octobre 2026', APP_BUILD = '0d4b60';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -1570,6 +1661,9 @@ const SKIN_INFO = {
   tirelire:{name:'Tirelire', sw:['#FFF3F0', '#1E6B66', '#F7A8BC']}, ocean:{name:'Océan', sw:['#EEF4FA', '#1D5FA6', '#6AAEF0']},
   foret:{name:'Forêt', sw:['#F1F5EC', '#2F6B3A', '#6CC17A']}, pastel:{name:'Pastel', sw:['#FAF4FF', '#6D4FB0', '#B79CF0']},
   minuit:{name:'Minuit', sw:['#090E1C', '#7C9CFF', '#F0B441']}, contraste:{name:'Contraste élevé', sw:['#FFFFFF', '#0B3D91', '#000000']},
+  rose:{name:'Rose', kid:true, sw:['#FFE6F0', '#FF4D8D', '#FFC24D']}, bleu:{name:'Bleu', kid:true, sw:['#D6EBFF', '#2D8CFF', '#FFA726']},
+  vert:{name:'Vert', kid:true, sw:['#E3FAD0', '#3FB618', '#FFE14D']}, marron:{name:'Marron', kid:true, sw:['#F4E1CA', '#A8541A', '#E8890C']},
+  orange:{name:'Orange', kid:true, sw:['#FFE6CC', '#FF7A00', '#FF4D8D']}, jaune:{name:'Jaune', kid:true, sw:['#FFF4B0', '#F5B800', '#FF7A00']},
 };
 const MASCOT_INFO = {
   pig:{name:'Cochon tirelire', de:'du cochon', cry:'Groin groin !', tag:'Le classique',
@@ -1583,7 +1677,7 @@ const MASCOT_INFO = {
   fox:{name:'Renard', de:'du renard', cry:'Rusé comme un renard !', tag:'Malin, rien ne lui échappe',
     jokes:['Malin comme un renard : aucune dépense ne passe inaperçue.', 'Un renard averti en vaut deux budgets.', 'Je flaire les bonnes affaires à des kilomètres.', 'Discret, rapide, et toujours dans les clous.']},
 };
-const SKIN_ICON = {tirelire:'#1E6B66', ocean:'#1D5FA6', foret:'#2F6B3A', pastel:'#6D4FB0', minuit:'#1A2760', contraste:'#0B3D91'};
+const SKIN_ICON = {tirelire:'#1E6B66', ocean:'#1D5FA6', foret:'#2F6B3A', pastel:'#6D4FB0', minuit:'#1A2760', contraste:'#0B3D91', rose:'#FF8FB8', bleu:'#7DB9FF', vert:'#8EDC50', marron:'#E0A56B', orange:'#FFB066', jaune:'#FFD43B'};
 const ICON_ORIG = {touch:(document.querySelector('link[rel=apple-touch-icon]') || {getAttribute(){ return null; }}).getAttribute('href'), fav:(document.querySelector('link[rel=icon]') || {getAttribute(){ return null; }}).getAttribute('href')};
 function iconSVG(mascot, skin, size){
   const m = MASC[mascot] || MASC.pig, w = size ? ` width="${size}" height="${size}"` : '';
@@ -1612,14 +1706,16 @@ function refreshIcons(){
 }
 const lookPrefs = () => { try{ return JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') || {}; }catch{ return {}; } };
 function currentLook(base){
-  const st = S ? S.settings : {}, ls = lookPrefs();
+  const st = S ? S.settings : {}, ls = lookPrefs(); let kidSkin = null;
+  if(!base){ const km = kidMember && kidMember(); if(km && km.kid) kidSkin = kidSkinFor(km.kid); else if(U.kidWizard && U.kidWizard.level) kidSkin = U.kidWizard.skin || kidDefaultSkin({who:U.kidWizard.who, level:U.kidWizard.level}); }
   const pick = (v, list, d) => list.includes(v) ? v : d;
-  return {skin:pick(st.skin || ls.skin, Object.keys(SKIN_INFO), 'tirelire'), mode:pick(st.mode || ls.mode, ['auto', 'light', 'dark'], 'auto'), mascot:pick((!base && kidMascotId()) || st.mascot || ls.mascot, Object.keys(MASCOT_INFO), 'pig'), icon:pick(st.icon || ls.icon, ['follow', 'pig'], 'follow')};
+  return {skin:pick(kidSkin || st.skin || ls.skin, Object.keys(SKIN_INFO), 'tirelire'), mode:pick(st.mode || ls.mode, ['auto', 'light', 'dark'], 'auto'), mascot:pick((!base && kidMascotId()) || st.mascot || ls.mascot, Object.keys(MASCOT_INFO), 'pig'), icon:pick(st.icon || ls.icon, ['follow', 'pig'], 'follow')};
 }
 function applyLook(){
   const L = currentLook(), root = document.documentElement;
-  const dark = L.skin === 'minuit' || L.mode === 'dark' || (L.mode === 'auto' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
+  const dark = !SKIN_LIGHT_ONLY.includes(L.skin) && (SKIN_DARK_ONLY.includes(L.skin) || L.mode === 'dark') || (!SKIN_LIGHT_ONLY.includes(L.skin) && L.mode === 'auto' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
   root.dataset.skin = L.skin; root.dataset.theme = dark ? 'dark' : 'light'; root.dataset.mascot = L.mascot;
+  const km = kidMember && kidMember(); root.dataset.age = km && km.kid ? km.kid.level : (U.kidWizard && U.kidWizard.level ? U.kidWizard.level : '');
   const meta = document.querySelector('meta[name=theme-color]'); if(meta){ const h = getComputedStyle(root).getPropertyValue('--hero').trim(); if(h) meta.content = h; }
   try{ localStorage.setItem(LOOK_KEY, JSON.stringify(L)); }catch{}
   refreshIcons();
@@ -1772,9 +1868,10 @@ const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
 const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
-  closePop(); applyLook();
+  closePop();
   if(S && S.kind === 'kid' && S.members[0] && (!U.kid || !S.members.some(m => m.id === U.kid.id))) U.kid = {id:S.members[0].id, tab:'home'};
-  if(S && !U.wizard) kidTick();
+  if(S && !U.wizard) kidTick();   // versements automatiques et bascules de niveau, avant le calcul du look
+  applyLook();
   $('#app').innerHTML = U.wizard ? wizardPage() : (U.kidWizard ? kidWizardPage() : (U.kid && S ? kidApp() : (S ? shell() : welcome())));
   window.scrollTo(0, y);
   centerMonthChip();
@@ -2087,7 +2184,7 @@ function envBarClass(x){ return x.over > 0.005 ? 'bad' : (x.pct >= 0.8 ? 'warn' 
 function kidsCardHTML(){
   const kids = S.members.filter(m => m.type !== 'adult');
   return `<section class="card kidsentry"><header><h2>Espace enfants ${H('kid-espace')}</h2></header><p class="hint">${kids.length ? 'Une tirelire à eux, avec des rêves à réaliser. Choisis un enfant :' : 'Un enfant a déjà son espace dans un fichier à lui ? Importe-le dans ton foyer.'}</p>
-    <div class="chips wrapchips">${kids.map(m => `<button type="button" class="chip" data-act="kid-open" data-id="${esc(m.id)}">${esc(m.name)}${m.kid && m.kid.on ? ` · ${money(kidTotal(m.kid))}` : ''}</button>`).join('')}</div>
+    <div class="chips wrapchips">${kids.map(m => { const st = kidStage(ensureKid(m)); return `<button type="button" class="chip" data-act="kid-open" data-id="${esc(m.id)}">${esc(m.name)}${st.age === null ? ' · âge ?' : (st.locked ? ` · dès 6 ans` : ` · ${st.age} ans`)}${m.kid.on && !st.locked ? ` · ${money(kidTotal(m.kid))}` : ''}</button>`; }).join('')}</div>
     <div class="toolbar"><button type="button" class="btn small" data-act="kid-import">Importer un espace enfant</button></div></section>`;
 }
 function envelopeCardHTML(){
@@ -2249,13 +2346,28 @@ async function pinSubmit(){
 }
 /* Entrée et sortie de l'espace enfant */
 function kidTick(){
-  let n = 0; S.members.forEach(m => { if(m.kid && m.kid.on) n += kidRunAllowance(m); });
+  let n = 0; S.members.forEach(m => { if(m.kid && m.kid.on){ n += kidRunAllowance(m); if(kidSyncLevel(m.kid)) n++; } });
   if(n){ U.dirty = true; backupNow(); scheduleAutosave(); } return n;
 }
+function openAgeAsk(m, next){
+  U.editing = null; U.ageCtx = {id:m.id, next}; const dlg = $('#dlg');
+  dlg.innerHTML = dlgShell(`Quel âge a ${esc(m.name)} ?`, `<p class="hint">L’âge adapte l’espace de l’enfant (mots, couleurs, taille de la mascotte) et le fait évoluer tout seul aux anniversaires.</p>
+    <div class="grid2"><label class="field">Âge<select class="inp" id="ag-age"><option value="" selected>À choisir</option>${Array.from({length:18}, (_, i) => `<option value="${i}">${i} an${i > 1 ? 's' : ''}</option>`).join('')}</select></label>
+    <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" id="ag-month"><option value="" selected>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}">${n}</option>`).join('')}</select></label></div>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="age-ok">Continuer</button></div>`);
+  dlg.showModal();
+}
+function lockedMsg(m){ const st = kidStage(ensureKid(m)); toast(`L’espace de ${m.name} s’ouvre à ses 6 ans, en ${MONTHS[st.opens.month - 1]} ${st.opens.year}.`); }
 function openKid(id){
   const m = S.members.find(x => x.id === id); if(!m) return;
-  const go = () => { const k = ensureKid(m); if(!k.on){ k.on = true; k.paidUntil = isoToday(); } kidRunAllowance(m); U.kid = {id, tab:'home'}; closePop(); touch(); window.scrollTo(0, 0); };
-  if(!S.settings.parentPin) openPinSetup(go); else go();
+  const go = () => {
+    const k = ensureKid(m), st = kidStage(k);
+    if(st.locked){ lockedMsg(m); return; }
+    if(!k.on){ k.on = true; k.paidUntil = isoToday(); } kidRunAllowance(m); U.kid = {id, tab:'home'}; closePop(); touch(); window.scrollTo(0, 0);
+  };
+  const proceed = () => { if(!ensureKid(m).birth) openAgeAsk(m, () => { if(!S.settings.parentPin) openPinSetup(go); else go(); }); else if(!S.settings.parentPin) openPinSetup(go); else go(); };
+  if(kidStage(ensureKid(m)).locked){ lockedMsg(m); return; }
+  proceed();
 }
 function celebrate(msg){
   toast(msg);
@@ -2276,6 +2388,27 @@ function kidGoalCard(k, g, lv, T){
     <span class="kg-ico" aria-hidden="true">${esc(g.icon)}</span><span class="kg-main"><span class="kg-top"><b>${esc(g.name)}</b>${T.pct ? `<span class="kg-pct">${pct} %</span>` : (ready ? '<span class="kg-pct">★</span>' : '')}</span>
     <span class="kbar thin"><i style="width:${pct}%"></i></span><span class="kg-sub">${esc(kidEta(lv, eta, g))}</span></span></button>`;
 }
+function kidSceneHTML(k, lv){
+  const goal = k.goals.filter(g => g.status !== 'bought').sort((a, b) => (b.status === 'ready') - (a.status === 'ready') || kidPct(b) - kidPct(a))[0];
+  const size = kidMascotSize(k), eta = goal && kidGoalEta(k, goal), pct = goal ? Math.round(kidPct(goal) * 100) : 0;
+  let msg;
+  if(!goal) msg = `<b>Et si tu choisissais ton premier rêve ?</b><small>Un jeu, une sortie, des baskets…</small>`;
+  else if(goal.status === 'ready') msg = `<b>Ton rêve est prêt !</b><small>Demande à un parent de valider ${esc(goal.name)}.</small><span class="ks-bar"><i style="width:100%"></i></span>`;
+  else if(lv === 'petit') msg = `<b>Bientôt ${esc(goal.name)} !</b><span class="ks-ico" aria-hidden="true">${esc(goal.icon)}</span><span class="ks-bar"><i style="width:${pct}%"></i></span>`;
+  else msg = `<b>Plus que ${money(eta.missing)} pour ${esc(goal.name)}</b> <span class="ks-ico" aria-hidden="true">${esc(goal.icon)}</span><small>${esc(kidEta(lv, eta, goal))}</small><span class="ks-bar"><i style="width:${pct}%"></i></span>`;
+  return `<section class="kscene" aria-label="Ta mascotte et ton prochain rêve"><div class="ks-mascot">${piggy('happy', size, '')}</div><div class="ks-bubble" role="status">${msg}</div></section>`;
+}
+const LV_LABEL = {petit:'Petits', junior:'Juniors', ado:'Ados'};
+function startAdultFromKid(m){ startWizard({name:m.name, kid:JSON.parse(JSON.stringify(ensureKid(m))), mascot:S.settings.mascot, skin:S.settings.skin}); }
+function kidCardsHTML(m, k, lv){
+  const st = kidStage(k); let out = '';
+  if(k.passage) out += `<section class="kcard passage" role="status"><p class="kc-v small">Tu as ${kidAge(k, new Date(k.passage.date + 'T00:00:00'))} ans !</p><p class="khint">Ton espace grandit : tu passes de <b>${LV_LABEL[k.passage.from]}</b> à <b>${LV_LABEL[k.passage.to]}</b>. Tes couleurs et ta mascotte restent comme avant.</p><div class="kactions one"><button type="button" class="btn kbtn primary" data-act="kid-passage-ok">Super !</button></div></section>`;
+  if(!k.birth) out += `<section class="kcard"><p class="kc-k">Quel âge as-tu ?</p><div class="agegrid" role="group" aria-label="Quel âge as-tu ?">${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<button type="button" class="agechip" data-act="kid-setage" data-age="${a}" aria-label="${a} ans">${a}</button>`).join('')}</div><p class="khint">Cela adapte ton espace et le fait évoluer tout seul.</p></section>`;
+  if(st.adult && !k.adultSeen) out += S.kind === 'kid'
+    ? `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Tu peux créer ton propre foyer. Ton historique d’épargne, ta mascotte et tes couleurs te suivent.</p><div class="kactions"><button type="button" class="btn kbtn primary" data-act="kid-adult18">Créer mon foyer</button><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`
+    : `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Demande à un parent : l’espace parent propose de te faire passer adulte dans le foyer.</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`;
+  return out;
+}
 function kidHomeHTML(m, k, lv, T){
   const J = kidJars(k), tot = kidTotal(k), R = kidRank(k), free = kidFree(k), goals = k.goals.filter(g => g.status !== 'bought').slice(0, 2);
   const seg = j => tot > 0 && J[j] > 0 ? `<i class="k-${j}" style="width:${Math.max(3, Math.round(J[j] / tot * 100))}%"></i>` : '';
@@ -2283,7 +2416,7 @@ function kidHomeHTML(m, k, lv, T){
   const recent = k.ledger.slice().sort((a, b) => b.date.localeCompare(a.date)).filter((e, i, arr) => !e.ref || arr.findIndex(x => x.ref === e.ref) === i).slice(0, 6);
   const label = e => e.kind === 'allowance' ? 'Argent de poche' : e.kind === 'gift' ? (e.note || 'Reçu') : e.kind === 'spend' ? (e.note || (KID_CATS.find(c => c[0] === e.cat) || ['', 'Dépense'])[1]) : e.kind === 'give' ? (e.note || 'Don') : e.kind === 'goalbuy' ? `Rêve réalisé : ${e.note}` : e.note;
   const amt = e => e.ref ? k.ledger.filter(x => x.ref === e.ref).reduce((a, x) => a + x.amount, 0) : e.amount;
-  return `<section class="kcard ktotal"><p class="kc-k">${T.total} ${H('kid-tirelire')}</p><p class="kc-v">${money(tot)}</p>
+  return `${kidCardsHTML(m, k, lv)}${lv === 'ado' ? '' : kidSceneHTML(k, lv)}<section class="kcard ktotal"><p class="kc-k">${T.total} ${H('kid-tirelire')}</p><p class="kc-v">${money(tot)}</p>
       <div class="kbar" role="img" aria-label="${KID_JARS.map(j => `${T.jars[j]} ${money(J[j])}`).join(', ')}">${KID_JARS.map(seg).join('')}</div>
       <div class="klegend">${KID_JARS.map(j => `<span><i class="kdot k-${j}"></i>${T.jars[j]} <b>${money(J[j])}</b></span>`).join('')}</div></section>
     <div class="kactions"><button type="button" class="btn kbtn" data-act="kid-got">＋ ${T.got}</button><button type="button" class="btn kbtn" data-act="kid-spent">－ ${T.spent}</button>
@@ -2328,11 +2461,13 @@ function kidFileStatus(){
 }
 function kidMeHTML(m, k, lv, T){
   const cur = (S.kind === 'kid' ? (k.mascot || S.settings.mascot) : (k.mascot || currentLook(true).mascot)), R = kidRank(k), L = currentLook(true);
-  const own = S.kind === 'kid' ? `<h2 class="kh">Mes couleurs</h2><div class="look-grid" role="group" aria-label="Mes couleurs">${Object.entries(SKIN_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="set-skin" data-id="${id}" aria-pressed="${L.skin === id}"><span class="sw3">${i.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(i.name)}</button>`).join('')}</div>
+  const curSkin = kidSkinFor(k);
+  const colors = `<h2 class="kh">Mes couleurs</h2><div class="look-grid" role="group" aria-label="Mes couleurs">${Object.entries(SKIN_INFO).filter(([, i]) => i.kid).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-skin" data-id="${id}" aria-pressed="${curSkin === id}"><span class="sw3">${i.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(i.name)}</button>`).join('')}</div>`;
+  const own = S.kind === 'kid' ? `${colors}
     <h2 class="kh">Mon fichier ${H('kid-fichier')}</h2><section class="kcard"><p class="khint">${esc(kidFileStatus())}</p><div class="kactions"><button type="button" class="btn kbtn" data-act="save">Enregistrer</button><button type="button" class="btn kbtn" data-act="export">Exporter</button></div></section>` : '';
   return `<h2 class="kh">${T.me}</h2><section class="kcard"><p class="kc-v small">${esc(m.name)}</p><p class="khint">Niveau ${R.n} · ${esc(R.name)}</p></section>
     <h2 class="kh">Ma mascotte</h2><div class="look-grid" role="group" aria-label="Ma mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-mascot" data-id="${id}" aria-pressed="${cur === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}</button>`).join('')}</div>
-    ${own}<p class="khint verline">${versionLine()}</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-parent"><span aria-hidden="true">🔒</span> Espace parent</button></div>`;
+    ${S.kind === 'kid' ? own : colors}<p class="khint verline">${versionLine()}</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-parent"><span aria-hidden="true">🔒</span> Espace parent</button></div>`;
 }
 const kidNote0 = k => ({badges:new Set(kidBadges(k).filter(b => b.got).map(b => b.id)), rank:kidRank(k).n});
 function kidNotify(k, before, msg){
@@ -2344,9 +2479,10 @@ function kidNotify(k, before, msg){
 function kidApp(){
   const m = kidMember(); if(!m){ U.kid = null; return shell(); }
   const k = ensureKid(m), lv = k.level, T = KT[lv] || KT.junior, tab = U.kid.tab || 'home', R = kidRank(k);
+  if(k.passage && !U.passageShown){ U.passageShown = true; setTimeout(() => celebrate(`Tu as ${kidAge(k, new Date(k.passage.date + 'T00:00:00'))} ans : ton espace grandit !`), 300); }
   const body = tab === 'dreams' ? kidDreamsHTML(m, k, lv, T) : tab === 'badges' ? kidBadgesHTML(m, k, lv, T) : tab === 'me' ? kidMeHTML(m, k, lv, T) : kidHomeHTML(m, k, lv, T);
   const tabs = [['home', 'Tirelire'], ['dreams', lv === 'ado' ? 'Objectifs' : 'Rêves'], ['badges', T.badges], ['me', T.me]];
-  return `<div class="kidapp lv-${lv}"><header class="kid-top"><div class="kid-id">${piggy('happy', 54, 'nocoin')}<div><p class="kid-hello">${T.hello} ${esc(m.name)} !</p><p class="kid-rank">Niveau ${R.n} · ${esc(R.name)}</p></div></div>
+  return `<div class="kidapp lv-${lv}"><header class="kid-top"><div class="kid-id">${lv === 'ado' ? piggy('happy', kidMascotSize(k), 'nocoin') : ''}<div><p class="kid-hello">${T.hello} ${esc(m.name)} !</p><p class="kid-rank">Niveau ${R.n} · ${esc(R.name)}</p></div></div>
       <button type="button" class="kid-lock" data-act="kid-parent" aria-label="Espace parent, code requis"><span aria-hidden="true">🔒</span></button></header>
     <main class="kid-main" id="kid-main">${bannerHTML()}${body}</main>
     <nav class="kid-tabs" aria-label="Espace de ${esc(m.name)}"><div class="kwrap">${tabs.map(([id, l]) => `<button type="button" data-act="kid-tab" data-tab="${id}" ${tab === id ? 'aria-current="page"' : ''}>${esc(l)}</button>`).join('')}</div></nav></div>`;
@@ -2395,12 +2531,14 @@ function kidParentPanel(){
   const tools = solo
     ? `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">${S.settings.parentPin ? 'Changer le code' : 'Créer un code parent'}</button></div>
        <div class="toolbar"><button type="button" class="btn small" data-act="kid-adult">Passer à l’âge adulte</button><button type="button" class="btn small danger" data-act="kid-delete">Supprimer mon espace</button></div>`
-    : `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">Changer le code</button><button type="button" class="btn small" data-act="kid-export" data-id="${esc(m.id)}">Exporter son espace</button></div>`;
+    : `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">Changer le code</button><button type="button" class="btn small" data-act="kid-export" data-id="${esc(m.id)}">Exporter son espace</button></div>${kidAge(k) >= 18 ? '<div class="toolbar"><button type="button" class="btn small primary" data-act="kid-grow">Passer adulte dans le foyer</button></div>' : ''}`;
   kidDlg(`Espace parent · ${esc(m.name)}`, `${amountField}
     <div class="grid2"><label class="field">Versement<select class="inp" data-kp="freq"><option value="month" ${k.freq === 'month' ? 'selected' : ''}>Chaque mois</option><option value="week" ${k.freq === 'week' ? 'selected' : ''}>Chaque semaine</option></select></label><label class="field">Quel jour<select class="inp" data-kp="day">${dayOpts}</select></label></div>
     <p class="envmini">Chaque versement : <b>${money(kidAllowanceAmount(m))}</b></p>
     <div class="field">Répartition des bocaux (%)<div class="grid2 three">${KID_JARS.map(j => `<label class="field">${KT.junior.jars[j]}<input class="inp" type="number" min="0" max="100" step="1" inputmode="numeric" data-kp="split-${j}" value="${Math.round(k.split[j])}"></label>`).join('')}</div><small class="muted">Total ramené à 100 %. Appliqué aux versements et aux cadeaux.</small></div>
-    <label class="field">Âge de l’enfant<select class="inp" data-kp="level"><option value="petit" ${k.level === 'petit' ? 'selected' : ''}>Petits (6 à 9 ans)</option><option value="junior" ${k.level === 'junior' ? 'selected' : ''}>Juniors (10 à 13 ans)</option><option value="ado" ${k.level === 'ado' ? 'selected' : ''}>Ados (14 à 17 ans)</option></select></label>
+    <label class="field">Couleurs suggérées pour<select class="inp" data-kp="who"><option value="" ${k.who ? '' : 'selected'}>Non précisé</option><option value="f" ${k.who === 'f' ? 'selected' : ''}>Une fille</option><option value="m" ${k.who === 'm' ? 'selected' : ''}>Un garçon</option><option value="x" ${k.who === 'x' ? 'selected' : ''}>Je ne veux pas dire</option></select><small class="muted">Sert uniquement à proposer une couleur de départ. L’enfant choisit la sienne dans « Moi ».</small></label>
+    <label class="field">Âge de l’enfant<select class="inp" data-kp="age">${k.birth ? '' : '<option value="" selected>À renseigner</option>'}${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<option value="${a}" ${kidAge(k) === a ? 'selected' : ''}>${a} ans</option>`).join('')}</select><small class="muted">${esc(KW_GROUPS[k.level])}. Le niveau suit l’âge tout seul, chaque année.${kidAge(k) >= 18 ? ' Il a 18 ans : tu peux passer à l’âge adulte.' : ''}</small></label>
+    <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-kp="month" ${k.birth ? '' : 'disabled'}><option value="" ${k.birth ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${k.birth && +k.birth.slice(5, 7) === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     ${ready.length ? `<h3 class="who">Achats à valider</h3>${ready.map(g => `<div class="rowitem"><span>${esc(g.icon)} ${esc(g.name)} · ${money(g.price)}</span><button type="button" class="btn small primary" data-act="kid-validate" data-id="${esc(g.id)}">Valider l’achat</button></div>`).join('')}` : ''}
     ${tools}`,
     solo ? `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>` : `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Rester ici</button><button type="button" class="btn primary" data-act="kid-exit">Quitter l’espace enfant</button></div>`);
@@ -2411,6 +2549,9 @@ function kidPanelChange(el){
   if(key === 'kamount'){ k.amount = Math.abs(num(v)); touch(false); const e = $('.envmini b', $('#dlg')); if(e) e.textContent = money(kidAllowanceAmount(m)); return; }
   if(key === 'freq'){ k.freq = v === 'week' ? 'week' : 'month'; k.day = 1; touch(false); kidParentPanel(); return; }
   if(key === 'day'){ k.day = parseInt(v) || 1; touch(false); return; }
+  if(key === 'who'){ k.who = ['f', 'm', 'x'].includes(v) ? v : null; touch(); kidParentPanel(); return; }
+  if(key === 'age'){ if(v === '') return; kidSetAge(k, +v, undefined, k.birth ? +k.birth.slice(5, 7) : undefined); touch(); kidParentPanel(); return; }
+  if(key === 'month'){ const a = kidAge(k); if(a !== null){ kidSetAge(k, a, undefined, v === '' ? undefined : +v); touch(); kidParentPanel(); } return; }
   if(key === 'level'){ k.level = v; touch(false); return; }
   if(key.startsWith('split-')){
     const raw = {...k.split}; raw[key.slice(6)] = Math.max(0, num(v)); const tot = raw.spend + raw.save + raw.give;
@@ -2432,14 +2573,14 @@ function kidSaveGoalMove(sign){
 }
 /* ----- Point de départ « enfant » : création guidée d'un espace autonome (fichier enfant) ----- */
 const defaultFileName = () => (S && S.kind === 'kid' && S.members[0]) ? `MaTirelire-${S.members[0].name.replace(/[^\p{L}\p{N}_-]+/gu, '') || 'Enfant'}.json` : 'MaTirelire.json';
-const KW_LEVELS = [['petit', 'Petits', '6 à 9 ans', 'Des pièces, des images, des mots simples'], ['junior', 'Juniors', '10 à 13 ans', 'Des rêves, des dates, des défis'], ['ado', 'Ados', '14 à 17 ans', 'Un vrai suivi de ton argent']];
+const KW_GROUPS = {petit:'Petits : des pièces, des images, des mots simples', junior:'Juniors : des rêves, des dates, des défis', ado:'Ados : un vrai suivi de ton argent'};
 function startKidWizard(){
-  U.kidWizard = {step:1, name:'', level:null, mascot:'pig', unknown:false, amount:'', freq:'month', day:1, tpl:null, gname:'', gprice:'', gicon:'⭐', pin1:'', pin2:''};
+  U.kidWizard = {step:1, name:'', age:null, month:null, level:null, who:null, skin:null, mascot:'pig', unknown:false, amount:'', freq:'month', day:1, tpl:null, gname:'', gprice:'', gicon:'⭐', pin1:'', pin2:''};
   closePop(); render(); window.scrollTo(0, 0);
 }
 function kwIssues(){
   const w = U.kidWizard, out = [];
-  if(w.step === 1){ if(!w.name.trim()) out.push('Écris ton prénom.'); if(!w.level) out.push('Choisis ton âge.'); }
+  if(w.step === 1){ if(!w.name.trim()) out.push('Écris ton prénom.'); if(!w.age) out.push('Choisis ton âge.'); if(!w.who) out.push('Dis-nous qui tu es, ou choisis « Je ne veux pas dire ».'); }
   if(w.step === 3 && !w.unknown && !(num(w.amount) > 0)) out.push('Écris combien tu reçois, ou coche « Je ne sais pas encore ».');
   if(w.step === 4 && (w.gname.trim() || String(w.gprice).trim() !== '')){ if(!w.gname.trim()) out.push('Donne un nom à ton rêve.'); if(!(num(w.gprice) > 0)) out.push('Écris combien il coûte.'); }
   if(w.step === 5 && (w.pin1 || w.pin2)){ if(!/^\d{4}$/.test(w.pin1)) out.push('Le code comporte quatre chiffres.'); else if(w.pin1 !== w.pin2) out.push('Les deux codes ne sont pas identiques.'); }
@@ -2454,9 +2595,15 @@ function kwStep(){
   const dayOpts = w.freq === 'week' ? ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map((d, i) => `<option value="${i + 1}" ${+w.day === i + 1 ? 'selected' : ''}>${d}</option>`).join('') : Array.from({length:28}, (_, i) => `<option value="${i + 1}" ${+w.day === i + 1 ? 'selected' : ''}>${i + 1 === 1 ? '1er' : i + 1} du mois</option>`).join('');
   if(w.step === 1) return `<h1>Bienvenue ! Qui es-tu ?</h1>
     <label class="field">Ton prénom<input class="inp bigamt" data-kw="name" value="${esc(w.name)}" placeholder="Ex. Lou" autocomplete="off" autocapitalize="words" enterkeyhint="done"></label>
-    <div class="field">Ton âge<div class="levelcards" role="radiogroup" aria-label="Ton âge">${KW_LEVELS.map(([id, n, ages, d]) => `<button type="button" class="look-tile lvl" data-act="kw-level" data-id="${id}" aria-pressed="${w.level === id}" role="radio" aria-checked="${w.level === id}"><b>${n}</b><span>${ages}</span><small>${d}</small></button>`).join('')}</div></div>`;
+    <div class="field">Ton âge<div class="agegrid" role="radiogroup" aria-label="Ton âge">${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<button type="button" class="agechip" data-act="kw-age" data-age="${a}" role="radio" aria-checked="${w.age === a}" aria-pressed="${w.age === a}">${a}</button>`).join('')}</div>
+      <small class="muted">${w.level ? esc(KW_GROUPS[w.level]) : 'Tu as entre 6 et 17 ans ? Appuie sur ton âge.'}</small></div>
+    <div class="field">Ton mois d’anniversaire <small class="muted">(facultatif)</small><div class="monthgrid" role="group" aria-label="Ton mois d’anniversaire">${MONTHS_SHORT.map((n, i) => `<button type="button" class="agechip" data-act="kw-month" data-month="${i + 1}" aria-pressed="${w.month === i + 1}">${n}</button>`).join('')}</div>
+      <small class="muted">${w.month ? 'Ton espace grandira le mois de tes ' + ((w.age || 0) + 1) + ' ans.' : 'Sans le mois, on suppose le mois en cours.'}</small></div>
+    <div class="field">Tu es…<div class="whorow" role="radiogroup" aria-label="Tu es">${[['f', 'Une fille'], ['m', 'Un garçon'], ['x', 'Je ne veux pas dire']].map(([id, l]) => `<button type="button" class="whochip" data-act="kw-who" data-id="${id}" role="radio" aria-checked="${w.who === id}" aria-pressed="${w.who === id}">${l}</button>`).join('')}</div>
+      <small class="muted">Cela sert seulement à te proposer des couleurs. Tu pourras en changer quand tu veux.</small></div>`;
   if(w.step === 2) return `<h1>Choisis ta mascotte ${H('kid-mascotte')}</h1><p class="hint">Elle t’accompagne partout. Tu pourras en changer quand tu veux.</p>
-    <div class="look-grid" role="group" aria-label="Ta mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kw-mascot" data-id="${id}" aria-pressed="${w.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}<small>${esc(i.tag)}</small></button>`).join('')}</div>`;
+    <div class="look-grid" role="group" aria-label="Ta mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kw-mascot" data-id="${id}" aria-pressed="${w.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}<small>${esc(i.tag)}</small></button>`).join('')}</div>
+    <div class="field">Ta couleur<div class="look-grid" role="group" aria-label="Ta couleur">${Object.entries(SKIN_INFO).filter(([, i]) => i.kid).map(([id, i]) => { const cur = w.skin || kidDefaultSkin({who:w.who, level:w.level}); return `<button type="button" class="look-tile" data-act="kw-skin" data-id="${id}" aria-pressed="${cur === id}"><span class="sw3">${i.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(i.name)}</button>`; }).join('')}</div><small class="muted">Une couleur t’est proposée. Prends celle que tu préfères.</small></div>`;
   if(w.step === 3) return `<h1>Ton argent de poche</h1><p class="hint">Combien reçois-tu, et quand ? Si tu ne sais pas, ce n’est pas grave : tu pourras le noter plus tard.</p>
     <label class="check"><input type="checkbox" data-kw="unknown" ${w.unknown ? 'checked' : ''}> <span>Je ne sais pas encore</span></label>
     <div class="${w.unknown ? 'kwoff' : ''}"><label class="field">Combien (en €)<input class="inp bigamt" data-kw="amount" type="number" step="0.5" min="0" inputmode="decimal" value="${esc(w.amount)}" placeholder="0" ${w.unknown ? 'disabled' : ''} enterkeyhint="done"></label>
@@ -2492,7 +2639,7 @@ async function kwFinish(skip){
   if(skip){ w.pin1 = ''; w.pin2 = ''; } else if(kwIssues().length) return;
   let pin = null; if(/^\d{4}$/.test(w.pin1) && w.pin1 === w.pin2){ const salt = uid(); pin = {salt, hash:await pinHash(salt, w.pin1)}; }
   const goal = (w.gname.trim() && num(w.gprice) > 0 && !(w.step === 4 && skip)) ? {name:w.gname.trim(), price:num(w.gprice), icon:w.gicon, tpl:w.tpl} : null;
-  S = buildKidSpace({name:w.name.trim(), level:w.level, mascot:w.mascot, amount:w.unknown ? 0 : num(w.amount), freq:w.freq, day:+w.day, goal, pin});
+  S = buildKidSpace({name:w.name.trim(), age:w.age, month:w.month, level:w.level, who:w.who, skin:w.skin, mascot:w.mascot, amount:w.unknown ? 0 : num(w.amount), freq:w.freq, day:+w.day, goal, pin});
   U.kidWizard = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.notice = null; U.dirty = true; U.kid = {id:S.members[0].id, tab:'home'};
   idbDel('handle'); backupNow(); render(); window.scrollTo(0, 0); celebrate(`Bienvenue, ${S.members[0].name} !`);
 }
@@ -2874,6 +3021,10 @@ const ADVICE_META = {
   'env-depasse': d => ({title:`Enveloppe dépassée : ${esc(d.name)}`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu (+${money(d.over)})${d.count > 1 ? `, et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''} dépassée${d.count > 2 ? 's' : ''}` : ''}. Le dépassement est suivi à part et baisse l’état du compte provisions.`}),
   'env-rythme': d => ({title:`${esc(d.name)} : rythme soutenu`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu alors que ${Math.round(d.elapsed * 100)} % du mois est écoulé${d.count > 1 ? ` (et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''})` : ''}.`}),
   'env-guide': d => ({title:'Suivre vos dépenses variables', text:`${d.count} ligne${d.count > 1 ? 's' : ''} ressemble${d.count > 1 ? 'nt' : ''} à des dépenses variables (dont « ${esc(d.name)} »). Crée des enveloppes pour les déclarer au fil du mois.`}),
+  'kid-age': d => ({title:`Âge de ${esc(d.name)} à renseigner`, text:`Indique l’âge de ${esc(d.name)} dans Foyer : il adapte son espace (mots, couleurs, mascotte) et le fait évoluer tout seul.`}),
+  'kid-18': d => ({title:`${esc(d.name)} a 18 ans`, text:`${esc(d.name)} est majeur(e) : son espace propose le passage à l’âge adulte. Dans l’espace parent, « Passer adulte dans le foyer » conserve son historique d’épargne.`}),
+  'kid-locked': d => ({title:`L’espace de ${esc(d.name)} s’ouvre bientôt`, text:`L’espace enfant commence à 6 ans : celui de ${esc(d.name)} s’ouvrira en ${MONTHS[d.month - 1]} ${d.year}.`}),
+  'kid-soon': d => ({title:`${esc(d.name)} change bientôt de niveau`, text:`En ${MONTHS[d.month - 1]} ${d.year}, l’espace de ${esc(d.name)} passera en ${LV_LABEL[d.to]} : vocabulaire, forme et mascotte évolueront. Sa couleur ne changera pas.`}),
   'pot-plus': d => ({title:'Cagnotte disponible', text:`${money(d.amount)} d’écart sont dans la cagnotte : tu peux les garder pour une dépense plus lourde ou les épargner (ils sortiront des provisions).`}),
   'pot-moins': d => ({title:'Manque dans les provisions', text:`La cagnotte est négative : il manque ${money(d.amount)} dans les provisions. Un reliquat futur le comblera, ou recale le compte sur ton solde réel.`}),
   'prov-depassement': d => ({title:'Dépassement d’objectif disponible',
@@ -2985,6 +3136,12 @@ function lineRow(l){
 }
 
 /* ----- Foyer ----- */
+function ageFieldsHTML(m){
+  const k = ensureKid(m), st = kidStage(k), bm = k.birth ? +k.birth.slice(5, 7) : 0;
+  return `<div class="grid2"><label class="field">Âge<select class="inp" data-b="member:${m.id}:age"><option value="" ${k.birth ? '' : 'selected'}>À renseigner</option>${Array.from({length:18}, (_, i) => `<option value="${i}" ${st.age === i ? 'selected' : ''}>${i} an${i > 1 ? 's' : ''}</option>`).join('')}</select></label>
+    <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-b="member:${m.id}:birthMonth" ${k.birth ? '' : 'disabled'}><option value="" ${bm ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${bm === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
+    <p class="note">${k.birth ? (st.locked ? `Son espace s’ouvre à ses 6 ans, en ${MONTHS[st.opens.month - 1]} ${st.opens.year}.` : (st.adult ? 'Il a 18 ans : le passage à l’âge adulte est proposé dans son espace.' : `Son espace passe tout seul au niveau suivant à ${st.next.age} ans (${MONTHS[st.next.month - 1]} ${st.next.year}).`)) : 'L’âge adapte l’espace de l’enfant (mots, couleurs, mascotte) et le fait évoluer tout seul.'}</p>`;
+}
 function pocketSplitHTML(m){
   const adults = S.members.filter(x => x.contributes), payer = m.pocket.payer || 'split';
   const accOpts = id => { const cur = (m.pocket.accounts || {})[id] || defaultAccountFor(S, id); return S.accounts.map(a => `<option value="${esc(a.id)}" ${cur === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join(''); };
@@ -3018,6 +3175,7 @@ function viewFoyer(){
       ${m.type !== 'adult' ? `<div class="grid2">
         <label class="field">Argent de poche reçu par mois<input class="inp" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0" data-b="member:${m.id}:pocketAmount" value="${m.pocket.amount || ''}"></label>
         <label class="field">Versé par<select class="inp" data-b="member:${m.id}:pocketPayer">${payerOpts(m)}</select></label></div>
+      ${m.type !== 'adult' ? ageFieldsHTML(m) : ''}
       ${m.type !== 'adult' && m.pocket.amount > 0 ? pocketSplitHTML(m) : ''}
       ${m.type !== 'adult' ? `<div class="toolbar"><button type="button" class="btn small" data-act="kid-open" data-id="${m.id}">Ouvrir l’espace de ${esc(m.name)}</button>${H('kid-espace')}</div>` : ''}` : ''}
       ${m.type === 'adult' && m.kid && m.kid.on ? `<div class="toolbar"><button type="button" class="btn small" data-act="kid-open" data-id="${m.id}">Ouvrir mon historique d’épargne</button></div>` : ''}
@@ -3106,7 +3264,7 @@ function viewReglages(){
     </div></section>
     <section class="card"><h2>Apparence ${H('apparence')}</h2><div class="form">
       <div class="field">Skin<div class="look-grid" role="group" aria-label="Skin">${Object.entries(SKIN_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-skin" data-id="${id}" aria-pressed="${L.skin === id}"><span class="sw3">${k.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(k.name)}</button>`).join('')}</div></div>
-      <div class="field">Mode<div class="chips wrapchips" role="group" aria-label="Mode">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([id, l]) => `<button type="button" class="chip" data-act="set-mode" data-id="${id}" aria-pressed="${L.mode === id}" ${L.skin === 'minuit' ? 'disabled' : ''}>${l}</button>`).join('')}</div>${L.skin === 'minuit' ? '<small class="muted">Minuit est toujours sombre.</small>' : '<small class="muted">Automatique suit le réglage de ton appareil.</small>'}</div>
+      <div class="field">Mode<div class="chips wrapchips" role="group" aria-label="Mode">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([id, l]) => `<button type="button" class="chip" data-act="set-mode" data-id="${id}" aria-pressed="${L.mode === id}" ${SKIN_DARK_ONLY.includes(L.skin) || SKIN_LIGHT_ONLY.includes(L.skin) ? 'disabled' : ''}>${l}</button>`).join('')}</div>${SKIN_DARK_ONLY.includes(L.skin) || SKIN_LIGHT_ONLY.includes(L.skin) ? `<small class="muted">Ce skin est toujours ${SKIN_DARK_ONLY.includes(L.skin) ? 'sombre' : 'clair'}.</small>` : '<small class="muted">Automatique suit le réglage de ton appareil.</small>'}</div>
       <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${(MASC[id] || MASC.pig).happy}</svg></span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
       <div class="field">Icône de l’écran d’accueil ${H('icone')}<div class="iconrow"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 72)}</span>
         <div class="chips wrapchips" role="group" aria-label="Icône">${[['follow', 'Suit la mascotte'], ['pig', 'Reste le cochon']].map(([id, l]) => `<button type="button" class="chip" data-act="set-icon" data-id="${id}" aria-pressed="${L.icon === id}">${l}</button>`).join('')}</div></div>
@@ -3274,7 +3432,7 @@ function saveLine(){
 /* ---------- Assistant de création du foyer : pleine page, deux étapes obligatoires (membres, comptes) ---------- */
 const TYPE_OPTS = MEMBER_TYPES.filter(t => t.id !== 'other');
 const wzName = s => String(s || '').trim();
-const wzAdult = () => ({id:uid(), name:'', type:'adult', contributes:true});
+const wzAdult = () => ({id:uid(), name:'', type:'adult', contributes:true, age:null, month:null});
 function startWizard(seed){
   const first = wzAdult(); if(seed) first.name = seed.name;
   U.wizard = {step:1, members:[first], accounts:[], provId:null, seed:seed || null};
@@ -3284,6 +3442,7 @@ function wizardIssues(){
   const w = U.wizard, out = [];
   if(w.step === 1){
     if(w.members.some(m => !wzName(m.name))) out.push('Renseigne le prénom de chaque membre.');
+    if(w.members.some(m => m.type !== 'adult' && m.age == null)) out.push('Indique l’âge de chaque enfant : il adapte son espace.');
     if(!w.members.some(m => m.type === 'adult')) out.push('Prévois au moins un adulte.');
     const k = w.members.filter(m => wzName(m.name)).map(m => advNorm(m.name)); if(new Set(k).size !== k.length) out.push('Deux membres portent le même prénom.');
   } else {
@@ -3320,7 +3479,8 @@ function wizardStep1(){
   const rows = w.members.map(m => `<article class="wz-card">
     <div class="grid2"><label class="field">Prénom<input class="inp" data-w="m:${m.id}:name" value="${esc(m.name)}" placeholder="${m.type === 'adult' ? 'Ex. Camille' : 'Ex. Noé'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"></label>
       <label class="field">Profil<select class="inp" data-w="m:${m.id}:type">${TYPE_OPTS.map(t => `<option value="${t.id}" ${m.type === t.id ? 'selected' : ''}>${t.label}</option>`).join('')}</select></label></div>
-    ${m.type === 'adult' ? `<label class="check"><input type="checkbox" data-w="m:${m.id}:contributes" ${m.contributes ? 'checked' : ''}> Participe au budget commun</label>` : ''}
+    ${m.type === 'adult' ? `<label class="check"><input type="checkbox" data-w="m:${m.id}:contributes" ${m.contributes ? 'checked' : ''}> Participe au budget commun</label>` : `<div class="grid2"><label class="field">Âge<select class="inp" data-w="m:${m.id}:age"><option value="" ${m.age == null ? 'selected' : ''}>À choisir</option>${Array.from({length:18}, (_, i) => `<option value="${i}" ${m.age === i ? 'selected' : ''}>${i} an${i > 1 ? 's' : ''}</option>`).join('')}</select></label>
+      <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-w="m:${m.id}:month"><option value="" ${m.month ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${m.month === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>`}
     ${w.members.length > 1 ? `<div><button type="button" class="btn danger small" data-act="wiz-del-member" data-id="${m.id}">Retirer</button></div>` : ''}</article>`).join('');
   return `<section class="wz-body"><h1>Qui vit sous le même toit ? ${H('wiz-membres')}</h1>
     <p class="hint">Étape obligatoire : les membres du foyer. Tu pourras en ajouter d’autres plus tard, dans l’onglet Foyer.</p>
@@ -3356,6 +3516,8 @@ function onWizardField(el){
     if(f === 'name'){ m.name = el.value; updateWizardUI(); }
     else if(f === 'type'){ m.type = el.value; m.contributes = m.type === 'adult'; render(); }
     else if(f === 'contributes') m.contributes = el.checked;
+    else if(f === 'age'){ m.age = el.value === '' ? null : +el.value; updateWizardUI(); }
+    else if(f === 'month') m.month = el.value === '' ? null : +el.value;
   } else if(k === 'a'){
     const a = w.accounts.find(x => x.id === id); if(!a) return;
     if(f === 'name'){ a.name = el.value; a.edited = true; updateWizardUI(); }
@@ -3366,7 +3528,7 @@ function onWizardField(el){
 function finishWizard(){
   const w = U.wizard; if(!w || wizardIssues().length) return;
   const idx = {}; w.members.forEach((m, i) => idx[m.id] = i);
-  S = buildHousehold(w.members.map(m => ({name:wzName(m.name), type:m.type, contributes:m.type === 'adult' && m.contributes})),
+  S = buildHousehold(w.members.map(m => ({name:wzName(m.name), type:m.type, contributes:m.type === 'adult' && m.contributes, age:m.age, month:m.month})),
     w.accounts.map(a => ({name:wzName(a.name), bank:wzName(a.bank), owner:a.owner === 'common' ? null : idx[a.owner]})), Math.max(0, w.accounts.findIndex(a => a.id === w.provId)));
   if(w.seed){
     const m0 = S.members[0]; m0.kid = JSON.parse(JSON.stringify(w.seed.kid)); m0.kid.on = true; m0.kid.amount = null; m0.kid.mascot = null;
@@ -3394,6 +3556,12 @@ document.addEventListener('click', async e => {
     case 'update-check': checkUpdate(); break;
     case 'update-go': updateGo(); break;
     case 'kid-open': openKid(id); break;
+    case 'age-ok': { const c = U.ageCtx, m = c && S.members.find(x => x.id === c.id), v = $('#ag-age').value; if(!m) break; if(v === ''){ toast('Choisis l’âge.'); break; }
+      const mo = $('#ag-month').value; kidSetAge(ensureKid(m), +v, undefined, mo === '' ? undefined : +mo); $('#dlg').close(); touch(false); const st = kidStage(m.kid); if(st.locked){ render(); lockedMsg(m); break; } if(c.next) c.next(); break; }
+    case 'kid-setage': { const m = kidMember(); if(m){ kidSetAge(ensureKid(m), +t.dataset.age); touch(); } break; }
+    case 'kid-passage-ok': { const m = kidMember(); if(m){ ensureKid(m).passage = null; U.passageShown = false; touch(); } break; }
+    case 'kid-adult-later': { const m = kidMember(); if(m){ ensureKid(m).adultSeen = true; touch(); } break; }
+    case 'kid-grow': { const m = kidMember(); if(m && confirm(`${m.name} devient adulte dans le foyer ? Son historique d’épargne est conservé. Ses revenus et ses comptes se règlent ensuite dans Foyer.`)){ m.type = 'adult'; m.contributes = false; m.pocket.amount = 0; ensureKid(m).adultSeen = true; syncAllPockets(S); $('#dlg').close(); U.kid = null; touch(); toast(`${m.name} est maintenant adulte dans le foyer.`); } break; }
     case 'kid-tab': U.kid.tab = t.dataset.tab; render(); window.scrollTo(0, 0); break;
     case 'kid-got': kidOpenGot(); break;
     case 'kid-spent': kidOpenSpent(); break;
@@ -3402,6 +3570,7 @@ document.addEventListener('click', async e => {
     case 'kid-newgoal': kidOpenNewGoal(); break;
     case 'kid-goal': kidOpenGoal(id); break;
     case 'kid-tpl': { const tp = KID_TPL[+t.dataset.i]; if(!tp) break; $$('#dlg [data-act=kid-tpl]').forEach((b, j) => b.setAttribute('aria-pressed', j === +t.dataset.i)); $('#kg-name').value = tp.name; $('#kg-price').value = tp.price; $('#kg-icon').value = tp.icon; U.kidTpl = tp.id; break; }
+    case 'kid-skin': { const m = kidMember(); if(m){ ensureKid(m).skin = id; if(S.kind === 'kid') S.settings.skin = id; touch(); } break; }
     case 'kid-mascot': { const m = kidMember(); if(m){ ensureKid(m).mascot = id; if(S.kind === 'kid') S.settings.mascot = id; touch(); } break; }
     case 'kid-parent': kidGate(() => kidParentPanel(), S.kind === 'kid' ? 'Les réglages de l’argent de poche se font mieux avec un parent.' : 'Un parent doit saisir son code pour ouvrir l’espace parent.'); break;
     case 'trust-ok': { $('#dlg').close(); const n = U.trustNext; U.trustNext = null; if(n) n(); break; }
@@ -3410,11 +3579,15 @@ document.addEventListener('click', async e => {
     case 'kw-back': U.kidWizard.step = Math.max(1, U.kidWizard.step - 1); render(); window.scrollTo(0, 0); break;
     case 'kw-next': { const w = U.kidWizard; if(t.dataset.skip){ w.gname = ''; w.gprice = ''; w.tpl = null; } else if(kwIssues().length) break; w.step = Math.min(5, w.step + 1); render(); window.scrollTo(0, 0); break; }
     case 'kw-finish': kwFinish(!!t.dataset.skip); break;
-    case 'kw-level': U.kidWizard.level = id; render(); break;
+    case 'kw-age': { const w = U.kidWizard, a = +t.dataset.age; w.age = a; w.level = kidLevelFromAge(a); render(); break; }
     case 'kw-mascot': U.kidWizard.mascot = id; render(); break;
+    case 'kw-who': U.kidWizard.who = id; render(); break;
+    case 'kw-month': { const w = U.kidWizard, mo = +t.dataset.month; w.month = w.month === mo ? null : mo; render(); break; }
+    case 'kw-skin': U.kidWizard.skin = id; render(); break;
     case 'kw-tpl': { const tp = KID_TPL[+t.dataset.i], w = U.kidWizard; if(tp){ w.tpl = tp.id; w.gname = tp.name; w.gprice = String(tp.price); w.gicon = tp.icon; render(); } break; }
     case 'kid-export': { const F = exportKidFile(S, id); if(F){ download(`MaTirelire-${(F.members[0].name.replace(/[^\p{L}\p{N}_-]+/gu, '')) || 'Enfant'}.json`, JSON.stringify(F, null, 2)); toast('Fichier enfant téléchargé : à donner à ton enfant (AirDrop, messagerie…).'); } break; }
     case 'kid-import': openPickKid(); break;
+    case 'kid-adult18': { const m = kidMember(); if(m) startAdultFromKid(m); break; }
     case 'kid-adult': { const m = kidMember(); if(m && confirm(`Créer un foyer à ton nom, ${m.name} ? Ton historique d’épargne, ta mascotte et tes couleurs sont conservés. Ton espace enfant actuel n’est pas effacé.`)){ $('#dlg').close(); startWizard({name:m.name, kid:JSON.parse(JSON.stringify(ensureKid(m))), mascot:S.settings.mascot, skin:S.settings.skin}); } break; }
     case 'kid-delete': if(confirm('Supprimer cet espace de ce navigateur ? Les fichiers que tu as exportés ne sont pas touchés.')){ localStorage.removeItem(LS_KEY); await idbDel('handle'); $('#dlg').close(); S = null; U.kid = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.dirty = false; render(); } break;
     case 'pin-ok': pinSubmit(); break;
@@ -3497,7 +3670,7 @@ document.addEventListener('click', async e => {
       else writeSplit(parts); refreshLineForm(); break; }
     case 'close-dlg': $('#dlg').close(); break;
     case 'setup': startWizard(); break;
-    case 'wiz-add-member': U.wizard.members.push({id:uid(), name:'', type:t.dataset.type, contributes:t.dataset.type === 'adult'}); render(); break;
+    case 'wiz-add-member': U.wizard.members.push({id:uid(), name:'', type:t.dataset.type, contributes:t.dataset.type === 'adult', age:null, month:null}); render(); break;
     case 'wiz-del-member': U.wizard.members = U.wizard.members.filter(m => m.id !== id); if(!U.wizard.members.length) U.wizard.members.push(wzAdult()); render(); break;
     case 'wiz-next': if(!wizardIssues().length){ U.wizard.step = 2; syncWizardAccounts(); render(); window.scrollTo(0, 0); } break;
     case 'wiz-back': U.wizard.step = 1; render(); window.scrollTo(0, 0); break;
@@ -3616,6 +3789,8 @@ function onBind(el, b){
     const m = S.members.find(x => x.id === id); if(!m) return;
     if(f === 'name'){ const old = m.name; m.name = String(v).trim() || 'Sans nom'; const sl = salaryLine(S, id); if(sl && sl.name === `Salaire net – ${old}`) sl.name = `Salaire net – ${m.name}`; syncAllPockets(S); touch(false); }
     else if(f === 'type'){ m.type = v; m.contributes = v === 'adult'; syncAllPockets(S); touch(); }
+    else if(f === 'age'){ const k = ensureKid(m); if(v === ''){ k.birth = null; } else { const mo = k.birth ? +k.birth.slice(5, 7) : undefined; kidSetAge(k, +v, undefined, mo); } touch(); }
+    else if(f === 'birthMonth'){ const k = ensureKid(m), a = kidAge(k); if(a !== null){ kidSetAge(k, a, undefined, v === '' ? undefined : +v); touch(); } }
     else if(f === 'contributes'){ m.contributes = v; syncAllPockets(S); touch(); }
     else if(f === 'transferDay'){ m.transferDay = Math.min(Math.max(parseInt(v) || 1, 1), 31); touch(false); }
     else if(f === 'transferNext'){ m.transferNext = v === 'next'; touch(false); }
