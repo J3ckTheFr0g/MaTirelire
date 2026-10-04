@@ -569,6 +569,91 @@ html[data-age=ado]{--radius:16px;--page-bg:linear-gradient(var(--grid1) 1px,tran
 .monthgrid .agechip{min-height:44px;font-size:.85rem;padding:0 2px}
 @media(max-width:360px){.monthgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .kcard.passage{background:var(--kbtn)}
+
+/* Mes espaces */
+.spaces-wrap{width:100%;text-align:left}
+.spaces-h{font-family:var(--display);font-size:1.15rem;margin:6px 0 8px;display:flex;align-items:center;gap:4px}
+.spaces{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.spaces li{display:grid;gap:2px}
+.space{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:64px;padding:10px 14px;border:2px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);cursor:pointer}
+.space:hover{border-color:var(--brand)}
+.sp-ico{font-size:1.9rem;line-height:1;flex:0 0 auto;display:grid;place-items:center;width:46px}
+.sp-main{display:grid;min-width:0;flex:1}
+.sp-main b{overflow-wrap:anywhere}
+.sp-main small{color:var(--muted)}
+.sp-go{font-size:1.3rem;color:var(--muted)}
+.space-del{justify-self:end;border:0;background:none;color:var(--muted);font-size:.85rem;text-decoration:underline;cursor:pointer;min-height:32px;padding:0 6px}
+.doors-h{margin:10px 0 0;font-weight:700;color:var(--muted)}
+.doors-h:empty{display:none}
+
+/* Phase 2 : envies, défis, bilan */
+.kcard.chal{background:var(--kbtn)}
+.wishbtns{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+.kgoal.wish{cursor:default}
+.chalist{display:grid;gap:8px}
+.chalopt{min-height:68px}
+.waithint{padding:10px 12px;border:var(--kbw) dashed var(--kframe);border-radius:calc(var(--radius) * .7);background:var(--kbtn);font-size:.95rem;display:grid;gap:8px;justify-items:start}
+.waithint.hidden{display:none}
+.repnav{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.repl{margin:0;padding-left:1.1rem;display:grid;gap:4px}
+.repl.talk li::marker{color:var(--brand)}
+.ghostchip{opacity:.85}
+
+/* Version 2.8 : leçons, quiz, accessoires */
+.kid-tabs .kwrap{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px 4px}
+.kid-tabs button{font-size:.78rem;padding:0 2px;line-height:1.15;overflow-wrap:anywhere}
+.kgoal.lesson.done{opacity:1}
+.kgoal.lesson.done .kg-pct{color:var(--credit)}
+.lsdots{display:flex;gap:5px;margin-bottom:4px}
+.lsdots i{flex:1;height:7px;border-radius:5px;background:var(--line)}
+.lsdots i.on{background:var(--brand)}
+.lsstep{margin:0;color:var(--muted);font-weight:700;font-size:.9rem}
+.lscard{margin:0;font-size:1.2rem;line-height:1.45;font-weight:600}
+.lsopts{display:grid;gap:8px}
+.lsopt{text-align:left;justify-content:flex-start;min-height:52px;font-size:1.02rem;white-space:normal}
+.lsopt.right{background:var(--credit);color:#fff;border-color:var(--credit);opacity:1}
+.lsopt.wrong{background:var(--surface2);border-style:dashed;opacity:1}
+.lsopt:disabled{cursor:default;opacity:.85}
+.lswhy{margin:0;padding:10px 12px;border-radius:calc(var(--radius) * .6);background:var(--kbtn);border:var(--kbw) solid var(--kframe)}
+.lswhy.right{border-color:var(--credit)}
+.accpreview{justify-items:center;text-align:center}
+.ap-pic{display:grid;place-items:center;padding:4px 0}
+.accgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.acctile{display:grid;gap:2px;justify-items:center;text-align:center;padding:12px 8px;min-height:104px;border:var(--kbw) solid var(--kframe);border-radius:calc(var(--radius) * .8);background:var(--kbtn);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--kframe);min-width:0}
+.acctile .at-ico{font-size:1.9rem;line-height:1}
+.acctile b{font-size:.92rem;overflow-wrap:anywhere}
+.acctile small{color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+.acctile.locked{opacity:.62;background:var(--surface2);box-shadow:none;border-style:dashed}
+.acctile[aria-pressed=true]{background:var(--kprimary);color:var(--kprimary-ink);box-shadow:0 1px 0 var(--kframe);transform:translateY(2px)}
+.acctile[aria-pressed=true] small{color:var(--kprimary-ink)}
+
+.kc-v,.kid-hello,.kcard,.kc-k{min-width:0;overflow-wrap:anywhere}
+svg.pig{overflow:visible}
+
+/* Version 2.9 : budget des ados, simulateurs, premier foyer */
+.envl{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.envl li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.envl .kbar{grid-column:1 / -1}
+.el-n{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.el-v{font-weight:700;white-space:nowrap}
+.el-s{grid-column:1 / -1;font-size:.85rem;color:var(--muted)}
+.envl li:not(.env-free):empty{display:none}
+.envl .env-over .kbar.thin i{background:var(--debit)}
+.envl .env-warn .kbar.thin i{background:var(--kj-spend,var(--amber))}
+.envl .env-over .el-s{color:var(--debit);font-weight:700}
+.subl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.subl li{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.subl .sl-n{display:grid;min-width:0}.subl .sl-n small{color:var(--muted)}
+.subl .sl-v{font-weight:800}
+.subl li .btn{grid-column:auto}
+.subadd{display:grid;gap:8px;padding:10px;border:var(--kbw) dashed var(--kframe);border-radius:calc(var(--radius) * .7)}
+.simchart{width:100%;height:auto;display:block}
+.simbig{margin:0;font-family:var(--display);font-weight:800;font-size:2.2rem;line-height:1.1}
+.simbig small{font-size:1rem;color:var(--muted);font-weight:600}
+.simout{display:grid;gap:8px;padding:12px;border-radius:calc(var(--radius) * .7);background:var(--kbtn);border:var(--kbw) solid var(--kframe)}
+.simtabs{display:flex;gap:6px;flex-wrap:wrap}
+.simtabs .btn[aria-pressed=true]{background:var(--kprimary);color:var(--kprimary-ink)}
+.seedbox{padding:12px;border:2px dashed var(--line);border-radius:14px;display:grid;gap:8px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -787,7 +872,7 @@ function defaultSettings(){
           distribution:{mode:'equal_remainder', includePersonal:false, custom:{}},
           methods: DEFAULT_METHODS.map(x=>({...x}))};
 }
-function emptyState(){ return {app:'budget-foyer', version:1, kind:'household', settings:defaultSettings(), members:[], accounts:[], categories:[], lines:[], spends:[], pot:[]}; }
+function emptyState(){ return {app:'budget-foyer', version:1, kind:'household', id:uid(), modifiedAt:null, settings:defaultSettings(), members:[], accounts:[], categories:[], lines:[], spends:[], pot:[]}; }
 const arr = x => Array.isArray(x) ? x : [];
 
 function normalize(d){
@@ -796,11 +881,14 @@ function normalize(d){
   if(!Array.isArray(d.lines) && !Array.isArray(d.members)) throw new Error('Structure inattendue : ni lignes ni membres.');
   const S = emptyState();
   S.kind = d.kind === 'kid' ? 'kid' : 'household';
+  if(typeof d.id === 'string' && d.id.trim()) S.id = d.id.trim();   // identité de l'espace (plusieurs espaces par appareil)
+  S.modifiedAt = (typeof d.modifiedAt === 'string' && !isNaN(Date.parse(d.modifiedAt))) ? new Date(Date.parse(d.modifiedAt)).toISOString() : null;   // sert à savoir, entre un fichier et une copie, lequel est le plus récent
   const st = d.settings || {};
   S.settings = Object.assign(defaultSettings(), st);
   S.settings.distribution = Object.assign(defaultSettings().distribution, st.distribution || {});
   S.settings.provisionBlock = st.provisionBlock !== false;
   S.settings.envGuideHidden = !!st.envGuideHidden;
+  S.settings.lockSpace = !!st.lockSpace;   // code parent demandé pour ouvrir cet espace depuis la liste
   if(!SKINS.includes(S.settings.skin)) S.settings.skin = 'tirelire';
   if(!['auto', 'light', 'dark'].includes(S.settings.mode)) S.settings.mode = 'auto';
   if(!MASCOT_IDS.includes(S.settings.mascot)) S.settings.mascot = 'pig';
@@ -1037,7 +1125,7 @@ function buildTemplate(adultNames, kidNames){
    ============================================================ */
 const KID_JARS = ['spend', 'save', 'give'];
 const KID_LEVELS_AGE = ['petit', 'junior', 'ado'];
-const KID_KINDS = ['allowance', 'gift', 'spend', 'give', 'goalbuy', 'found', 'lost'];
+const KID_KINDS = ['allowance', 'gift', 'spend', 'give', 'goalbuy', 'found', 'lost', 'boost', 'interest'];
 const KID_GOAL_STATUS = ['active', 'ready', 'bought'];
 const KID_RANKS = [{min:0, name:'Graine'}, {min:10, name:'Pousse'}, {min:50, name:'Arbuste'}, {min:150, name:'Arbre'}, {min:400, name:'Forêt'}];
 const KID_BADGES = [
@@ -1045,12 +1133,15 @@ const KID_BADGES = [
   {id:'saver10', name:'10 € de côté', hint:'Épargne 10 € au total'}, {id:'saver50', name:'50 € de côté', hint:'Épargne 50 € au total'}, {id:'saver100', name:'100 € de côté', hint:'Épargne 100 € au total'},
   {id:'streak4', name:'4 semaines d’épargne', hint:'Épargne 4 semaines de suite'}, {id:'dream25', name:'Rêve à 25 %', hint:'Remplis un quart d’un rêve'}, {id:'dream50', name:'Rêve à 50 %', hint:'Remplis la moitié d’un rêve'},
   {id:'dream75', name:'Rêve à 75 %', hint:'Remplis trois quarts d’un rêve'}, {id:'dream-done', name:'Rêve réalisé', hint:'Réalise un rêve'}, {id:'generous', name:'Généreux', hint:'Fais un premier don'}, {id:'counter', name:'Bon compteur', hint:'Compte tes pièces'},
+  {id:'patient', name:'Patient', hint:'Laisse mûrir une envie jusqu’au bout'}, {id:'sage', name:'Sage', hint:'Renonce à une envie après réflexion'}, {id:'challenger', name:'Relève-défi', hint:'Réussis un défi'},
+  {id:'curious', name:'Curieux', hint:'Termine ta première leçon'}, {id:'studious', name:'Studieux', hint:'Termine quatre leçons'}, {id:'expert', name:'Expert', hint:'Réussis trois leçons sans faute'},
 ];
 const round2 = v => Math.round((+v || 0) * 100) / 100;
 const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const KID_AGE_MIN = 6, KID_AGE_MAX = 17;
 const kidLevelFromAge = a => a <= 9 ? 'petit' : (a <= 13 ? 'junior' : 'ado');
-function kidDefaults(){ return {on:false, level:'junior', who:null, birth:null, passage:null, adultSeen:false, skin:null, freq:'month', day:1, amount:null, split:{spend:50, save:40, give:10}, ledger:[], goals:[], mascot:null, paidUntil:null, countCoins:0}; }
+function kidDefaults(){ return {on:false, level:'junior', who:null, birth:null, passage:null, adultSeen:false, skin:null, freq:'month', day:1, amount:null, split:{spend:50, save:40, give:10}, ledger:[], goals:[], mascot:null, paidUntil:null, countCoins:0,
+  rules:{boost:{on:false, pct:25, cap:10}, interest:{on:false, pct:2, cap:5}, wait:24, reward:''}, lessons:{}, acc:{head:null, face:null, neck:null}, env:{}, subs:[], income:0, interestUntil:null, wishes:[], challenges:[], moves:[], countLog:[], news:[]}; }
 function normKid(k){
   const d = kidDefaults(); if(!k || typeof k !== 'object') return d;
   const isoRe = /^\d{4}-\d{2}-\d{2}$/, out = {on:!!k.on, level:KID_LEVELS_AGE.includes(k.level) ? k.level : d.level, freq:k.freq === 'week' ? 'week' : 'month'};
@@ -1058,11 +1149,27 @@ function normKid(k){
   out.birth = /^\d{4}-(0[1-9]|1[0-2])$/.test(k.birth) ? k.birth : null; out.skin = SKINS.includes(k.skin) ? k.skin : null; out.who = KID_WHO.includes(k.who) ? k.who : null;
   out.passage = (k.passage && KID_LEVELS_AGE.includes(k.passage.from) && KID_LEVELS_AGE.includes(k.passage.to) && isoRe.test(k.passage.date)) ? {from:k.passage.from, to:k.passage.to, date:k.passage.date} : null; out.adultSeen = !!k.adultSeen;
   out.amount = (k.amount === null || k.amount === undefined || k.amount === '') ? null : Math.max(0, round2(k.amount));
+  const rl = k.rules && typeof k.rules === 'object' ? k.rules : {}, bo = rl.boost || {}, it = rl.interest || {}, clamp = (v, lo, hi, d2) => { v = +v; return isFinite(v) ? Math.min(Math.max(v, lo), hi) : d2; };
+  out.rules = {boost:{on:!!bo.on, pct:clamp(bo.pct, 5, 100, 25), cap:round2(clamp(bo.cap, 0, 1000, 10))}, interest:{on:!!it.on, pct:clamp(it.pct, 0.5, 10, 2), cap:round2(clamp(it.cap, 0, 1000, 5))}, wait:[0, 24, 48].includes(+rl.wait) ? +rl.wait : 24, reward:String(rl.reward || '').slice(0, 80)};
+  out.interestUntil = /^\d{4}-(0[1-9]|1[0-2])$/.test(k.interestUntil) ? k.interestUntil : null;
+  out.lessons = {}; Object.entries(k.lessons && typeof k.lessons === 'object' ? k.lessons : {}).forEach(([id, r]) => { const l = KID_LESSONS.find(x => x.id === id); if(l && r && isoRe.test(r.date)) out.lessons[id] = {date:r.date, best:Math.min(Math.max(parseInt(r.best) || 0, 0), l.quiz.length), total:l.quiz.length}; });
+  out.env = {}; KID_ENV_CATS.forEach(c => { const v = round2(k.env && k.env[c]); if(v > 0) out.env[c] = v; });
+  out.income = Math.max(0, round2(k.income));
+  out.subs = (Array.isArray(k.subs) ? k.subs : []).map(s => ({id:String((s && s.id) || uid()), name:String((s && s.name) || '').trim().slice(0, 40), amount:Math.abs(round2(s && s.amount)), day:Math.min(Math.max(parseInt(s && s.day) || 1, 1), 28), active:!(s && s.active === false),
+    paidUntil:/^\d{4}-(0[1-9]|1[0-2])$/.test(s && s.paidUntil) ? s.paidUntil : null, missed:Math.max(0, parseInt(s && s.missed) || 0)})).filter(s => s.name && s.amount > 0).slice(0, 10);
+  out.acc = {head:null, face:null, neck:null}; ['head', 'face', 'neck'].forEach(sl => { const id = k.acc && k.acc[sl], a = KID_ACC.find(x => x.id === id); if(a && a.slot === sl) out.acc[sl] = id; });
+  const isoT = /^\d{4}-\d{2}-\d{2}T/;
+  out.wishes = (Array.isArray(k.wishes) ? k.wishes : []).map(w => ({id:String((w && w.id) || uid()), name:String((w && w.name) || '').trim(), icon:String((w && w.icon) || '⭐'), price:Math.abs(round2(w && w.price)), created:isoT.test(w && w.created) ? w.created : new Date().toISOString(),
+    status:['wait', 'dream', 'dropped'].includes(w && w.status) ? w.status : 'wait', goalId:(w && w.goalId) ? String(w.goalId) : null, decidedAt:isoT.test(w && w.decidedAt) ? w.decidedAt : null, notified:!!(w && w.notified)})).filter(w => w.name).slice(-40);
+  out.challenges = (Array.isArray(k.challenges) ? k.challenges : []).map(c => ({id:String((c && c.id) || uid()), type:String((c && c.type) || ''), start:isoRe.test(c && c.start) ? c.start : '', end:isoRe.test(c && c.end) ? c.end : '', status:['run', 'won', 'lost'].includes(c && c.status) ? c.status : 'run', doneAt:isoRe.test(c && c.doneAt) ? c.doneAt : null})).filter(c => KID_CHALLENGES[c.type] && c.start && c.end).slice(-60);
+  out.moves = (Array.isArray(k.moves) ? k.moves : []).map(m => ({date:String((m && m.date) || ''), goalId:String((m && m.goalId) || ''), amount:round2(m && m.amount)})).filter(m => isoRe.test(m.date) && m.amount > 0).slice(-200);
+  out.countLog = (Array.isArray(k.countLog) ? k.countLog : []).filter(d => isoRe.test(d)).slice(-60);
+  out.news = (Array.isArray(k.news) ? k.news : []).map(n => ({id:String((n && n.id) || uid()), kind:String((n && n.kind) || 'info'), text:String((n && n.text) || '').slice(0, 200), date:isoRe.test(n && n.date) ? n.date : ''})).filter(n => n.text).slice(-20);
   const sp = k.split && typeof k.split === 'object' ? k.split : {}, raw = KID_JARS.map(j => Math.max(0, +sp[j] || 0)), tot = raw.reduce((a, b) => a + b, 0);
   out.split = tot > 0 ? {spend:raw[0] * 100 / tot, save:raw[1] * 100 / tot, give:raw[2] * 100 / tot} : d.split;
   out.ledger = (Array.isArray(k.ledger) ? k.ledger : []).map(e => ({id:String((e && e.id) || uid()), date:String((e && e.date) || ''), amount:round2(e && e.amount), kind:KID_KINDS.includes(e && e.kind) ? e.kind : 'gift', jar:KID_JARS.includes(e && e.jar) ? e.jar : 'spend',
     note:String((e && e.note) || ''), ref:(e && e.ref) ? String(e.ref) : null, goalId:(e && e.goalId) ? String(e.goalId) : null, cat:(e && e.cat) ? String(e.cat) : null})).filter(e => Math.abs(e.amount) > 0.0049 && isoRe.test(e.date));
-  out.goals = (Array.isArray(k.goals) ? k.goals : []).map(g => ({id:String((g && g.id) || uid()), name:String((g && g.name) || '').trim(), icon:String((g && g.icon) || '⭐'), price:Math.abs(round2(g && g.price)), saved:Math.max(0, round2(g && g.saved)),
+  out.goals = (Array.isArray(k.goals) ? k.goals : []).map(g => ({id:String((g && g.id) || uid()), name:String((g && g.name) || '').trim(), icon:String((g && g.icon) || '⭐'), price:Math.abs(round2(g && g.price)), saved:Math.max(0, round2(g && g.saved)), boosted:Math.max(0, round2(g && g.boosted)),
     created:isoRe.test(g && g.created) ? g.created : isoOf(new Date()), status:KID_GOAL_STATUS.includes(g && g.status) ? g.status : 'active', boughtDate:isoRe.test(g && g.boughtDate) ? g.boughtDate : null, tpl:(g && g.tpl) ? String(g.tpl) : null})).filter(g => g.name && g.price > 0);
   out.mascot = MASCOT_IDS.includes(k.mascot) ? k.mascot : null; out.paidUntil = isoRe.test(k.paidUntil) ? k.paidUntil : null; out.countCoins = Math.max(0, parseInt(k.countCoins) || 0);
   return out;
@@ -1140,18 +1247,32 @@ function kidGive(kid, amount, date, note){
   kid.ledger.push({id:uid(), date, amount:-a, kind:'give', jar:'give', note:String(note || ''), ref:null, goalId:null, cat:null}); return {ok:true};
 }
 function kidAddGoal(kid, g){
-  const goal = {id:uid(), name:String(g.name || '').trim(), icon:g.icon || '⭐', price:Math.abs(round2(g.price)), saved:0, created:isoOf(new Date()), status:'active', boughtDate:null, tpl:g.tpl || null};
+  const goal = {id:uid(), name:String(g.name || '').trim(), icon:g.icon || '⭐', price:Math.abs(round2(g.price)), saved:0, boosted:0, created:isoOf(new Date()), status:'active', boughtDate:null, tpl:g.tpl || null};
   if(!goal.name || !(goal.price > 0)) return null; kid.goals.push(goal); return goal;
 }
 const kidPct = g => g.price > 0 ? Math.min(1, g.saved / g.price) : 0;
 /* Met de l'argent de l'épargne libre dans un rêve (montant positif) ou le reprend (négatif). Renvoie les paliers franchis. */
-function kidAllocate(kid, goalId, amount){
+const kidMonthKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+const kidBoostUsed = (kid, key) => round2(kid.ledger.filter(e => e.kind === 'boost' && e.date.startsWith(key)).reduce((a, e) => a + e.amount, 0));
+const kidBoostLeft = (kid, now) => kid.rules.boost.on ? Math.max(0, round2(kid.rules.boost.cap - kidBoostUsed(kid, kidMonthKey(now || new Date())))) : 0;
+function kidPushNews(kid, kind, text, date){ kid.news.push({id:uid(), kind, text, date:date || isoOf(new Date())}); if(kid.news.length > 20) kid.news.shift(); }
+/* Met de l'argent de l'épargne libre dans un rêve (montant positif) ou le reprend (négatif).
+   Le boost du parent complète chaque somme mise dans un rêve (plafond mensuel) et reste dans le rêve. */
+function kidAllocate(kid, goalId, amount, now){
   const g = kid.goals.find(x => x.id === goalId), a = round2(amount); if(!g || g.status === 'bought' || Math.abs(a) < 0.005) return {ok:false, reason:'goal'};
   if(a > 0 && a > kidFree(kid) + 0.005) return {ok:false, reason:'free', left:kidFree(kid)};
-  if(a < 0 && -a > g.saved + 0.005) return {ok:false, reason:'saved', left:g.saved};
-  const before = kidPct(g); g.saved = round2(g.saved + a); g.status = g.saved >= g.price - 0.005 ? 'ready' : 'active';
+  const own = round2(g.saved - (g.boosted || 0));
+  if(a < 0 && -a > own + 0.005) return {ok:false, reason:(g.boosted || 0) > 0 && -a <= g.saved + 0.005 ? 'boost' : 'saved', left:Math.max(0, own)};
+  const before = kidPct(g), d = now || new Date(); g.saved = round2(g.saved + a);
+  if(a > 0){ kid.moves.push({date:isoOf(d), goalId:g.id, amount:a}); if(kid.moves.length > 200) kid.moves.shift(); }
+  let boost = 0;
+  if(a > 0 && kid.rules.boost.on){
+    boost = Math.min(round2(a * kid.rules.boost.pct / 100), kidBoostLeft(kid, d), Math.max(0, round2(g.price - g.saved)));
+    if(boost >= 0.01){ g.saved = round2(g.saved + boost); g.boosted = round2((g.boosted || 0) + boost); kid.ledger.push({id:uid(), date:isoOf(d), amount:boost, kind:'boost', jar:'save', note:'Boost du parent', ref:null, goalId:g.id, cat:null}); } else boost = 0;
+  }
+  g.status = g.saved >= g.price - 0.005 ? 'ready' : 'active';
   const after = kidPct(g), crossed = [25, 50, 75, 100].filter(p => before * 100 < p - 1e-9 && after * 100 >= p - 0.5e-9);
-  return {ok:true, crossed, status:g.status, saved:g.saved};
+  return {ok:true, crossed, status:g.status, saved:g.saved, boost};
 }
 /* Achat validé par un parent : la somme sort du bocal « épargner » */
 function kidBuy(kid, goalId, date){
@@ -1170,7 +1291,7 @@ function kidGoalEta(kid, g, now){
 }
 /* Compte tes pièces : l'écart avec la tirelire est enregistré dans le bocal « dépenser » */
 function kidCountCoins(kid, real, date){
-  const diff = round2(real - kidTotal(kid)); kid.countCoins = (kid.countCoins || 0) + 1;
+  const diff = round2(real - kidTotal(kid)); kid.countCoins = (kid.countCoins || 0) + 1; kid.countLog.push(date); if(kid.countLog.length > 60) kid.countLog.shift();
   if(Math.abs(diff) < 0.005) return {ok:true, diff:0};
   if(diff > 0){ kid.ledger.push({id:uid(), date, amount:diff, kind:'found', jar:'spend', note:'Pièces retrouvées', ref:null, goalId:null, cat:null}); return {ok:true, diff}; }
   const bal = kidJars(kid).spend; if(-diff > bal + 0.005) return {ok:false, diff, left:bal};
@@ -1189,12 +1310,14 @@ function kidStreak(kid){
 function kidBadges(kid){
   const s = kidSavedEver(kid), top = kid.goals.reduce((a, g) => Math.max(a, g.status === 'bought' ? 1 : kidPct(g)), 0), got = {
     'first-euro':s >= 1, 'first-dream':kid.goals.length > 0, saver10:s >= 10, saver50:s >= 50, saver100:s >= 100, streak4:kidStreak(kid) >= 4,
-    dream25:top >= .25, dream50:top >= .5, dream75:top >= .75, 'dream-done':kid.goals.some(g => g.status === 'bought'), generous:kid.ledger.some(e => e.kind === 'give'), counter:kid.countCoins > 0};
+    dream25:top >= .25, dream50:top >= .5, dream75:top >= .75, 'dream-done':kid.goals.some(g => g.status === 'bought'), generous:kid.ledger.some(e => e.kind === 'give'), counter:kid.countCoins > 0,
+    patient:kid.wishes.some(w => w.status !== 'wait'), sage:kid.wishes.some(w => w.status === 'dropped'), challenger:kid.challenges.some(c => c.status === 'won'),
+    curious:kidLessonsDone(kid) >= 1, studious:kidLessonsDone(kid) >= 4, expert:Object.values(kid.lessons).filter(r => r.best === r.total).length >= 3};
   return KID_BADGES.map(b => ({...b, got:!!got[b.id]}));
 }
 function kidMonth(kid, y, m){
   const key = `${y}-${String(m).padStart(2, '0')}`, es = kid.ledger.filter(e => e.date.startsWith(key)), sum = f => round2(es.filter(f).reduce((a, e) => a + e.amount, 0));
-  return {received:sum(e => e.amount > 0 && (e.kind === 'allowance' || e.kind === 'gift')), spent:-sum(e => e.kind === 'spend' || e.kind === 'goalbuy'), given:-sum(e => e.kind === 'give'), saved:sum(e => e.jar === 'save' && e.amount > 0)};
+  return {received:sum(e => e.amount > 0 && (e.kind === 'allowance' || e.kind === 'gift')), spent:-sum(e => e.kind === 'spend' || e.kind === 'goalbuy'), given:-sum(e => e.kind === 'give'), saved:sum(e => e.jar === 'save' && e.amount > 0), boost:sum(e => e.kind === 'boost'), interest:sum(e => e.kind === 'interest')};
 }
 
 /* ---------- Fichier « enfant » : un espace autonome, sans budget d'adulte ---------- */
@@ -1234,6 +1357,19 @@ function mergeKid(base, inc){
     else if((KID_RANK_ORDER[g.status] > KID_RANK_ORDER[cur.status]) || (g.status === cur.status && g.saved > cur.saved)) Object.assign(cur, JSON.parse(JSON.stringify(g)));
   });
   out.countCoins = Math.max(out.countCoins || 0, inc.countCoins || 0);
+  /* phase 2 : envies, défis, coups de pouce, comptages et nouvelles se fusionnent aussi, sans doublon */
+  const RANK_W = {wait:0, dream:1, dropped:1}, RANK_C = {run:0, won:1, lost:1};
+  (inc.wishes || []).forEach(w => { const cur = out.wishes.find(x => x.id === w.id); if(!cur) out.wishes.push(JSON.parse(JSON.stringify(w))); else if(RANK_W[w.status] > RANK_W[cur.status]) Object.assign(cur, JSON.parse(JSON.stringify(w))); });
+  (inc.challenges || []).forEach(c => { const cur = out.challenges.find(x => x.id === c.id); if(!cur) out.challenges.push(JSON.parse(JSON.stringify(c))); else if(RANK_C[c.status] > RANK_C[cur.status]) Object.assign(cur, JSON.parse(JSON.stringify(c))); });
+  const mk = m => m.date + '|' + m.goalId + '|' + m.amount; const mset = new Set((out.moves || []).map(mk)); (inc.moves || []).forEach(m => { if(!mset.has(mk(m))){ out.moves.push({...m}); mset.add(mk(m)); } });
+  out.countLog = [...new Set([...(out.countLog || []), ...(inc.countLog || [])])].sort().slice(-60);
+  const nset = new Set((out.news || []).map(n => n.id)); (inc.news || []).forEach(n => { if(!nset.has(n.id)){ out.news.push({...n}); nset.add(n.id); } }); out.news = out.news.slice(-20);
+  if(inc.interestUntil && (!out.interestUntil || inc.interestUntil > out.interestUntil)) out.interestUntil = inc.interestUntil;
+  Object.entries(inc.env || {}).forEach(([c, v]) => { if(!(out.env[c] > 0)) out.env[c] = v; });
+  (inc.subs || []).forEach(s => { if(!out.subs.some(x => x.id === s.id) && out.subs.length < 10) out.subs.push({...s}); }); if(!(out.income > 0)) out.income = inc.income || 0;
+  /* leçons : le meilleur score de chacune est gardé ; accessoires : ceux de l'espace d'accueil priment */
+  Object.entries(inc.lessons || {}).forEach(([id, r]) => { const cur = out.lessons[id]; if(!cur || r.best > cur.best) out.lessons[id] = {...r}; });
+  ['head', 'face', 'neck'].forEach(sl => { if(!out.acc[sl] && inc.acc && inc.acc[sl]) out.acc[sl] = inc.acc[sl]; });
   if(!out.paidUntil || (inc.paidUntil && inc.paidUntil > out.paidUntil)) out.paidUntil = inc.paidUntil;
   if(!out.mascot) out.mascot = inc.mascot; out.on = out.on || inc.on;
   return out;
@@ -1244,6 +1380,186 @@ function importKidInto(S, kidFile){
   const key = n => String(n).trim().toLowerCase(), found = S.members.find(m => m.type !== 'adult' && key(m.name) === key(src.name));
   if(found){ const before = {l:found.kid.ledger.length, g:found.kid.goals.length}; found.kid = mergeKid(ensureKid(found), src.kid); return {ok:true, merged:true, member:found, added:{l:found.kid.ledger.length - before.l, g:found.kid.goals.length - before.g}}; }
   const m = newKidMember(src.name, JSON.parse(JSON.stringify(src.kid))); m.kid.on = true; S.members.push(m); return {ok:true, merged:false, member:m};
+}
+
+/* ---------- Phase 2 : intérêts « la graine pousse », envies (règle d'attente), défis, bilan du mois ---------- */
+const kidPad = n => String(n).padStart(2, '0');
+const kidSaveBalanceAt = (kid, iso) => round2(kid.ledger.filter(e => e.jar === 'save' && e.date <= iso).reduce((a, e) => a + e.amount, 0));
+/* Intérêts : chaque 1er du mois, un pourcentage de l'épargne de la fin du mois précédent (plafonné). Jamais de rattrapage d'une période désactivée. */
+function kidRunInterest(kid, now){
+  const r = kid.rules.interest, d = now || new Date(), cur = d.getFullYear() * 12 + d.getMonth();
+  if(!kid.on) return 0;
+  if(!r.on){ kid.interestUntil = null; return 0; }
+  const key = i => `${Math.floor(i / 12)}-${kidPad(i % 12 + 1)}`;
+  if(!kid.interestUntil){ kid.interestUntil = key(cur - 1); return 0; }
+  const last = (+kid.interestUntil.slice(0, 4)) * 12 + (+kid.interestUntil.slice(5, 7)) - 1; let n = 0;
+  for(let i = last + 1; i <= cur - 1; i++){
+    const y = Math.floor(i / 12), m = i % 12, base = kidSaveBalanceAt(kid, `${y}-${kidPad(m + 1)}-${kidPad(dimOf(y, m + 1))}`), gain = Math.min(round2(base * r.pct / 100), r.cap);
+    if(base > 0 && gain >= 0.01){ const date = isoOf(new Date(y, m + 1, 1)); kid.ledger.push({id:uid(), date, amount:gain, kind:'interest', jar:'save', note:'Intérêts : la graine pousse', ref:null, goalId:null, cat:null}); kidPushNews(kid, 'interest', `La graine a poussé : ${String(gain).replace('.', ',')} € d’intérêts sur ton épargne !`, date); n++; }
+    kid.interestUntil = key(i);
+  }
+  return n;
+}
+/* Envies : on attend (24 h par défaut) avant de décider. Toujours envie → ça devient un rêve. Plus envie → bravo, on a su résister. */
+function kidAddWish(kid, w, now){
+  const name = String(w.name || '').trim(), price = Math.abs(round2(w.price)); if(!name || !(price > 0)) return null;
+  if(kid.wishes.filter(x => x.status === 'wait').length >= 12) return null;
+  const wish = {id:uid(), name, icon:w.icon || '⭐', price, created:(now || new Date()).toISOString(), status:'wait', goalId:null, decidedAt:null, notified:false}; kid.wishes.push(wish); return wish;
+}
+function kidWishInfo(kid, w, now){
+  const t = (now || new Date()).getTime(), end = Date.parse(w.created) + kid.rules.wait * 3600000, left = Math.max(0, end - t);
+  return {ready:left <= 0, hoursLeft:Math.ceil(left / 3600000), end:new Date(end)};
+}
+function kidDecideWish(kid, id, keep, now){
+  const w = kid.wishes.find(x => x.id === id); if(!w || w.status !== 'wait') return {ok:false, reason:'wish'};
+  const info = kidWishInfo(kid, w, now); if(!info.ready) return {ok:false, reason:'wait', hoursLeft:info.hoursLeft};
+  let goal = null; if(keep){ goal = kidAddGoal(kid, {name:w.name, icon:w.icon, price:w.price}); w.status = 'dream'; w.goalId = goal ? goal.id : null; } else w.status = 'dropped';
+  w.decidedAt = (now || new Date()).toISOString(); return {ok:true, goal, dropped:!keep, price:w.price};
+}
+function kidRunWishes(kid, now){
+  let n = 0; kid.wishes.forEach(w => { if(w.status === 'wait' && !w.notified && kid.rules.wait > 0 && kidWishInfo(kid, w, now).ready){ w.notified = true; kidPushNews(kid, 'wish', `Ton envie « ${w.name} » a mûri : tu la veux toujours ?`, isoOf(now || new Date())); n++; } });
+  return n;
+}
+const kidAvoided = kid => round2(kid.wishes.filter(w => w.status === 'dropped').reduce((a, w) => a + w.price, 0));
+/* Défis : courts, mesurés automatiquement, sans punition */
+const KID_CHALLENGES = {
+  nospend:{name:{petit:'3 jours sans dépenser', junior:'7 jours sans dépenser', ado:'14 jours sans dépenser'}, days:{petit:3, junior:7, ado:14}, hint:'Ne dépense rien dans « dépenser » pendant tout le défi.'},
+  dream3:{name:'3 coups de pouce à tes rêves', days:{petit:14, junior:14, ado:14}, hint:'Mets de l’argent dans tes rêves trois fois.'},
+  giveonce:{name:'Un geste généreux', days:{petit:30, junior:30, ado:30}, hint:'Fais un don à quelqu’un ou pour une cause.'},
+  count1:{name:'Compte tes pièces', days:{petit:7, junior:7, ado:7}, hint:'Compte tes pièces une fois.'},
+  patience:{name:'Patience payante', days:{petit:14, junior:14, ado:14}, hint:'Mets une envie en attente, puis décide quand elle a mûri.'},
+};
+const kidChallengeDef = (type, level) => { const c = KID_CHALLENGES[type]; if(!c) return null; const lv = KID_LEVELS_AGE.includes(level) ? level : 'junior'; return {type, name:typeof c.name === 'string' ? c.name : c.name[lv], days:c.days[lv], hint:c.hint}; };
+const kidActiveChallenge = kid => kid.challenges.find(c => c.status === 'run') || null;
+function kidStartChallenge(kid, type, now){
+  const d = now || new Date(), def = kidChallengeDef(type, kid.level); if(!def) return {ok:false, reason:'type'};
+  if(kidActiveChallenge(kid)) return {ok:false, reason:'run'};
+  const ch = {id:uid(), type, start:isoOf(d), end:isoOf(new Date(d.getFullYear(), d.getMonth(), d.getDate() + def.days - 1)), status:'run', doneAt:null}; kid.challenges.push(ch); return {ok:true, challenge:ch};
+}
+function kidChallengeState(kid, ch, now){
+  const today = isoOf(now || new Date()), inWin = x => x >= ch.start && x <= ch.end, left = Math.max(0, Math.round((Date.parse(ch.end + 'T00:00:00') - Date.parse(today + 'T00:00:00')) / 86400000) + 1);
+  let won = false, lost = false, count = null, goal = null;
+  if(ch.type === 'nospend'){ lost = kid.ledger.some(e => e.kind === 'spend' && e.cat !== 'abos' && inWin(e.date)); won = !lost && today > ch.end; }
+  else if(ch.type === 'dream3'){ count = kid.moves.filter(m => inWin(m.date)).length; goal = 3; won = count >= 3; }
+  else if(ch.type === 'giveonce') won = kid.ledger.some(e => e.kind === 'give' && inWin(e.date));
+  else if(ch.type === 'count1') won = kid.countLog.some(inWin);
+  else if(ch.type === 'patience') won = kid.wishes.some(w => w.status !== 'wait' && w.decidedAt && inWin(w.decidedAt.slice(0, 10)) && w.created.slice(0, 10) >= ch.start);
+  if(!won && !lost && today > ch.end) lost = true;
+  return {won, lost, left, count, goal};
+}
+/* Évalue le défi en cours : succès ou « pas cette fois ». Renvoie le nombre de résultats nouveaux. */
+function kidRunChallenges(kid, now){
+  const ch = kidActiveChallenge(kid); if(!ch) return 0; const st = kidChallengeState(kid, ch, now), def = kidChallengeDef(ch.type, kid.level), d = isoOf(now || new Date());
+  if(st.won){ ch.status = 'won'; ch.doneAt = d; kidPushNews(kid, 'challenge-won', `Défi réussi : ${def.name} !${kid.rules.reward ? ' Ta récompense : ' + kid.rules.reward + ' (à demander à un parent).' : ''}`, d); return 1; }
+  if(st.lost){ ch.status = 'lost'; ch.doneAt = d; kidPushNews(kid, 'challenge-lost', `Pas cette fois pour « ${def.name} ». On réessaie quand tu veux !`, d); return 1; }
+  return 0;
+}
+function kidDismissNews(kid, id){ kid.news = kid.news.filter(n => n.id !== id); }
+/* Bilan du mois pour les parents */
+function kidReport(kid, y, m){
+  const key = `${y}-${kidPad(m)}`, base = kidMonth(kid, y, m), inM = iso => !!iso && iso.startsWith(key);
+  return {y, m, ...base, total:kidTotal(kid), bought:kid.goals.filter(g => g.status === 'bought' && inM(g.boughtDate)).map(g => g.name), won:kid.challenges.filter(c => c.status === 'won' && inM(c.doneAt)).map(c => kidChallengeDef(c.type, kid.level).name),
+    lost:kid.challenges.filter(c => c.status === 'lost' && inM(c.doneAt)).length, dropped:kid.wishes.filter(w => w.status === 'dropped' && inM(w.decidedAt)).map(w => w.name), kept:kid.wishes.filter(w => w.status === 'dream' && inM(w.decidedAt)).map(w => w.name),
+    goals:kid.goals.filter(g => g.status !== 'bought').map(g => ({name:g.name, pct:Math.round(kidPct(g) * 100), saved:g.saved, price:g.price})),
+    envOver:kidEnvStats(kid, y, m).over, lessons:Object.entries(kid.lessons).filter(([, r]) => inM(r.date)).map(([id, r]) => ({title:(KID_LESSONS.find(l => l.id === id) || {}).title || id, best:r.best, total:r.total}))};
+}
+function kidTalk(r, name){
+  const out = [], f = v => String(round2(v)).replace('.', ',') + ' €';
+  if(r.bought.length) out.push(`${name} a réalisé « ${r.bought[0]} ». Demandez-lui ce que cela fait, et quel sera le prochain rêve.`);
+  if(r.dropped.length) out.push(`${name} a renoncé à « ${r.dropped[0]} » après réflexion : félicitez cette patience, c’est une vraie victoire.`);
+  if(r.won.length) out.push(`Défi réussi (${r.won[0]}) : pensez à la récompense convenue.`);
+  if((r.envOver || []).length) out.push(`L’enveloppe « ${r.envOver[0]} » de ${name} est dépassée ce mois-ci : demandez-lui ce qui s’est passé, sans reproche.`);
+  if((r.lessons || []).length) out.push(`${name} a terminé la leçon « ${r.lessons[0].title} » : demandez-lui ce qu’il ou elle en a retenu.`);
+  if(r.given > 0) out.push(`${name} a donné ${f(r.given)} : demandez pour qui, et pourquoi ce choix.`);
+  if(r.received > 0 && r.spent > r.received) out.push(`Les dépenses (${f(r.spent)}) dépassent ce qui est arrivé (${f(r.received)}) : regardez ensemble ce qui a coûté le plus.`);
+  else if(r.saved > 0 && r.spent <= r.saved) out.push(`${name} a mis ${f(r.saved)} de côté, plus qu’il ou elle n’a dépensé : demandez ce qui l’a motivé(e).`);
+  const near = r.goals.filter(g => g.pct >= 75).sort((a, b) => b.pct - a.pct)[0]; if(near) out.push(`« ${near.name} » est à ${near.pct} % : c’est le bon moment pour en parler.`);
+  if(!out.length) out.push(`Peu d’activité ce mois-ci : demandez à ${name} s’il ou elle a une envie ou un projet en tête.`);
+  return out.slice(0, 3);
+}
+
+/* ---------- Version 2.8 : mini-leçons avec quiz, accessoires de mascotte ---------- */
+const KID_LESSONS = [{"id": "p-besoin", "level": "petit", "icon": "🍎", "title": "Besoin ou envie ?", "cards": ["Un besoin, c’est ce dont on ne peut pas se passer : manger, boire, avoir chaud.", "Une envie, c’est ce qui fait plaisir : un jouet, des bonbons, un jeu.", "On a le droit d’avoir des envies ! Mais on pense d’abord aux besoins, puis on économise pour les envies."], "quiz": [{"q": "Qu’est-ce qu’un besoin ?", "o": ["Un nouveau jouet", "Un manteau quand il fait froid", "Des bonbons"], "a": 1, "why": "Le manteau nous protège du froid : on en a vraiment besoin."}, {"q": "Un nouveau jeu vidéo, c’est…", "o": ["Un besoin", "Un repas", "Une envie"], "a": 2, "why": "Ça fait plaisir, mais on peut vivre sans."}]}, {"id": "p-tirelire", "level": "petit", "icon": "🐷", "title": "À quoi sert une tirelire ?", "cards": ["Une tirelire garde ton argent en sécurité.", "Quand tu mets une pièce dedans, tu penses à plus tard.", "Petit à petit, la tirelire grossit : 1 euro, puis 2, puis 10 !"], "quiz": [{"q": "Pourquoi mettre des pièces dans une tirelire ?", "o": ["Pour les perdre", "Pour les garder pour plus tard", "Pour les jeter"], "a": 1, "why": "La tirelire sert à garder pour plus tard."}, {"q": "Comment la tirelire grossit-elle ?", "o": ["Petit à petit, pièce après pièce", "Tout d’un coup, par magie", "Jamais"], "a": 0, "why": "Chaque pièce compte : c’est ça, épargner."}]}, {"id": "p-pieces", "level": "petit", "icon": "🪙", "title": "Pièces et billets", "cards": ["Il y a des pièces (1 centime, 2 centimes, 5…) et des billets (5, 10, 20 euros…).", "100 centimes font 1 euro.", "Pour savoir combien tu as, tu comptes : d’abord les billets, puis les pièces."], "quiz": [{"q": "Combien de centimes font 1 euro ?", "o": ["10", "1000", "100"], "a": 2, "why": "100 centimes font 1 euro."}, {"q": "Tu as un billet de 5 € et deux pièces de 1 €. Combien as-tu ?", "o": ["6 €", "7 €", "8 €"], "a": 1, "why": "5 + 1 + 1 = 7 euros."}]}, {"id": "p-donner", "level": "petit", "icon": "🎁", "title": "Donner, ça fait plaisir", "cards": ["Donner, c’est partager un peu de ce que tu as.", "On peut donner à quelqu’un qu’on aime, ou à une association qui aide.", "Ton bocal « donner » est fait pour ça."], "quiz": [{"q": "Pour quoi peut-on donner ?", "o": ["Pour faire un cadeau ou aider", "Pour se débarrasser de son argent", "Pour faire peur"], "a": 0, "why": "Donner, c’est faire plaisir ou aider."}, {"q": "Dans quel bocal vas-tu chercher pour donner ?", "o": ["Le bocal « dépenser »", "Aucun", "Le bocal « donner »"], "a": 2, "why": "Le bocal « donner » est là pour ça."}]}, {"id": "j-attendre", "level": "junior", "icon": "⏳", "title": "Pourquoi attendre ?", "cards": ["Quand on veut quelque chose tout de suite, c’est souvent une envie du moment.", "En attendant 24 h, l’envie peut passer : tu gardes ton argent.", "Si l’envie reste, c’est un vrai rêve : tu peux l’épargner et l’acheter sans regret."], "quiz": [{"q": "Attendre 24 h avant d’acheter permet de…", "o": ["Tout oublier", "Savoir si on le veut vraiment", "Payer plus cher"], "a": 1, "why": "Si l’envie est passée, ce n’était pas un vrai rêve."}, {"q": "Une semaine plus tard, tu veux toujours l’objet. C’est probablement…", "o": ["Un vrai rêve", "Une envie du moment", "Une erreur"], "a": 0, "why": "Une envie qui dure est un vrai projet : tu peux l’épargner."}]}, {"id": "j-interets", "level": "junior", "icon": "🌱", "title": "Épargner, ça rapporte", "cards": ["Une banque paie un petit bonus sur l’argent qu’on lui confie : ce sont les intérêts.", "Les intérêts s’ajoutent à ton épargne. Le mois suivant, tu gagnes aussi des intérêts sur les intérêts !", "Plus tu épargnes tôt et longtemps, plus ça grandit : c’est la graine qui pousse."], "quiz": [{"q": "Que sont les intérêts ?", "o": ["Une amende", "Un impôt", "Un bonus sur l’argent épargné"], "a": 2, "why": "Les intérêts, c’est de l’argent en plus pour ton épargne."}, {"q": "Avec 100 € et 2 % d’intérêts, combien gagnes-tu en un mois ?", "o": ["2 €", "20 €", "0,20 €"], "a": 0, "why": "2 % de 100 €, c’est 2 €."}]}, {"id": "j-prix", "level": "junior", "icon": "🏷️", "title": "Prix, promos et bon choix", "cards": ["Une promo n’est pas toujours une bonne affaire : si tu n’en avais pas besoin, tu dépenses quand même.", "Compare les prix à deux ou trois endroits avant d’acheter.", "Regarde aussi la qualité : un objet moins cher qui casse vite coûte plus cher au final."], "quiz": [{"q": "Un jeu à 30 € passe à 20 €. Tu n’y pensais pas avant. Tu fais quoi ?", "o": ["Tu l’achètes, c’est une promo !", "Tu en achètes trois", "Tu te demandes si tu en as vraiment envie"], "a": 2, "why": "Une promo ne rend pas utile ce dont on n’a pas envie."}, {"q": "Pour bien choisir, tu peux…", "o": ["Acheter le premier venu", "Comparer les prix", "Acheter sans regarder"], "a": 1, "why": "Comparer permet de trouver le meilleur choix."}]}, {"id": "j-budget", "level": "junior", "icon": "📅", "title": "Mon budget du mois", "cards": ["Un budget, c’est un plan : ce qui arrive, ce qui sort, ce qu’on met de côté.", "Commence par mettre de côté ta part d’épargne, puis choisis comment dépenser le reste.", "À la fin du mois, regarde ton carnet : qu’est-ce qui a coûté le plus ?"], "quiz": [{"q": "Dans un budget, on regarde…", "o": ["Seulement ce qu’on dépense", "Ce qui rentre et ce qui sort", "Seulement ce qu’on gagne"], "a": 1, "why": "Un budget compare ce qui rentre et ce qui sort."}, {"q": "Quand mettre de l’argent de côté ?", "o": ["À la fin, s’il en reste", "Jamais", "D’abord, dès que l’argent arrive"], "a": 2, "why": "Épargner d’abord évite de tout dépenser sans y penser."}]}, {"id": "a-abos", "level": "ado", "icon": "📺", "title": "Abonnements : le coût caché", "cards": ["5 € par mois, ça paraît peu. Mais c’est 60 € par an.", "Plusieurs petits abonnements s’additionnent vite : musique, vidéo, jeux, applis.", "Fais le point une fois par trimestre : si tu ne t’en sers plus, résilie."], "quiz": [{"q": "Un abonnement à 8 € par mois coûte, par an…", "o": ["80 €", "64 €", "96 €"], "a": 2, "why": "8 € × 12 mois = 96 €."}, {"q": "Le bon réflexe avec les abonnements ?", "o": ["En prendre un maximum", "Les revoir régulièrement", "Ne jamais regarder"], "a": 1, "why": "Faire le point régulièrement évite de payer pour rien."}]}, {"id": "a-compose", "level": "ado", "icon": "📈", "title": "Les intérêts composés", "cards": ["Les intérêts composés, ce sont des intérêts qui rapportent eux-mêmes des intérêts.", "Avec 100 € à 5 % par an : 105 € après 1 an, environ 110 € après 2 ans, 163 € après 10 ans.", "Le temps est ton meilleur allié : commencer tôt vaut mieux que mettre beaucoup plus tard."], "quiz": [{"q": "100 € à 5 % par an : après 2 ans, tu as environ…", "o": ["105 €", "110 €", "200 €"], "a": 1, "why": "105 € la première année, puis 5 % de 105 € : environ 110 €."}, {"q": "Quel facteur compte le plus pour faire grandir une épargne ?", "o": ["Le jour de la semaine", "La chance", "Le temps"], "a": 2, "why": "Plus l’argent reste longtemps, plus les intérêts s’accumulent."}]}, {"id": "a-comparer", "level": "ado", "icon": "🔎", "title": "Comparer avant d’acheter", "cards": ["Avant un achat, compare au moins trois offres : prix, qualité, garantie, avis.", "Le moins cher n’est pas toujours le meilleur : regarde combien de temps ça va durer.", "Le prix « par usage » aide : 100 € utilisés 100 fois reviennent à 1 € par usage."], "quiz": [{"q": "Un sac à 60 € dure 3 ans, un autre à 30 € dure 1 an. Le plus avantageux est…", "o": ["Celui à 30 €", "Pareil", "Celui à 60 €"], "a": 2, "why": "60 € sur 3 ans = 20 €/an ; 30 € sur 1 an = 30 €/an."}, {"q": "Que regarder en plus du prix ?", "o": ["La qualité et la garantie", "Seulement la couleur", "Seulement la marque"], "a": 0, "why": "La durée et la garantie changent le vrai coût."}]}, {"id": "a-pub", "level": "ado", "icon": "📢", "title": "Publicité et achats impulsifs", "cards": ["La publicité est faite pour créer l’envie, surtout sur les réseaux sociaux.", "Les « offres limitées » et les comptes à rebours poussent à acheter vite, sans réfléchir.", "Ta parade : la règle d’attente. Si c’est un vrai besoin, il sera encore là demain."], "quiz": [{"q": "Une offre « plus que 10 minutes ! » sert surtout à…", "o": ["T’aider à économiser", "Te faire acheter sans réfléchir", "Te donner du temps"], "a": 1, "why": "Le compte à rebours pousse à décider dans la précipitation."}, {"q": "Le meilleur réflexe face à une offre limitée ?", "o": ["Acheter tout de suite", "Prévenir tous ses amis", "Attendre avant d’acheter"], "a": 2, "why": "Un vrai besoin résiste à l’attente."}]}];
+const KID_ACC = [{"id": "party", "slot": "head", "name": "Chapeau de fête", "icon": "🎉", "badge": "first-euro"}, {"id": "crown", "slot": "head", "name": "Couronne", "icon": "👑", "badge": "dream-done"}, {"id": "cap", "slot": "head", "name": "Chapeau de diplômé", "icon": "🎓", "badge": "studious"}, {"id": "phones", "slot": "head", "name": "Casque audio", "icon": "🎧", "badge": "curious"}, {"id": "shades", "slot": "face", "name": "Lunettes de soleil", "icon": "😎", "badge": "saver10"}, {"id": "scarf", "slot": "neck", "name": "Écharpe", "icon": "🧣", "badge": "first-dream"}, {"id": "bow", "slot": "neck", "name": "Nœud papillon", "icon": "🎀", "badge": "generous"}];
+const kidLessonsFor = level => KID_LESSONS.filter(l => l.level === level);
+const kidLessonsDone = kid => Object.keys(kid.lessons).length;
+/* Un quiz réussi à moitié ou plus valide la leçon ; on peut recommencer, le meilleur score est gardé */
+function kidAnswerLesson(kid, lessonId, answers, now){
+  const l = KID_LESSONS.find(x => x.id === lessonId); if(!l) return {ok:false, reason:'lesson'};
+  if(!Array.isArray(answers) || answers.length !== l.quiz.length) return {ok:false, reason:'incomplete'};
+  const total = l.quiz.length, score = answers.filter((a, i) => a === l.quiz[i].a).length, pass = score * 2 >= total, prev = kid.lessons[lessonId];
+  if(pass && (!prev || score > prev.best)) kid.lessons[lessonId] = {date:isoOf(now || new Date()), best:score, total};
+  return {ok:true, score, total, pass, perfect:score === total, first:pass && !prev};
+}
+/* Accessoires : débloqués par un succès, un seul par emplacement (tête, visage, cou) */
+function kidAccessories(kid){ const got = new Set(kidBadges(kid).filter(b => b.got).map(b => b.id)); return KID_ACC.map(a => ({...a, got:got.has(a.badge), on:kid.acc[a.slot] === a.id})); }
+function kidEquip(kid, accId){
+  const a = kidAccessories(kid).find(x => x.id === accId); if(!a) return {ok:false, reason:'acc'};
+  if(!a.got) return {ok:false, reason:'locked', badge:a.badge};
+  kid.acc[a.slot] = kid.acc[a.slot] === a.id ? null : a.id; return {ok:true, on:kid.acc[a.slot] === a.id};
+}
+
+/* ---------- Version 2.9 : budget perso des ados (enveloppes, abonnements), simulateurs, bulletin d'épargne, premier foyer ---------- */
+const KID_ENV_CATS = ['friandises', 'jeux', 'sorties', 'vetements', 'abos', 'autre'];
+const KID_ENV_LABEL = {friandises:'Friandises', jeux:'Jeux', sorties:'Sorties', vetements:'Vêtements', abos:'Abonnements', autre:'Autre'};
+const kidEnvOn = kid => Object.keys(kid.env).length > 0 || kid.subs.some(s => s.active);
+const kidSubsMonthly = kid => round2(kid.subs.filter(s => s.active).reduce((a, s) => a + s.amount, 0));
+function kidAddSub(kid, o, now){
+  const name = String(o.name || '').trim().slice(0, 40), amount = Math.abs(round2(o.amount)), day = Math.min(Math.max(parseInt(o.day) || 1, 1), 28), d = now || new Date();
+  if(!name || !(amount > 0) || kid.subs.length >= 10) return null;
+  const prev = new Date(d.getFullYear(), d.getMonth() - 1, 1), cur = new Date(d.getFullYear(), d.getMonth(), 1), pu = kidMonthKey(day <= d.getDate() ? cur : prev);   // premier prélèvement : le mois prochain si le jour est passé
+  const s = {id:uid(), name, amount, day, active:true, paidUntil:pu, missed:0}; kid.subs.push(s); return s;
+}
+/* Prélève chaque abonnement actif, chaque mois, à son jour. S'il manque de l'argent dans « dépenser », rien n'est prélevé : on le dit, sans punition. */
+function kidRunSubs(kid, now){
+  if(!kid.on) return 0; const d = now || new Date(), curIdx = d.getFullYear() * 12 + d.getMonth(); let n = 0;
+  kid.subs.forEach(s => {
+    if(!s.active || !s.paidUntil) return;
+    let i = (+s.paidUntil.slice(0, 4)) * 12 + (+s.paidUntil.slice(5, 7)) - 1 + 1;
+    for(; i <= curIdx; i++){
+      const y = Math.floor(i / 12), m = i % 12, past = i < curIdx; if(!past && s.day > d.getDate()) break;
+      const date = `${y}-${kidPad(m + 1)}-${kidPad(Math.min(s.day, dimOf(y, m + 1)))}`;
+      if(kidJars(kid).spend + 0.005 >= s.amount){ kid.ledger.push({id:uid(), date, amount:-s.amount, kind:'spend', jar:'spend', note:s.name, ref:null, goalId:null, cat:'abos'}); }
+      else { s.missed++; kidPushNews(kid, 'sub-missed', `Ton abonnement « ${s.name} » n’a pas pu être payé : il manquait ${String(round2(s.amount - kidJars(kid).spend)).replace('.', ',')} € dans « dépenser ».`, date); }
+      s.paidUntil = `${y}-${kidPad(m + 1)}`; n++;
+    }
+  });
+  return n;
+}
+/* Budget du mois : enveloppes par catégorie, abonnements, revenus */
+function kidEnvStats(kid, y, m){
+  const key = `${y}-${kidPad(m)}`, es = kid.ledger.filter(e => e.kind === 'spend' && e.date.startsWith(key)), by = {};
+  es.forEach(e => { const c = KID_ENV_CATS.includes(e.cat) ? e.cat : 'autre'; by[c] = round2((by[c] || 0) + -e.amount); });
+  const rows = KID_ENV_CATS.filter(c => kid.env[c] > 0 || by[c] > 0).map(c => { const limit = kid.env[c] || 0, spent = by[c] || 0, pct = limit > 0 ? Math.round(spent / limit * 100) : null;
+    return {cat:c, label:KID_ENV_LABEL[c], limit, spent, left:limit > 0 ? round2(limit - spent) : null, pct, state:limit <= 0 ? 'free' : (spent > limit + 0.005 ? 'over' : (spent >= limit * 0.8 ? 'warn' : 'ok'))}; });
+  const planned = round2(Object.values(kid.env).reduce((a, v) => a + v, 0)), spent = round2(es.reduce((a, e) => a - e.amount, 0)), received = kidMonth(kid, y, m).received;
+  return {rows, planned, spent, received, over:rows.filter(r => r.state === 'over').map(r => r.label), subs:kidSubsMonthly(kid)};
+}
+const kidMonthlyIncome = (kid, member) => round2((kid.freq === 'week' ? kidAllowanceAmount(member) * 52 / 12 : kidAllowanceAmount(member)) + kid.income);
+/* Simulateurs : purement indicatifs */
+function simSavings(o){
+  const monthly = Math.max(0, +o.monthly || 0), months = Math.min(Math.max(parseInt(o.months) || 12, 1), 600), r = Math.max(0, +o.annualPct || 0) / 100 / 12; let bal = Math.max(0, +o.start || 0); const pts = [round2(bal)];
+  for(let i = 1; i <= months; i++){ bal = bal * (1 + r) + monthly; pts.push(round2(bal)); }
+  const deposits = round2(Math.max(0, +o.start || 0) + monthly * months); return {points:pts, final:round2(bal), deposits, interest:round2(bal - deposits), months};
+}
+const simSub = o => { const a = Math.max(0, +o.amount || 0), y = Math.max(1, parseInt(o.years) || 1); return {month:round2(a), year:round2(a * 12), total:round2(a * 12 * y), years:y}; };
+const simPerUse = o => { const p = Math.max(0, +o.price || 0), u = Math.floor(+o.uses || 0); return u > 0 ? round2(p / u) : null; };
+/* Bulletin d'épargne : un souvenir chiffré du parcours */
+function kidBulletin(kid, name, now){
+  const d = now || new Date(), first = kid.ledger.map(e => e.date).sort()[0] || null, sum = f => round2(kid.ledger.filter(f).reduce((a, e) => a + e.amount, 0));
+  const months = first ? Math.max(1, (d.getFullYear() - +first.slice(0, 4)) * 12 + d.getMonth() - (+first.slice(5, 7) - 1) + 1) : 0;
+  return {name, date:isoOf(d), since:first, months, saved:kidSavedEver(kid), total:kidTotal(kid), rank:kidRank(kid), badges:kidBadges(kid).filter(b => b.got).map(b => b.name), badgeTotal:KID_BADGES.length,
+    dreams:kid.goals.filter(g => g.status === 'bought').map(g => ({name:g.name, price:g.price, date:g.boughtDate})), lessons:kidLessonsDone(kid), lessonsTotal:KID_LESSONS.length, challenges:kid.challenges.filter(c => c.status === 'won').length,
+    avoided:kidAvoided(kid), given:-sum(e => e.kind === 'give'), boost:sum(e => e.kind === 'boost'), interest:sum(e => e.kind === 'interest'), streak:kidStreak(kid)};
+}
+/* Mon premier foyer : l'historique d'ado devient les premières lignes du budget */
+function seedFirstBudget(S, memberId, kid, o){
+  const cat = re => (S.categories.find(c => re.test(c.name)) || S.categories[0] || {}).id || null, acc = defaultAccountFor(S, memberId), made = {income:0, subs:0, env:0};
+  const income = Math.max(0, round2(o && o.income));
+  if(income > 0){ S.lines.push(newLine(S, {name:'Mon revenu', catId:cat(/revenu/i), kind:'credit', amount:income, method:'virement', ownerId:memberId, accountId:acc})); made.income = 1; }
+  kid.subs.filter(s => s.active).forEach(s => { S.lines.push(newLine(S, {name:s.name, catId:cat(/abonnement/i), kind:'debit', amount:s.amount, method:'prelevement', ownerId:memberId, accountId:acc, day:s.day})); made.subs++; });
+  Object.entries(kid.env).filter(([c, v]) => c !== 'abos' && v > 0).forEach(([c, v]) => { S.lines.push(newLine(S, {name:'Enveloppe : ' + KID_ENV_LABEL[c], catId:cat(c === 'sorties' || c === 'jeux' ? /loisir/i : (c === 'friandises' ? /aliment/i : /divers/i)), kind:'debit', amount:v, method:'cb', ownerId:memberId, accountId:acc, envelope:true, day:null})); made.env++; });
+  return made;
 }
 
 /* ============================================================
@@ -1632,7 +1948,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
 
 </script>
 <script>
@@ -1650,7 +1966,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.4', APP_DATE = '4 octobre 2026', APP_BUILD = '0d4b60';
+const APP_VERSION = '2.9', APP_DATE = '4 octobre 2026', APP_BUILD = '01d297';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -1721,9 +2037,42 @@ function applyLook(){
   refreshIcons();
 }
 if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyLook());
-function piggy(mood = 'happy', size = 96, cls = ''){
-  const m = MASC[currentLook().mascot] || MASC.pig, inner = m[mood] || m.happy;
-  return `<svg class="pig ${cls}" viewBox="0 0 160 140" width="${size}" height="${Math.round(size*140/160)}" aria-hidden="true" focusable="false">${inner}</svg>`;
+
+/* ---------- Accessoires de mascotte : dessinés par-dessus l'illustration, calés sur chaque animal ---------- */
+const ACC_ANCHORS = {
+  pig:      {head:{x:104, y:55, w:30, r:14}, eyes:[{x:110, y:72, r:5}], dir:1,  neck:{x:89, y:95, w:40, r:78}, bowAt:{x:107, y:104, r:16}, cups:[{x:96, y:66}], band:{x:84, y:48}},
+  toucan:   {head:{x:96,  y:35, w:36, r:0},  eyes:[{x:98,  y:52, r:6}], dir:1,  neck:{x:93,  y:80,  w:36, r:0},  cups:[{x:84, y:58}], band:{x:96, y:30}},
+  squirrel: {head:{x:98,  y:38, w:30, r:0},  eyes:[{x:106, y:58, r:4.5}], dir:1, neck:{x:96,  y:85,  w:32, r:0},  cups:[{x:78, y:62}], band:{x:98, y:34}},
+  owl:      {head:{x:80,  y:46, w:50, r:0},  eyes:[{x:65, y:70, r:17, lr:14.5}, {x:95, y:70, r:17, lr:14.5}], dir:0, neck:{x:80, y:101, w:62, r:0}, cups:[{x:41, y:74}, {x:119, y:74}], band:{x:80, y:40}},
+  fox:      {head:{x:98,  y:38, w:32, r:0},  eyes:[{x:110, y:58, r:4.5}], dir:1, neck:{x:92,  y:79,  w:34, r:12}, cups:[{x:80, y:62}], band:{x:98, y:34}},
+};
+const ACC_DRAW = {
+  party:(A) => { const {x, y, w, r} = A.head, h = Math.min(w * 1.0, y - 5); return `<g transform="rotate(${r} ${x} ${y + 4})"><path d="M${x - w / 2} ${y + 4} L${x + w * .08} ${y - h} L${x + w / 2} ${y + 4} Z" fill="#FF4D8D" stroke="#C2185B" stroke-width="1.2" stroke-linejoin="round"/><path d="M${x - w * .28} ${y - h * .22} L${x + w * .32} ${y - h * .22} M${x - w * .12} ${y - h * .62} L${x + w * .2} ${y - h * .62}" stroke="#FFD43B" stroke-width="3" stroke-linecap="round"/><circle cx="${x + w * .08}" cy="${y - h}" r="3.6" fill="#FFD43B" stroke="#E0A800" stroke-width="1"/></g>`; },
+  crown:(A) => { const {x, y, w, r} = A.head, h = w * .5; return `<g transform="rotate(${r} ${x} ${y + 3})"><path d="M${x - w / 2} ${y + 3} L${x - w / 2} ${y - h * .85} L${x - w / 4} ${y - h * .3} L${x} ${y - h} L${x + w / 4} ${y - h * .3} L${x + w / 2} ${y - h * .85} L${x + w / 2} ${y + 3} Z" fill="#FFC400" stroke="#C98F00" stroke-width="1.4" stroke-linejoin="round"/><circle cx="${x}" cy="${y - h * .2}" r="2.4" fill="#E5484D"/><circle cx="${x - w / 4}" cy="${y}" r="1.8" fill="#3B82F6"/><circle cx="${x + w / 4}" cy="${y}" r="1.8" fill="#3B82F6"/></g>`; },
+  cap:(A) => { const {x, y, w, r} = A.head; return `<g transform="rotate(${r} ${x} ${y + 3})"><path d="M${x - w * .38} ${y + 3} L${x - w * .38} ${y - 5} Q${x} ${y - 1} ${x + w * .38} ${y - 5} L${x + w * .38} ${y + 3} Z" fill="#2B2A3A"/><path d="M${x - w * .7} ${y - 6} L${x} ${y - 16} L${x + w * .7} ${y - 6} L${x} ${y + 1} Z" fill="#3A3950" stroke="#1d1c29" stroke-width="1" stroke-linejoin="round"/><path d="M${x + w * .5} ${y - 6.5} L${x + w * .5} ${y + 8}" stroke="#FFC400" stroke-width="1.6"/><circle cx="${x + w * .5}" cy="${y + 9}" r="2.2" fill="#FFC400"/></g>`; },
+  phones:(A) => {
+    const {x, y} = A.head, cups = A.cups, d = A.dir;
+    const band = cups.length > 1 ? `M${cups[0].x} ${cups[0].y - 4} C${cups[0].x - 2} ${A.band.y - 18}, ${cups[1].x + 2} ${A.band.y - 18}, ${cups[1].x} ${cups[1].y - 4}` : `M${cups[0].x} ${cups[0].y - 5} C${cups[0].x - 4} ${A.band.y - 16}, ${A.band.x + 18 * d} ${A.band.y - 18}, ${A.band.x + 24 * d} ${A.band.y + 14}`;
+    return `<path d="${band}" fill="none" stroke="#2B2A3A" stroke-width="4.2" stroke-linecap="round"/>` + cups.map(c => `<ellipse cx="${c.x}" cy="${c.y}" rx="7.5" ry="9" fill="#2B2A3A"/><ellipse cx="${c.x}" cy="${c.y}" rx="4.6" ry="6.2" fill="#FF4D8D"/>`).join('');
+  },
+  shades:(A) => {
+    const E = A.eyes, d = A.dir, rr = e => e.lr || Math.max(e.r * 1.55, 7.5);
+    const lens = E.map(e => `<ellipse cx="${e.x}" cy="${e.y}" rx="${rr(e) + (E.length > 1 ? 1 : 2)}" ry="${rr(e)}" fill="#1c1b26" fill-opacity=".9" stroke="#000" stroke-width="1"/><path d="M${e.x - rr(e) * .55} ${e.y - rr(e) * .35} L${e.x - rr(e) * .1} ${e.y - rr(e) * .62}" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>`).join('');
+    const extra = E.length > 1 ? `<path d="M${E[0].x + rr(E[0]) + 1} ${E[0].y - 2} Q${(E[0].x + E[1].x) / 2} ${E[0].y - 6} ${E[1].x - rr(E[1]) - 1} ${E[1].y - 2}" fill="none" stroke="#000" stroke-width="2.4"/>` : `<path d="M${E[0].x - d * rr(E[0])} ${E[0].y - 1} L${E[0].x - d * (rr(E[0]) + 22)} ${E[0].y - 6}" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>`;
+    return extra + lens;
+  },
+  scarf:(A) => { const {x, y, w, r} = A.neck; return `<g transform="rotate(${r} ${x} ${y})"><rect x="${x - w / 2}" y="${y - 5}" width="${w}" height="10" rx="5" fill="#E5484D" stroke="#B5282D" stroke-width="1.1"/><path d="M${x - w * .3} ${y - 4.5} L${x - w * .3 + 3} ${y + 4.5} M${x} ${y - 5} L${x + 3} ${y + 5} M${x + w * .3} ${y - 4.5} L${x + w * .3 + 3} ${y + 4.5}" stroke="#fff" stroke-opacity=".75" stroke-width="2.2"/><path d="M${x + w * .22} ${y + 3} L${x + w * .22 + 9} ${y + 3} L${x + w * .22 + 8} ${y + 21} L${x + w * .22 - 1} ${y + 21} Z" fill="#E5484D" stroke="#B5282D" stroke-width="1.1" stroke-linejoin="round"/><path d="M${x + w * .22 + 1} ${y + 15} L${x + w * .22 + 8} ${y + 15}" stroke="#fff" stroke-opacity=".75" stroke-width="2"/></g>`; },
+  bow:(A) => { const {x, y, r} = A.bowAt || A.neck; return `<g transform="rotate(${r} ${x} ${y})"><path d="M${x} ${y} L${x - 13} ${y - 8} L${x - 13} ${y + 8} Z" fill="#5B5BD6" stroke="#3636A8" stroke-width="1.1" stroke-linejoin="round"/><path d="M${x} ${y} L${x + 13} ${y - 8} L${x + 13} ${y + 8} Z" fill="#5B5BD6" stroke="#3636A8" stroke-width="1.1" stroke-linejoin="round"/><circle cx="${x}" cy="${y}" r="3.8" fill="#7C7CF0" stroke="#3636A8" stroke-width="1.1"/></g>`; },
+};
+/* Assemble les accessoires portés (cou, tête, visage) pour une mascotte */
+function accOverlay(mascotId, acc){
+  const A = ACC_ANCHORS[mascotId]; if(!A || !acc) return '';
+  return ['neck', 'head', 'face'].map(sl => acc[sl] && ACC_DRAW[acc[sl]] ? `<g class="acc acc-${acc[sl]}">${ACC_DRAW[acc[sl]](A)}</g>` : '').join('');
+}
+const kidAccNow = () => { const m = typeof kidMember === 'function' ? kidMember() : null; return m && m.kid ? m.kid.acc : null; };
+function piggy(mood = 'happy', size = 96, cls = '', accOverride){
+  const id = MASC[currentLook().mascot] ? currentLook().mascot : 'pig', m = MASC[id], inner = m[mood] || m.happy, acc = accOverride !== undefined ? accOverride : ((U.kid && !/\bnoacc\b/.test(cls)) ? kidAccNow() : null);
+  return `<svg class="pig ${cls}" viewBox="0 0 160 140" width="${size}" height="${Math.round(size*140/160)}" aria-hidden="true" focusable="false">${inner}${accOverlay(id, acc)}</svg>`;
 }
 
 /* ---------- Formats ---------- */
@@ -1753,7 +2102,111 @@ function download(name, text){
   a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 }
-function backupNow(){ if(S && S.settings.backup){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch{} } }
+/* ---------- Plusieurs espaces sur le même appareil : registre local, une copie de secours par espace ---------- */
+const SP_KEY = 'matirelire:spaces', ACT_KEY = 'matirelire:active', spKey = id => `matirelire:space:${id}`;
+function readSpaces(){ try{ const a = JSON.parse(localStorage.getItem(SP_KEY) || '[]'); return Array.isArray(a) ? a.filter(e => e && e.id) : []; }catch{ return []; } }
+function writeSpaces(a){ try{ localStorage.setItem(SP_KEY, JSON.stringify(a)); }catch{} }
+function spaceName(d){
+  if(d.kind === 'kid') return (d.members[0] && d.members[0].name) || 'Enfant';
+  const ad = d.members.filter(m => m.type === 'adult').map(m => m.name).filter(Boolean).slice(0, 2);
+  return ad.length ? 'Foyer ' + ad.join(' & ') : 'Mon foyer';
+}
+const spaceFp = d => d.kind + '|' + d.members.map(m => m.name).join(',');
+function withIdentity(raw, data){   // un ancien fichier sans identifiant, déjà connu sur cet appareil, reprend l'identité de son espace
+  if(!(raw && typeof raw.id === 'string' && raw.id.trim())){ const same = readSpaces().find(e => e.fp === spaceFp(data)); if(same) data.id = same.id; }
+  return data;
+}
+function spaceMeta(d){
+  const m0 = d.members[0], pin = d.settings.parentPin;
+  return {id:d.id, fp:spaceFp(d), kind:d.kind, name:spaceName(d), mascot:d.kind === 'kid' ? ((m0 && m0.kid && m0.kid.mascot) || d.settings.mascot) : null, updated:new Date().toISOString(), lock:(d.kind !== 'kid' && d.settings.lockSpace && pin) ? {salt:pin.salt, hash:pin.hash} : null};
+}
+function backupNow(){
+  if(!S || !S.settings.backup) return;
+  try{
+    localStorage.setItem(spKey(S.id), JSON.stringify(S)); localStorage.setItem(ACT_KEY, S.id);
+    const list = readSpaces(), i = list.findIndex(e => e.id === S.id), meta = spaceMeta(S); if(i >= 0) list[i] = meta; else list.push(meta); writeSpaces(list);
+  }catch{}
+}
+/* ---------- Source mémorisée : le fichier de référence d'un espace (cloud ou autre), propre à cet appareil ---------- */
+const srcKey = id => `matirelire:src:${id}`, WHERE = {icloud:'iCloud Drive', gdrive:'Google Drive', dropbox:'Dropbox', device:'Cet appareil', other:'Autre'};
+function getSrc(id){ try{ const o = JSON.parse(localStorage.getItem(srcKey(id)) || 'null'); return o && o.name ? o : null; }catch{ return null; } }
+function putSrc(id, patch){ try{ const cur = getSrc(id) || {name:null, where:null, asked:false, syncedAt:null, dirtySince:null}; localStorage.setItem(srcKey(id), JSON.stringify(Object.assign(cur, patch))); }catch{} }
+function dropSrc(id){ try{ localStorage.removeItem(srcKey(id)); }catch{} }
+const nowIso = () => new Date().toISOString();
+const fmtWhen = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}); };
+/* État de la source du fichier pour l'espace ouvert : null (aucune), ou {name, where, syncedAt, unsynced, since} */
+function srcInfo(){
+  if(!S || U.fileHandle) return null; const x = getSrc(S.id); if(!x) return null;
+  const unsynced = !!(S.modifiedAt && (!x.syncedAt || S.modifiedAt > x.syncedAt));
+  return {name:x.name, where:x.where, whereLabel:WHERE[x.where] || '', syncedAt:x.syncedAt, unsynced, since:x.dirtySince};
+}
+function markSynced(name){
+  if(!S) return; const x = getSrc(S.id);
+  putSrc(S.id, {name:name || (x && x.name) || U.fileName || defaultFileName(), syncedAt:S.modifiedAt || nowIso(), dirtySince:null});
+}
+function removeLocalCopy(id){ dropSrc(id); try{ localStorage.removeItem(spKey(id)); writeSpaces(readSpaces().filter(e => e.id !== id)); if(localStorage.getItem(ACT_KEY) === id) localStorage.removeItem(ACT_KEY); }catch{} }
+function resetSession(){
+  clearTimeout(autosaveT);
+  Object.assign(U, {tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
+}
+async function flushFile(){
+  if(!U.fileHandle || !S || !U.dirty) return;
+  try{ if((await U.fileHandle.queryPermission({mode:'readwrite'})) === 'granted') await writeHandle(U.fileHandle, JSON.stringify(S, null, 2)); }catch{}
+}
+/* Quitter l'espace actuel sans rien effacer : retour à la liste des espaces */
+async function leaveSpace(){
+  if(S){ backupNow(); await flushFile(); }
+  S = null; resetSession(); try{ localStorage.removeItem(ACT_KEY); }catch{}
+  const dlg = $('#dlg'); if(dlg && dlg.open) dlg.close();
+  render(); window.scrollTo(0, 0);
+}
+async function openSpace(id){
+  const entry = readSpaces().find(e => e.id === id); if(!entry) return false;
+  const raw = localStorage.getItem(spKey(id)); let data = null, pending = null, handle = null, fname = null;
+  const h = FSA ? await idbGet('handle:' + id) : null;
+  if(h){
+    try{
+      if((await h.queryPermission({mode:'readwrite'})) === 'granted'){ data = normalize(JSON.parse(await (await h.getFile()).text())); handle = h; fname = h.name; }
+      else { pending = h; fname = h.name; }
+    }catch{ /* fichier déplacé ou supprimé */ }
+  }
+  let backup = false;
+  if(!data){
+    if(!raw){ toast('Cet espace n’est plus disponible sur cet appareil.'); removeLocalCopy(id); render(); return false; }
+    try{ data = normalize(JSON.parse(raw)); backup = true; }catch{ toast('La copie de cet espace est illisible.'); return false; }
+  }
+  data.id = id; if(S && S.id !== id){ backupNow(); }
+  resetSession(); S = data; U.fileHandle = handle; U.fileName = fname; U.pending = pending; U.notice = (backup && !pending && !getSrc(id)) ? 'backup' : null;
+  try{ localStorage.setItem(ACT_KEY, id); }catch{}
+  backupNow(); render(); window.scrollTo(0, 0); return true;
+}
+function spaceOpen(id){
+  const e = readSpaces().find(x => x.id === id); if(!e) return;
+  if(e.lock) openPinCheck(() => openSpace(id), `Un parent doit saisir le code pour ouvrir « ${e.name} ».`, e.lock); else openSpace(id);
+}
+async function deleteSpace(id){
+  removeLocalCopy(id); await idbDel('handle:' + id);
+  if(S && S.id === id){ S = null; resetSession(); const dlg = $('#dlg'); if(dlg && dlg.open) dlg.close(); }
+  render();
+}
+/* Ajoute (ou remplace après confirmation) un espace issu d'un fichier, puis l'ouvre */
+async function adoptSpace(data, {handle, fileName, silent} = {}){
+  const dup = readSpaces().find(e => e.id === data.id);
+  if(dup && !silent && !(S && S.id === data.id && !U.dirty) && !confirm(`L’espace « ${dup.name} » existe déjà sur cet appareil. Remplacer sa copie par le contenu de ce fichier ?`)) return false;
+  if(S && S.id !== data.id) backupNow();
+  resetSession(); S = data; U.fileHandle = handle || null; U.fileName = handle ? handle.name : (fileName || null);
+  if(handle) await idbSet('handle:' + S.id, handle); else await idbDel('handle:' + S.id);
+  backupNow(); return true;
+}
+async function migrateLegacy(){
+  if(localStorage.getItem(SP_KEY) !== null) return;
+  const raw = localStorage.getItem(LS_KEY); if(!raw) return;
+  try{
+    const d = normalize(JSON.parse(raw)); localStorage.setItem(spKey(d.id), JSON.stringify(d)); writeSpaces([spaceMeta(d)]); localStorage.setItem(ACT_KEY, d.id);
+    const h = FSA ? await idbGet('handle') : null; if(h){ await idbSet('handle:' + d.id, h); await idbDel('handle'); }
+    localStorage.removeItem(LS_KEY);
+  }catch{}
+}
 let autosaveT = null;
 function scheduleAutosave(){
   if(!U.fileHandle) return;
@@ -1770,29 +2223,78 @@ function scheduleAutosave(){
 }
 /* Appelé après chaque modification des données */
 function touch(rerender = true){
-  U.dirty = true; backupNow(); scheduleAutosave();
+  U.dirty = true; if(S){ S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince && (!x.syncedAt || S.modifiedAt > x.syncedAt)) putSrc(S.id, {dirtySince:S.modifiedAt}); }
+  backupNow(); scheduleAutosave();
   if(rerender) render(); else updateStatus();
 }
-async function loadHandle(h){
-  const f = await h.getFile();
-  S = normalize(JSON.parse(await f.text()));
-  U.fileHandle = h; U.fileName = h.name; U.dirty = false; U.lastSaved = null; U.pending = null; U.needPerm = false; U.notice = null;
-  await idbSet('handle', h); backupNow();
+async function loadHandle(h, silent){
+  const f = await h.getFile(), raw = JSON.parse(await f.text()), data = withIdentity(raw, normalize(raw));
+  return adoptSpace(data, {handle:h, silent});
 }
 async function openFile(){
   if(FSA){
     try{
       const [h] = await window.showOpenFilePicker({types:JSON_TYPES, multiple:false});
-      await loadHandle(h); U.tab = 'synthese'; render(); toast('Fichier ouvert : ' + h.name);
+      if(await loadHandle(h)){ render(); toast('Fichier ouvert : ' + h.name); }
     }catch(e){ if(e.name !== 'AbortError') toast('Ouverture impossible : ' + e.message); }
   } else $('#file-in').click();
 }
+/* Comparaison fichier / copie locale : choix éclairé, jamais d'écrasement silencieux */
+function syncChoice(data, local, fileLabel){
+  return new Promise(res => {
+    U.syncCtx = res; const dlg = $('#dlg'); U.editing = null; const fileNewer = (data.modifiedAt || '') > (local.modifiedAt || ''), same = (data.modifiedAt || '') === (local.modifiedAt || '');
+    dlg.innerHTML = dlgShell('Fichier et copie différents', `<p class="hint">Cet espace existe déjà sur cet appareil.</p>
+      <ul class="leaders"><li><span>Fichier <small>${esc(fileLabel || '')}</small></span><i class="dots"></i><b>${data.modifiedAt ? esc(fmtWhen(data.modifiedAt)) : 'date inconnue'}</b></li><li><span>Copie de cet appareil</span><i class="dots"></i><b>${local.modifiedAt ? esc(fmtWhen(local.modifiedAt)) : 'date inconnue'}</b></li></ul>
+      <p class="note">${same ? 'Les deux ont la même date : ils sont probablement identiques.' : (fileNewer ? '<b>Le fichier est plus récent.</b> Il contient sans doute des modifications faites ailleurs.' : '<b>Ta copie est plus récente</b> que le fichier : le fichier n’a pas reçu tes dernières modifications.')}</p>`,
+      `<span></span><div class="r"><button type="button" class="btn" data-act="sync-cancel">Annuler</button><button type="button" class="btn ${fileNewer ? '' : 'primary'}" data-act="sync-keep">Garder ma copie</button><button type="button" class="btn ${fileNewer || same ? 'primary' : ''}" data-act="sync-load">Charger le fichier</button></div>`);
+    dlg.addEventListener('close', function f(){ dlg.removeEventListener('close', f); if(U.syncCtx){ const r = U.syncCtx; U.syncCtx = null; r('cancel'); } });
+    dlg.showModal();
+  });
+}
+function syncAnswer(act){ const r = U.syncCtx; U.syncCtx = null; const dlg = $('#dlg'); if(dlg.open) dlg.close(); if(r) r(act === 'sync-load' ? 'load' : (act === 'sync-keep' ? 'keep' : 'cancel')); }
+function askWhere(){
+  if(!S || U.fileHandle) return; const x = getSrc(S.id); if(!x || x.asked || x.where) return; putSrc(S.id, {asked:true});
+  const dlg = $('#dlg'); U.editing = null;
+  dlg.innerHTML = dlgShell('Où est ton fichier ?', `<p class="hint">Je m’en souviens : je ne te proposerai plus la copie du navigateur, et je te guiderai pour l’enregistrer au même endroit.</p>
+    <div class="chips wrapchips" role="group" aria-label="Emplacement du fichier">${Object.entries(WHERE).map(([id, l]) => `<button type="button" class="chip" data-act="src-where" data-id="${id}">${l}</button>`).join('')}</div>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="src-where" data-id="none">Plus tard</button></div>`);
+  dlg.showModal();
+}
+async function pickReload(){
+  if(FSA && U.fileHandle){ toast('Ce fichier est déjà lié : il se met à jour tout seul.'); return; }
+  U.reload = true; $('#file-in').click();
+}
 async function loadFromInput(file){
+  const wasReload = !!U.reload, keepTab = U.tab; U.reload = false;
   try{
-    const data = normalize(JSON.parse(await file.text()));
-    if(S && !confirm('Remplacer les données actuelles par le contenu de « ' + file.name + ' » ?')) return;
-    S = data; U.fileHandle = null; U.fileName = file.name; U.dirty = false; U.tab = 'synthese'; backupNow(); render(); toast('Fichier chargé : ' + file.name);
+    const raw = JSON.parse(await file.text()), data = withIdentity(raw, normalize(raw));
+    if(!data.modifiedAt && file.lastModified) data.modifiedAt = new Date(file.lastModified).toISOString();
+    const local = (() => { try{ return JSON.parse(localStorage.getItem(spKey(data.id)) || 'null'); }catch{ return null; } })();
+    const cur = S && S.id === data.id ? S : null, loc = cur || (local && { modifiedAt: local.modifiedAt || null });
+    if(loc){
+      if(cur && U.dirty) backupNow();
+      if((data.modifiedAt || '') === (loc.modifiedAt || '') && data.modifiedAt){
+        if(!(S && S.id === data.id) && !(await openSpace(data.id))) return;
+        putSrc(S.id, {name:file.name}); markSynced(file.name); render(); toast('Ton espace est déjà à jour avec ce fichier.'); askWhere(); return;
+      }
+      const ch = await syncChoice(data, cur || loc, file.name);
+      if(ch === 'cancel') return;
+      if(ch === 'keep'){ if(!S || S.id !== data.id){ await openSpace(data.id); } putSrc(S.id, {name:file.name}); await shareFile(); askWhere(); render(); return; }
+    }
+    if(await adoptSpace(data, {fileName:file.name, silent:true})){ putSrc(S.id, {name:file.name, syncedAt:S.modifiedAt || nowIso(), dirtySince:null}); if(wasReload && S.kind !== 'kid') U.tab = keepTab; render(); toast((wasReload ? 'Fichier rechargé : ' : 'Fichier chargé : ') + file.name); askWhere(); }
   }catch(e){ toast('Fichier refusé : ' + e.message); }
+}
+async function shareFile(){
+  if(!S) return false;
+  const text = JSON.stringify(S, null, 2), name = (getSrc(S.id) || {}).name || U.fileName || defaultFileName();
+  const file = (typeof File === 'function') ? new File([text], name, {type:'application/json'}) : null;
+  if(file && navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+    const x = getSrc(S.id), where = x && WHERE[x.where];
+    toast(`Choisis « Enregistrer dans Fichiers »${where && x.where !== 'other' ? `, puis ${where}` : ''}, et remplace ${name}.`);
+    try{ await navigator.share({files:[file], title:name}); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Enregistré dans Fichiers'); updateStatus(); return true; }
+    catch(e){ if(e.name === 'AbortError') return false; }
+  }
+  download(name, text); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé'); updateStatus(); return true;
 }
 async function saveFile(saveAs = false){
   if(!S) return;
@@ -1802,7 +2304,7 @@ async function saveFile(saveAs = false){
       let h = U.fileHandle;
       if(!h || saveAs){
         h = await window.showSaveFilePicker({suggestedName:U.fileName || defaultFileName(), types:JSON_TYPES});
-        U.fileHandle = h; U.fileName = h.name; await idbSet('handle', h);
+        U.fileHandle = h; U.fileName = h.name; await idbSet('handle:' + S.id, h);
       } else if((await h.queryPermission({mode:'readwrite'})) !== 'granted'){
         if((await h.requestPermission({mode:'readwrite'})) !== 'granted') return;
       }
@@ -1810,8 +2312,7 @@ async function saveFile(saveAs = false){
       U.dirty = false; U.lastSaved = new Date(); U.needPerm = false; U.pending = null; toast('Enregistré dans ' + h.name);
     }catch(e){ if(e.name !== 'AbortError') toast('Enregistrement impossible : ' + e.message); }
   } else {
-    download(U.fileName || defaultFileName(), text);
-    U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé');
+    await shareFile(); askWhere(); render(); return;
   }
   updateStatus();
 }
@@ -1821,25 +2322,17 @@ async function reconnect(){
     if((await h.requestPermission({mode:'readwrite'})) !== 'granted') return;
     if(S && U.pending){
       if(confirm('Charger le contenu de « ' + h.name + ' » à la place des données affichées ?\n\nOK : charger le fichier.\nAnnuler : garder les données affichées et les enregistrer dans ce fichier.')){
-        await loadHandle(h);
-      } else { U.fileHandle = h; U.fileName = h.name; U.pending = null; U.needPerm = false; await idbSet('handle', h); await saveFile(); }
-    } else if(U.pending){ await loadHandle(h); }
+        await loadHandle(h, true);
+      } else { U.fileHandle = h; U.fileName = h.name; U.pending = null; U.needPerm = false; await idbSet('handle:' + S.id, h); await saveFile(); }
+    } else if(U.pending){ await loadHandle(h, true); }
     else { U.needPerm = false; await saveFile(); }
     render();
   }catch(e){ toast('Accès refusé : ' + e.message); }
 }
 async function init(){
-  const h = FSA ? await idbGet('handle') : null;
-  if(h){
-    try{
-      if((await h.queryPermission({mode:'readwrite'})) === 'granted'){ await loadHandle(h); render(); return; }
-      U.pending = h; U.fileName = h.name;
-    }catch{ /* fichier déplacé ou supprimé */ }
-  }
-  const raw = localStorage.getItem(LS_KEY);
-  if(raw){
-    try{ S = normalize(JSON.parse(raw)); U.notice = 'backup'; }catch{}
-  }
+  await migrateLegacy();
+  const act = readSpaces().find(e => e.id === localStorage.getItem(ACT_KEY));
+  if(act && !act.lock && await openSpace(act.id)) return;   // un espace protégé par code n'est jamais rouvert tout seul
   render();
 }
 
@@ -1850,15 +2343,17 @@ function toast(msg){
   t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.add('hidden'), 3800);
 }
 function statusHTML(){
-  const hm = d => d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  const hm = d => d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), src = srcInfo();
   let txt, cls = '';
   if(U.needPerm || U.pending){ txt = 'Fichier à reconnecter'; cls = 'warn'; }
   else if(U.fileHandle){ txt = U.dirty ? 'Enregistrement…' : `${U.fileName}${U.lastSaved ? ' – ' + hm(U.lastSaved) : ''}`; }
+  else if(src) txt = src.unsynced ? `À enregistrer dans ${src.name}` : `Source : ${src.name}${src.syncedAt ? ' · ' + fmtWhen(src.syncedAt) : ''}`;
   else txt = U.dirty ? 'Non enregistré' : (U.lastSaved ? `Exporté à ${hm(U.lastSaved)}` : 'Sans fichier');
-  if(!U.fileHandle && !U.pending && U.dirty) cls = 'warn';
+  if(src && src.unsynced) cls = 'warn'; else if(!U.fileHandle && !U.pending && !src && U.dirty) cls = 'warn';
+  const todo = src ? src.unsynced : (U.dirty && !U.fileHandle);
   const btn = (U.needPerm || U.pending)
     ? '<button class="btn primary small" data-act="reconnect">Reconnecter</button>'
-    : `<button class="btn ${U.dirty && !U.fileHandle ? 'primary' : ''} small" data-act="save">Enregistrer</button>`;
+    : `<button class="btn ${todo ? 'primary' : ''} small" data-act="save">Enregistrer</button>`;
   return `<div class="stat"><span class="status ${cls}" title="${esc(txt)}">${esc(txt)}</span></div>${btn}`;
 }
 function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHTML(); }
@@ -1888,16 +2383,30 @@ function shell(){
 }
 function bannerHTML(){
   if(U.pending) return `<div class="banner slim"><span>Fichier <b>${esc(U.fileName)}</b> lié : à rouvrir.</span><button class="btn primary small" data-act="reconnect">Autoriser</button></div>`;
-  if(U.notice === 'backup') return `<div class="banner slim"><span>Restauré depuis la copie de secours du navigateur.</span><span class="bn-acts"><button class="btn small" data-act="save">${FSA ? 'Enregistrer' : 'Exporter'}</button><button class="btn ghost small" data-act="dismiss" aria-label="Masquer">✕</button></span></div>`;
+  const src = srcInfo();
+  if(src){
+    if(src.unsynced && src.since && Date.now() - Date.parse(src.since) > 86400000 && U.noticeSrc !== 'off')
+      return `<div class="banner slim"><span>Modifications non enregistrées dans <b>${esc(src.name)}</b> depuis le ${esc(fmtWhen(src.since))}.</span><span class="bn-acts"><button class="btn primary small" data-act="save">${shareFileCan() ? 'Enregistrer dans Fichiers' : 'Exporter'}</button><button class="btn ghost small" data-act="dismiss-src" aria-label="Masquer">✕</button></span></div>`;
+    return '';
+  }
+  if(U.notice === 'backup') return `<div class="banner slim"><span>Cet espace n’est gardé que dans ce navigateur. Enregistre-le dans un fichier pour qu’il reste en sécurité.</span><span class="bn-acts"><button class="btn small" data-act="save">${FSA ? 'Choisir un fichier' : (shareFileCan() ? 'Enregistrer dans Fichiers' : 'Exporter')}</button><button class="btn ghost small" data-act="dismiss" aria-label="Masquer">✕</button></span></div>`;
   return '';
+}
+function shareFileCan(){ try{ return !!(navigator.share && navigator.canShare && typeof File === 'function' && navigator.canShare({files:[new File(['{}'], 'a.json', {type:'application/json'})]})); }catch{ return false; } }
+function spacesHTML(){
+  const list = readSpaces().sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
+  if(!list.length) return '';
+  return `<div class="spaces-wrap"><h2 class="spaces-h">Mes espaces ${H('espaces')}</h2><ul class="spaces">${list.map(e => `<li><button type="button" class="space" data-act="space-open" data-id="${esc(e.id)}"><span class="sp-ico" aria-hidden="true">${e.kind === 'kid' && MASC[e.mascot] ? `<svg viewBox="0 0 160 140" width="46" height="40" focusable="false">${MASC[e.mascot].happy}</svg>` : '🏠'}</span><span class="sp-main"><b>${esc(e.name)}</b><small>${e.kind === 'kid' ? 'Espace enfant' : 'Foyer'}${e.lock ? ' · protégé par un code' : ''}</small></span><span class="sp-go" aria-hidden="true">${e.lock ? '🔒' : '›'}</span></button><button type="button" class="space-del" data-act="space-del" data-id="${esc(e.id)}" aria-label="Supprimer l’espace ${esc(e.name)}">Supprimer</button></li>`).join('')}</ul></div>`;
 }
 function welcome(){
   return `<section class="welcome">
     <div class="w-pig">${piggy('happy', 200, 'drop')}</div>
     <h1>MaTirelire</h1>
     <p class="w-tag">Les comptes du foyer, et la tirelire des enfants.</p>
-    <p>Par où commences-tu ? Tout est rangé dans un fichier JSON que tu choisis sur ton appareil : rien n’est envoyé à ce site.</p>
+    <p>${readSpaces().length ? 'Ouvre un de tes espaces, ou crées-en un nouveau.' : 'Par où commences-tu ?'} Tout est rangé dans un fichier JSON que tu choisis sur ton appareil : rien n’est envoyé à ce site.</p>
+    ${spacesHTML()}
     ${U.pending ? `<div class="banner slim"><span>Fichier lié : <b>${esc(U.fileName)}</b></span><button class="btn primary small" data-act="reconnect">Rouvrir ce fichier</button></div>` : ''}
+    <p class="doors-h">${readSpaces().length ? 'Créer un nouvel espace' : ''}</p>
     <div class="doors"><button type="button" class="door" data-act="setup"><span class="door-ico" aria-hidden="true">🏠</span><b>Je suis un adulte</b><small>Créer mon foyer : budget, comptes, argent de poche des enfants</small></button>
       <button type="button" class="door kidsdoor" data-act="kid-setup"><span class="door-ico" aria-hidden="true">🎒</span><b>Je suis un enfant</b><small>Ma tirelire : mes rêves, mon épargne, mes succès</small></button></div>
     <div class="acts"><button class="btn" data-act="open">Ouvrir mon fichier JSON</button></div>
@@ -2081,7 +2590,18 @@ const HELP = {
     <ul><li>L’argent de poche arrive tout seul au jour prévu, selon le montant du budget.</li><li>Un <b>code parent</b> à quatre chiffres protège les réglages, la validation des achats et la sortie de l’espace.</li><li>Tout reste dans ton fichier : pas de compte, pas de publicité, pas d’achat.</li></ul><p class="note">Le vocabulaire s’adapte à l’âge : petits, juniors, ados.</p>`},
   'kid-mascotte':{title:'Ta mascotte', body:`<p>Elle te souhaite la bienvenue, te félicite quand tu avances et t’encourage quand tu dois attendre. Chaque enfant choisit la sienne, et elle peut changer à tout moment dans « Moi ».</p>`},
   'kid-code':{title:'Le code parent', body:`<p>Un code à quatre chiffres que seuls les parents connaissent. Il sert à valider l’achat d’un rêve, à régler l’argent de poche et à supprimer l’espace.</p><p>Sans code, rien n’est bloqué : l’appli te demande seulement si un parent est d’accord. Tu peux en créer un plus tard dans l’espace parent.</p>`},
+  source:{title:'Source du fichier', body:`<p>Quand tu ouvres un fichier (iCloud Drive, Google Drive, Dropbox…), l’appli <b>retient son nom et son emplacement</b> sur cet appareil et s’appuie dessus. La copie du navigateur n’est plus qu’un filet de sécurité silencieux.</p><ul><li><b>À enregistrer</b> : des changements ne sont pas encore dans ton fichier.</li><li><b>Enregistrer dans Fichiers</b> ouvre la feuille de partage d’iOS avec le même nom : choisis le même endroit et remplace le fichier.</li><li><b>Recharger depuis le fichier</b> compare les dates : tu sais lequel est le plus récent, rien n’est écrasé sans ton accord.</li></ul><p class="note">Sur iPhone, une page web ne peut pas écrire seule dans le cloud : c’est une limite d’iOS.</p>`},
+  espaces:{title:'Plusieurs espaces', body:`<p>Sur un même appareil, tu peux garder <b>plusieurs espaces</b> : le foyer des parents, et l’espace de chaque enfant. Chacun a son propre fichier JSON et sa propre copie de secours.</p><ul><li><b>Changer d’espace</b> ne supprime rien : tu retrouves tout dans la liste de l’accueil.</li><li><b>Supprimer</b> retire un espace de l’appareil. Les fichiers que tu as enregistrés ne sont pas touchés.</li></ul><p class="note">Un parent peut importer l’espace d’un enfant dans son foyer, et inversement.</p>`},
+  verrou:{title:'Accès à ce foyer', body:`<p>Quand un enfant utilise le même appareil, active le <b>code parent à l’ouverture</b> : pour ouvrir ce foyer depuis la liste des espaces, le code est demandé. L’appli ne rouvre alors pas le foyer toute seule au démarrage.</p><p class="note">C’est un garde-fou familial, pas un coffre-fort : le fichier JSON reste lisible par qui y a accès.</p>`},
   'kid-fichier':{title:'Mon fichier', body:`<p>Ta tirelire est rangée dans un fichier, sur cet appareil. Rien n’est envoyé sur Internet.</p><ul><li><b>Enregistrer</b> met le fichier à jour (selon ton appareil, il est téléchargé).</li><li><b>Exporter</b> crée une copie que tu peux garder ou donner à un parent.</li></ul><p class="note">Un parent peut importer ce fichier dans son foyer pour suivre ta tirelire avec toi.</p>`},
+  'kid-budget':{title:'Mon budget', body:`<p>Un budget, c’est un plan pour le mois : <b>combien tu peux dépenser</b> dans chaque catégorie.</p><ul><li>Fixe un plafond par enveloppe (sorties, jeux…). La barre se remplit à mesure que tu notes tes dépenses.</li><li>Les <b>abonnements</b> sont prélevés tout seuls, chaque mois, dans ton bocal « dépenser ». S’il n’y a pas assez d’argent, rien n’est prélevé et on te le dit, sans punition.</li><li>Tout cela te prépare à ton premier vrai budget d’adulte.</li></ul>`},
+  'kid-simu':{title:'Simulateurs', body:`<p>Pour <b>s’entraîner</b> : change les chiffres et regarde ce qui se passe.</p><ul><li><b>Épargne</b> : ce que tu auras après quelques mois ou années, avec ou sans intérêts.</li><li><b>Abonnement</b> : ce qu’il coûte par an et sur plusieurs années.</li><li><b>Par usage</b> : le vrai prix d’un achat selon le nombre de fois où tu t’en sers.</li></ul><p class="note">Ce sont des estimations : les vrais taux et prix changent.</p>`},
+  'kid-lecons':{title:'Leçons', body:`<p>Chaque leçon tient en <b>trois cartes</b> à lire, puis un <b>petit quiz</b> de deux questions.</p><ul><li>Une leçon est réussie quand tu as au moins la moitié des bonnes réponses. Tu peux recommencer : ton meilleur score est gardé.</li><li>Les leçons gagnées te donnent des succès, et débloquent des accessoires pour ta mascotte.</li><li>Elles sont adaptées à ton âge : les petits, les juniors et les ados n’ont pas les mêmes.</li></ul>`},
+  'kid-acc':{title:'Accessoires de ta mascotte', body:`<p>Chaque succès peut débloquer un accessoire : chapeau de fête, couronne, lunettes, écharpe…</p><ul><li>Appuie sur un accessoire débloqué pour le mettre, rappuie pour l’enlever.</li><li>Tu peux en porter <b>un par emplacement</b> : sur la tête, sur le visage, autour du cou.</li><li>Un accessoire verrouillé t’indique le succès qu’il faut gagner.</li></ul>`},
+  'kid-envies':{title:'Envies à mûrir', body:`<p>Une envie soudaine ? <b>Note-la</b> au lieu d’acheter tout de suite. On attend un peu (24 h, parfois 48 h), puis tu te demandes : « Est-ce que je la veux toujours ? »</p><ul><li><b>Oui</b> : elle devient un rêve et tu peux l’épargner.</li><li><b>Plus envie</b> : bravo, tu as gardé ton argent pour mieux choisir.</li></ul><p class="note">Les grands achats plaisir gagnent à mûrir : c’est une astuce de grands épargnants.</p>`},
+  'kid-defis':{title:'Défis', body:`<p>Un défi est un petit challenge de quelques jours. Il <b>se mesure tout seul</b> à partir de ce que tu notes dans l’appli.</p><ul><li>Un seul défi à la fois.</li><li>Si tu ne le réussis pas, ce n’est pas grave : on peut réessayer quand on veut.</li><li>Un parent peut convenir d’une petite récompense pour les défis réussis.</li></ul>`},
+  'kid-boost':{title:'Boost et intérêts', body:`<p>Si un parent l’a prévu, il peut <b>compléter</b> les sommes que tu mets dans tes rêves, et ton épargne peut <b>rapporter des intérêts</b> chaque mois : c’est la graine qui pousse.</p><p class="note">Plus tu épargnes tôt, plus tu gagnes. Ce n’est pas de la magie : c’est un coup de pouce de tes parents.</p>`},
+  'kid-bilan':{title:'Bilan du mois', body:`<p>Un résumé du mois de l’enfant : ce qui est arrivé, ce qu’il a dépensé, épargné ou donné, ses rêves, ses défis et sa patience.</p><p>Les <b>pistes de discussion</b> sont des idées de questions à lui poser, pas des jugements. Le bilan peut être copié pour être gardé.</p>`},
   'kid-tirelire':{title:'Ma tirelire', body:`<p>Ton argent est rangé dans trois bocaux :</p><ul><li><b>Dépenser</b> : pour tes envies du moment.</li><li><b>Épargner</b> : pour tes rêves. Plus il grossit, plus tu avances.</li><li><b>Donner</b> : pour faire plaisir à quelqu’un ou aider.</li></ul><p class="note">Tu peux recompter tes pièces quand tu veux avec « Compter mes pièces ».</p>`},
   'kid-reves':{title:'Mes rêves', body:`<p>Un rêve, c’est quelque chose qui te ferait vraiment plaisir : un jeu, une sortie, des baskets…</p><p>Tu y mets de l’argent de ton épargne libre. La barre se remplit, et on t’indique à peu près quand tu y arriveras. Quand il est complet, un parent valide l’achat.</p>`},
   'kid-succes':{title:'Succès et niveaux', body:`<p>Chaque fois que tu épargnes, tu avances : <b>Graine</b>, <b>Pousse</b>, <b>Arbuste</b>, <b>Arbre</b>, <b>Forêt</b>.</p><p>Les succès se gagnent en épargnant, en réalisant tes rêves, en donnant ou en comptant tes pièces. Rien ne se perd si tu fais une pause.</p>`},
@@ -2184,7 +2704,7 @@ function envBarClass(x){ return x.over > 0.005 ? 'bad' : (x.pct >= 0.8 ? 'warn' 
 function kidsCardHTML(){
   const kids = S.members.filter(m => m.type !== 'adult');
   return `<section class="card kidsentry"><header><h2>Espace enfants ${H('kid-espace')}</h2></header><p class="hint">${kids.length ? 'Une tirelire à eux, avec des rêves à réaliser. Choisis un enfant :' : 'Un enfant a déjà son espace dans un fichier à lui ? Importe-le dans ton foyer.'}</p>
-    <div class="chips wrapchips">${kids.map(m => { const st = kidStage(ensureKid(m)); return `<button type="button" class="chip" data-act="kid-open" data-id="${esc(m.id)}">${esc(m.name)}${st.age === null ? ' · âge ?' : (st.locked ? ` · dès 6 ans` : ` · ${st.age} ans`)}${m.kid.on && !st.locked ? ` · ${money(kidTotal(m.kid))}` : ''}</button>`; }).join('')}</div>
+    <div class="chips wrapchips">${kids.map(m => { const st = kidStage(ensureKid(m)); return `<button type="button" class="chip" data-act="kid-open" data-id="${esc(m.id)}">${esc(m.name)}${st.age === null ? ' · âge ?' : (st.locked ? ` · dès 6 ans` : ` · ${st.age} ans`)}${m.kid.on && !st.locked ? ` · ${money(kidTotal(m.kid))}` : ''}</button>${m.kid.on && !st.locked ? `<button type="button" class="chip ghostchip" data-act="kid-report-open" data-id="${esc(m.id)}" aria-label="Bilan du mois de ${esc(m.name)}">Bilan</button>` : ''}`; }).join('')}</div>
     <div class="toolbar"><button type="button" class="btn small" data-act="kid-import">Importer un espace enfant</button></div></section>`;
 }
 function envelopeCardHTML(){
@@ -2298,10 +2818,12 @@ function neFromSuggest(i){
 
 /* ----- Espace enfant : tirelire à trois bocaux, rêves, succès, profil, espace parent protégé par un code ----- */
 const KT = {   // vocabulaire adapté à l'âge
-  petit:{hello:'Coucou', jars:{spend:'Je dépense', save:'Je garde', give:'Je donne'}, total:'Mes pièces', got:'J’ai reçu', spent:'J’ai dépensé', give:'Je donne', count:'Compter mes pièces', dreams:'Mes rêves', newdream:'Un nouveau rêve', badges:'Mes étoiles', me:'Moi', pct:false},
+  petit:{hello:'Coucou', jars:{spend:'Je dépense', save:'Je garde', give:'Je donne'}, total:'Mes pièces', got:'J’ai reçu', spent:'J’ai dépensé', give:'Je donne', count:'Compter mes pièces', dreams:'Mes rêves', newdream:'Un nouveau rêve', badges:'Étoiles', me:'Moi', pct:false},
   junior:{hello:'Salut', jars:{spend:'Dépenser', save:'Épargner', give:'Donner'}, total:'Ma tirelire', got:'J’ai reçu', spent:'J’ai dépensé', give:'Donner', count:'Compter mes pièces', dreams:'Mes rêves', newdream:'Nouveau rêve', badges:'Succès', me:'Moi', pct:true},
   ado:{hello:'Hello', jars:{spend:'Dépenser', save:'Épargner', give:'Donner'}, total:'Mon argent', got:'Reçu', spent:'Dépensé', give:'Don', count:'Recompter', dreams:'Mes objectifs', newdream:'Nouvel objectif', badges:'Succès', me:'Profil', pct:true},
 };
+const waitWord = (h, lv) => lv === 'petit' ? (h === 24 ? 'un dodo' : h === 48 ? 'deux dodos' : 'tout de suite') : (h === 0 ? 'tout de suite' : `${h} h`);
+const hoursLeftTxt = (h, lv) => h <= 0 ? 'prête' : (lv === 'petit' ? (h <= 12 ? 'bientôt prête' : 'après un dodo') : (h > 24 ? `encore ${Math.ceil(h / 24)} jours` : `encore ${h} h`));
 const KID_TPL = [
   {id:'jeu', name:'Nouveau jeu vidéo', icon:'🎮', price:60}, {id:'sortie', name:'Journée au parc d’attractions', icon:'🎢', price:35}, {id:'cine', name:'Sortie cinéma avec les copains', icon:'🍿', price:25},
   {id:'escape', name:'Escape game', icon:'🔐', price:30}, {id:'concert', name:'Concert', icon:'🎤', price:50}, {id:'activite', name:'Stage ou activité', icon:'🎨', price:80},
@@ -2309,7 +2831,7 @@ const KID_TPL = [
   {id:'cadeau', name:'Cadeau pour quelqu’un', icon:'🎁', price:20}, {id:'colo', name:'Séjour ou colo', icon:'⛺', price:150}, {id:'velo', name:'Vélo', icon:'🚲', price:200},
 ];
 const KID_ICONS = ['⭐', '🎮', '🎢', '🍿', '🔐', '🎤', '🎨', '👟', '👕', '🎧', '🎁', '⛺', '🚲', '⚽', '🎸', '📚', '🧸', '🛹', '📷', '🐶'];
-const KID_CATS = [['friandises', 'Friandises'], ['jeux', 'Jeux'], ['sorties', 'Sorties'], ['vetements', 'Vêtements'], ['autre', 'Autre']];
+const KID_CATS = [['friandises', 'Friandises'], ['jeux', 'Jeux'], ['sorties', 'Sorties'], ['vetements', 'Vêtements'], ['abos', 'Abonnements'], ['autre', 'Autre']];
 const kidMember = () => U.kid && S.members.find(x => x.id === U.kid.id);
 const kidMascotId = () => { const m = kidMember(); return m && m.kid && m.kid.mascot; };
 /* Code parent : empreinte SHA-256 salée, jamais le code lui-même */
@@ -2325,8 +2847,8 @@ function openPinSetup(next, change){
     `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="pin-ok">Enregistrer</button></div>`);
   dlg.showModal(); focusQuiet($('#pin-1'));
 }
-function openPinCheck(next, why){
-  U.pinCtx = {mode:'check', next}; const dlg = $('#dlg'); U.editing = null;
+function openPinCheck(next, why, lock){
+  U.pinCtx = {mode:'check', next, lock:lock || null}; const dlg = $('#dlg'); U.editing = null;
   dlg.innerHTML = dlgShell('Code parent', `<p class="hint">${esc(why || 'Un parent doit saisir son code.')}</p>${pinField('pin-1', 'Code parent')}`,
     `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="pin-ok">Valider</button></div>`);
   dlg.showModal(); focusQuiet($('#pin-1'));
@@ -2339,15 +2861,15 @@ async function pinSubmit(){
     const salt = uid(); S.settings.parentPin = {salt, hash:await pinHash(salt, a)}; U.dirty = true; backupNow(); scheduleAutosave(); $('#dlg').close(); toast('Code parent enregistré'); const n = c.next; U.pinCtx = null; if(n) n(); else render(); return;
   }
   const now = Date.now(); if(now < (U.pinLock || 0)){ toast(`Trop d’essais. Réessaie dans ${Math.ceil((U.pinLock - now) / 1000)} s.`); return; }
-  const pp = S.settings.parentPin; if(!pp){ $('#dlg').close(); if(c.next) c.next(); return; }
+  const pp = c.lock || (S && S.settings.parentPin); if(!pp){ $('#dlg').close(); if(c.next) c.next(); return; }
   if(await pinHash(pp.salt, a) === pp.hash){ U.pinFails = 0; $('#dlg').close(); const n = c.next; U.pinCtx = null; if(n) n(); return; }
   U.pinFails = (U.pinFails || 0) + 1; $('#pin-1').value = '';
   if(U.pinFails >= 5){ U.pinLock = Date.now() + 30000; U.pinFails = 0; toast('Code incorrect. Patiente 30 secondes avant de réessayer.'); } else toast('Code incorrect.');
 }
 /* Entrée et sortie de l'espace enfant */
 function kidTick(){
-  let n = 0; S.members.forEach(m => { if(m.kid && m.kid.on){ n += kidRunAllowance(m); if(kidSyncLevel(m.kid)) n++; } });
-  if(n){ U.dirty = true; backupNow(); scheduleAutosave(); } return n;
+  let n = 0; S.members.forEach(m => { if(m.kid && m.kid.on){ n += kidRunAllowance(m); if(kidSyncLevel(m.kid)) n++; n += kidRunInterest(m.kid) + kidRunWishes(m.kid) + kidRunChallenges(m.kid) + kidRunSubs(m.kid); } });
+  if(n){ U.dirty = true; S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince) putSrc(S.id, {dirtySince:S.modifiedAt}); backupNow(); scheduleAutosave(); } return n;
 }
 function openAgeAsk(m, next){
   U.editing = null; U.ageCtx = {id:m.id, next}; const dlg = $('#dlg');
@@ -2386,7 +2908,7 @@ function kidGoalCard(k, g, lv, T){
   const pct = Math.round(kidPct(g) * 100), eta = kidGoalEta(k, g), ready = g.status === 'ready';
   return `<button type="button" class="kgoal ${ready ? 'ready' : ''}" data-act="kid-goal" data-id="${esc(g.id)}" aria-label="Rêve : ${esc(g.name)}, ${pct} pour cent">
     <span class="kg-ico" aria-hidden="true">${esc(g.icon)}</span><span class="kg-main"><span class="kg-top"><b>${esc(g.name)}</b>${T.pct ? `<span class="kg-pct">${pct} %</span>` : (ready ? '<span class="kg-pct">★</span>' : '')}</span>
-    <span class="kbar thin"><i style="width:${pct}%"></i></span><span class="kg-sub">${esc(kidEta(lv, eta, g))}</span></span></button>`;
+    <span class="kbar thin"><i style="width:${pct}%"></i></span><span class="kg-sub">${esc(kidEta(lv, eta, g))}${(g.boosted || 0) > 0 ? ` · dont ${money(g.boosted)} de boost du parent` : ''}</span></span></button>`;
 }
 function kidSceneHTML(k, lv){
   const goal = k.goals.filter(g => g.status !== 'bought').sort((a, b) => (b.status === 'ready') - (a.status === 'ready') || kidPct(b) - kidPct(a))[0];
@@ -2399,13 +2921,30 @@ function kidSceneHTML(k, lv){
   return `<section class="kscene" aria-label="Ta mascotte et ton prochain rêve"><div class="ks-mascot">${piggy('happy', size, '')}</div><div class="ks-bubble" role="status">${msg}</div></section>`;
 }
 const LV_LABEL = {petit:'Petits', junior:'Juniors', ado:'Ados'};
+function kidBudgetCard(m, k){
+  const d = new Date(), st = kidEnvStats(k, d.getFullYear(), d.getMonth() + 1), f = v => money(v);
+  if(!kidEnvOn(k)) return `<section class="kcard"><p class="kc-k">Mon budget du mois ${H('kid-budget')}</p><p class="khint">Prévois combien tu veux dépenser dans chaque catégorie. Je te montre où tu en es, sans te gronder.</p><div class="kactions one"><button type="button" class="btn kbtn primary" data-act="kid-budget">Créer mon budget</button></div></section>`;
+  const tot = st.planned > 0 ? Math.min(100, Math.round(st.spent / st.planned * 100)) : 0;
+  return `<section class="kcard"><p class="kc-k">Mon budget · ${MONTHS_FULL[d.getMonth()]} ${H('kid-budget')}</p>${st.planned > 0 ? `<p class="kc-v small">${f(st.spent)} <small>sur ${f(st.planned)} prévus</small></p><span class="kbar thin" role="img" aria-label="${tot} pour cent du budget dépensé"><i style="width:${tot}%"></i></span>` : ''}
+    <ul class="envl">${st.rows.map(r => `<li class="env-${r.state}"><span class="el-n">${esc(r.label)}</span><span class="el-v">${f(r.spent)}${r.limit > 0 ? ' / ' + f(r.limit) : ''}</span>${r.limit > 0 ? `<span class="kbar thin"><i style="width:${Math.min(100, r.pct)}%"></i></span>` : ''}<span class="el-s">${r.state === 'over' ? `Dépassée de ${f(r.spent - r.limit)}` : (r.state === 'warn' ? `Il te reste ${f(r.left)} : attention` : (r.state === 'ok' ? `Il te reste ${f(r.left)}` : ''))}</span></li>`).join('')}</ul>
+    ${k.subs.some(x => x.active) ? `<p class="khint">Abonnements : <b>${f(st.subs)}</b> par mois, soit <b>${f(st.subs * 12)}</b> par an.</p>` : ''}
+    <div class="kactions"><button type="button" class="btn kbtn" data-act="kid-budget">Régler mon budget</button><button type="button" class="btn kbtn" data-act="kid-sim" data-id="savings">Simulateurs</button></div></section>`;
+}
 function startAdultFromKid(m){ startWizard({name:m.name, kid:JSON.parse(JSON.stringify(ensureKid(m))), mascot:S.settings.mascot, skin:S.settings.skin}); }
+function kidChallengeCard(k, lv){
+  const ch = kidActiveChallenge(k); if(!ch) return '';
+  const def = kidChallengeDef(ch.type, lv), st = kidChallengeState(k, ch), total = def.days, done = Math.min(total, total - st.left), pct = st.goal ? Math.round(Math.min(1, st.count / st.goal) * 100) : Math.round(done / total * 100);
+  return `<section class="kcard chal"><p class="kc-k">Défi en cours ${H('kid-defis')}</p><p class="kc-v small">${esc(def.name)}</p><span class="kbar thin" role="img" aria-label="Avancement du défi"><i style="width:${pct}%"></i></span><p class="khint">${st.goal ? `${st.count} sur ${st.goal}` : ''} ${st.left <= 1 ? 'Dernier jour !' : `Encore ${st.left} jours`}. ${esc(def.hint)}</p></section>`;
+}
+function kidNewsHTML(k){
+  return k.news.slice(-3).map(n => `<section class="kcard passage news news-${esc(n.kind)}" role="status"><p class="kc-v small">${n.kind === 'challenge-won' ? 'Défi réussi !' : n.kind === 'challenge-lost' ? 'Pas cette fois' : n.kind === 'interest' ? 'La graine pousse' : n.kind === 'wish' ? 'Ton envie a mûri' : 'Nouveau'}</p><p class="khint">${esc(n.text)}</p><div class="kactions one"><button type="button" class="btn kbtn ${n.kind === 'wish' ? 'primary' : ''}" data-act="${n.kind === 'wish' ? 'kid-news-wish' : 'kid-news-ok'}" data-id="${esc(n.id)}">${n.kind === 'wish' ? 'Voir mes envies' : 'Super !'}</button></div></section>`).join('');
+}
 function kidCardsHTML(m, k, lv){
-  const st = kidStage(k); let out = '';
+  const st = kidStage(k); let out = kidNewsHTML(k) + kidChallengeCard(k, lv);
   if(k.passage) out += `<section class="kcard passage" role="status"><p class="kc-v small">Tu as ${kidAge(k, new Date(k.passage.date + 'T00:00:00'))} ans !</p><p class="khint">Ton espace grandit : tu passes de <b>${LV_LABEL[k.passage.from]}</b> à <b>${LV_LABEL[k.passage.to]}</b>. Tes couleurs et ta mascotte restent comme avant.</p><div class="kactions one"><button type="button" class="btn kbtn primary" data-act="kid-passage-ok">Super !</button></div></section>`;
   if(!k.birth) out += `<section class="kcard"><p class="kc-k">Quel âge as-tu ?</p><div class="agegrid" role="group" aria-label="Quel âge as-tu ?">${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<button type="button" class="agechip" data-act="kid-setage" data-age="${a}" aria-label="${a} ans">${a}</button>`).join('')}</div><p class="khint">Cela adapte ton espace et le fait évoluer tout seul.</p></section>`;
   if(st.adult && !k.adultSeen) out += S.kind === 'kid'
-    ? `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Tu peux créer ton propre foyer. Ton historique d’épargne, ta mascotte et tes couleurs te suivent.</p><div class="kactions"><button type="button" class="btn kbtn primary" data-act="kid-adult18">Créer mon foyer</button><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`
+    ? `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Tu peux créer ton propre foyer. Ton historique d’épargne, ta mascotte et tes couleurs te suivent.</p><div class="kactions"><button type="button" class="btn kbtn primary" data-act="kid-adult18">Créer mon foyer</button><button type="button" class="btn kbtn" data-act="kid-bulletin">Mon bulletin</button></div><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`
     : `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Demande à un parent : l’espace parent propose de te faire passer adulte dans le foyer.</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`;
   return out;
 }
@@ -2421,6 +2960,7 @@ function kidHomeHTML(m, k, lv, T){
       <div class="klegend">${KID_JARS.map(j => `<span><i class="kdot k-${j}"></i>${T.jars[j]} <b>${money(J[j])}</b></span>`).join('')}</div></section>
     <div class="kactions"><button type="button" class="btn kbtn" data-act="kid-got">＋ ${T.got}</button><button type="button" class="btn kbtn" data-act="kid-spent">－ ${T.spent}</button>
       <button type="button" class="btn kbtn" data-act="kid-give">♡ ${T.give}</button><button type="button" class="btn kbtn" data-act="kid-count">${T.count}</button></div>
+    ${lv === 'ado' ? kidBudgetCard(m, k) : ''}
     <h2 class="kh">${T.dreams} ${H('kid-reves')}</h2>
     ${goals.length ? goals.map(g => kidGoalCard(k, g, lv, T)).join('') : `<p class="khint">Pas encore de rêve. Choisis ce qui te ferait vraiment plaisir !</p>`}
     <div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-newgoal">${T.newdream}</button></div>
@@ -2428,17 +2968,43 @@ function kidHomeHTML(m, k, lv, T){
     ${lv === 'ado' ? `<section class="kcard"><p class="kc-k">Ce mois-ci</p><div class="klegend"><span>Reçu <b>${money(sum.received)}</b></span><span>Dépensé <b>${money(sum.spent)}</b></span><span>Épargné <b>${money(sum.saved)}</b></span></div></section>` : ''}
     <h2 class="kh">Mon carnet</h2>${recent.length ? `<ul class="kledger">${recent.map(e => `<li><span>${fmtShort(e.date)} <small>${esc(label(e))}</small></span><b class="${amt(e) < 0 ? 'debit' : 'credit'}">${amt(e) < 0 ? '−' : '+'}${money(Math.abs(amt(e)))}</b></li>`).join('')}</ul>` : '<p class="khint">Ton carnet est vide pour l’instant.</p>'}`;
 }
+function kidWishCard(k, w, lv){
+  const info = kidWishInfo(k, w), left = hoursLeftTxt(info.hoursLeft, lv);
+  return `<div class="kgoal wish ${info.ready ? 'ready' : ''}"><span class="kg-ico" aria-hidden="true">${esc(w.icon)}</span><span class="kg-main"><span class="kg-top"><b>${esc(w.name)}</b><span class="kg-pct">${money(w.price)}</span></span>
+    <span class="kg-sub">${info.ready ? 'Ton envie a mûri : tu la veux toujours ?' : `On attend ${waitWord(k.rules.wait, lv)} avant de décider · ${esc(left)}`}</span>
+    ${info.ready ? `<span class="wishbtns"><button type="button" class="btn kbtn primary" data-act="kid-wish-keep" data-id="${esc(w.id)}">Oui, c’est mon rêve</button><button type="button" class="btn kbtn" data-act="kid-wish-drop" data-id="${esc(w.id)}">Plus envie</button></span>` : ''}</span></div>`;
+}
 function kidDreamsHTML(m, k, lv, T){
-  const act = k.goals.filter(g => g.status !== 'bought'), done = k.goals.filter(g => g.status === 'bought'), free = kidFree(k);
+  const act = k.goals.filter(g => g.status !== 'bought'), done = k.goals.filter(g => g.status === 'bought'), free = kidFree(k), wishes = k.wishes.filter(w => w.status === 'wait'), av = kidAvoided(k);
   return `<h2 class="kh">${T.dreams} ${H('kid-reves')}</h2><p class="khint">Épargne libre : <b>${money(free)}</b></p>
     ${act.length ? act.map(g => kidGoalCard(k, g, lv, T)).join('') : '<p class="khint">Aucun rêve en cours. Un rêve, c’est un objectif qui se remplit petit à petit.</p>'}
     <div class="kactions one"><button type="button" class="btn kbtn primary" data-act="kid-newgoal">${T.newdream}</button></div>
+    ${k.rules.wait > 0 ? `<h2 class="kh">${lv === 'petit' ? 'Mes envies' : 'Envies à mûrir'} ${H('kid-envies')}</h2>${wishes.length ? wishes.map(w => kidWishCard(k, w, lv)).join('') : `<p class="khint">Une envie soudaine ? Note-la : on attend ${waitWord(k.rules.wait, lv)}, puis tu décides si c’est vraiment ton rêve.</p>`}
+      <div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-newwish">J’ai une envie</button></div>${av > 0 ? `<p class="khint">Grâce à ta patience, tu as évité de dépenser <b>${money(av)}</b>. Bravo !</p>` : ''}` : ''}
     ${done.length ? `<h2 class="kh">Rêves réalisés</h2>${done.map(g => `<div class="kgoal done"><span class="kg-ico" aria-hidden="true">${esc(g.icon)}</span><span class="kg-main"><span class="kg-top"><b>${esc(g.name)}</b><span class="kg-pct">✓</span></span><span class="kg-sub">${money(g.price)} · réalisé le ${fmtShort(g.boughtDate)}</span></span></div>`).join('')}` : ''}`;
+}
+function kidChallengesHTML(k, lv){
+  const run = kidActiveChallenge(k), won = k.challenges.filter(c => c.status === 'won').length, lost = k.challenges.filter(c => c.status === 'lost').length;
+  return `<h2 class="kh">Défis ${H('kid-defis')}</h2>${run ? kidChallengeCard(k, lv) : `<p class="khint">${k.rules.reward ? `Réussis un défi et gagne : <b>${esc(k.rules.reward)}</b>.` : 'Choisis un défi court. Il se mesure tout seul, sans pression.'}</p>
+    <div class="chalist">${Object.keys(KID_CHALLENGES).map(t => { const d = kidChallengeDef(t, lv); return `<button type="button" class="kgoal chalopt" data-act="kid-chal-start" data-id="${t}"><span class="kg-ico" aria-hidden="true">🎯</span><span class="kg-main"><span class="kg-top"><b>${esc(d.name)}</b><span class="kg-pct">${d.days} j</span></span><span class="kg-sub">${esc(d.hint)}</span></span></button>`; }).join('')}</div>`}
+    ${won + lost ? `<p class="khint">Défis réussis : <b>${won}</b>${lost ? ` · essayés sans réussir : ${lost} (ce n’est pas grave)` : ''}</p>` : ''}`;
+}
+function kidLessonCard(k, l){
+  const r = k.lessons[l.id], stars = r ? '★'.repeat(r.best) + '☆'.repeat(r.total - r.best) : '';
+  return `<button type="button" class="kgoal lesson ${r ? 'done' : ''}" data-act="kid-lesson" data-id="${esc(l.id)}" aria-label="Leçon : ${esc(l.title)}${r ? ', terminée' : ''}"><span class="kg-ico" aria-hidden="true">${l.icon}</span><span class="kg-main"><span class="kg-top"><b>${esc(l.title)}</b><span class="kg-pct" aria-hidden="true">${r ? '✓' : ''}</span></span><span class="kg-sub">${r ? `Terminée · ${stars}` : `${l.cards.length} cartes · ${l.quiz.length} questions · 2 minutes`}</span></span></button>`;
+}
+function kidLessonsHTML(m, k, lv, T){
+  const mine = kidLessonsFor(lv), done = mine.filter(l => k.lessons[l.id]).length, order = ['petit', 'junior', 'ado'], next = order[order.indexOf(lv) + 1], more = done === mine.length && next ? kidLessonsFor(next) : [];
+  return `<h2 class="kh">Leçons ${H('kid-lecons')}</h2><p class="khint">${done} leçon${done > 1 ? 's' : ''} sur ${mine.length} terminée${done > 1 ? 's' : ''}. Chaque leçon se lit en trois cartes, puis un petit quiz.</p>
+    ${mine.map(l => kidLessonCard(k, l)).join('')}
+    ${more.length ? `<h2 class="kh">Pour aller plus loin</h2>${more.map(l => kidLessonCard(k, l)).join('')}` : ''}
+    ${lv === 'petit' ? '' : `<h2 class="kh">Simulateurs ${H('kid-simu')}</h2><p class="khint">Pour s’entraîner : change les chiffres et regarde ce qui se passe.</p><div class="chalist">${(lv === 'ado' ? ['savings', 'sub', 'use'] : ['savings']).map(t => `<button type="button" class="kgoal chalopt" data-act="kid-sim" data-id="${t}"><span class="kg-ico" aria-hidden="true">${t === 'savings' ? '📈' : (t === 'sub' ? '📺' : '🔎')}</span><span class="kg-main"><span class="kg-top"><b>${SIM_TITLES[t]}</b></span></span></button>`).join('')}</div>`}`;
 }
 function kidBadgesHTML(m, k, lv, T){
   const R = kidRank(k), B = kidBadges(k), got = B.filter(b => b.got).length;
   return `<h2 class="kh">${T.badges} ${H('kid-succes')}</h2>
     <section class="kcard"><p class="kc-k">Niveau ${R.n}</p><p class="kc-v small">${esc(R.name)}</p><p class="khint">${R.next ? `Encore ${money(R.next.missing)} d’épargne pour devenir ${esc(R.next.name)}.` : 'Tu as atteint le plus haut niveau. Bravo !'}</p></section>
+    ${kidChallengesHTML(k, lv)}
     <p class="khint">${got} succès sur ${B.length}</p><div class="kbadges">${B.map(b => `<div class="kbadge ${b.got ? 'got' : ''}"><span class="kb-ico" aria-hidden="true">${b.got ? '★' : '☆'}</span><b>${esc(b.name)}</b><small>${b.got ? 'Gagné !' : esc(b.hint)}</small></div>`).join('')}</div>`;
 }
 const versionLine = short => short ? `v${APP_VERSION} · ${APP_BUILD}` : `MaTirelire v${APP_VERSION} · ${APP_DATE} · build ${APP_BUILD}`;
@@ -2454,34 +3020,48 @@ async function checkUpdate(){
   }catch{ toast('Vérification impossible ici. Rouvre l’adresse dans Safari, ou exporte ton fichier puis recharge la page.'); }
 }
 function updateGo(){ backupNow(); location.replace(location.pathname + '?v=' + Date.now()); }
+function sourceBlockHTML(){
+  if(U.fileHandle) return '';
+  const x = srcInfo(), can = shareFileCan();
+  if(!x) return `<div class="field">Source du fichier ${H('source')}<small class="muted">Aucune source définie. Dès que tu ouvres ou enregistres un fichier, je m’en souviens et je m’appuie dessus.</small></div>`;
+  return `<div class="field">Source du fichier ${H('source')}<dl class="legend"><div><dt>Fichier</dt><dd>${esc(x.name)}</dd></div><div><dt>Emplacement</dt><dd>${esc(x.whereLabel || 'Non précisé')}</dd></div><div><dt>Dernier accord</dt><dd>${x.syncedAt ? esc(fmtWhen(x.syncedAt)) : '—'}</dd></div></dl>
+    <div class="chips wrapchips" role="group" aria-label="Emplacement du fichier">${Object.entries(WHERE).map(([id, l]) => `<button type="button" class="chip" data-act="src-where" data-id="${id}" aria-pressed="${x.where === id}">${l}</button>`).join('')}</div>
+    <p class="note">${x.unsynced ? `<b>Des modifications ne sont pas encore dans ${esc(x.name)}.</b>` : 'Le fichier est à jour avec cet espace.'}</p>
+    <div class="toolbar"><button type="button" class="btn ${x.unsynced ? 'primary' : ''} small" data-act="save">${can ? 'Enregistrer dans Fichiers' : 'Exporter'}</button><button type="button" class="btn small" data-act="src-reload">Recharger depuis le fichier</button><button type="button" class="btn ghost small" data-act="src-forget">Oublier la source</button></div></div>`;
+}
 function kidFileStatus(){
-  const hm = d => d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  const hm = d => d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), x = srcInfo();
   if(U.fileHandle) return `Enregistré dans ${U.fileName}${U.lastSaved ? ' à ' + hm(U.lastSaved) : ''}.`;
-  return U.lastSaved ? `Copie exportée à ${hm(U.lastSaved)}.` : 'Pour l’instant, ton espace est gardé dans ce navigateur. Exporte une copie pour le garder en sécurité.';
+  if(x) return x.unsynced ? `Des changements ne sont pas encore dans ${x.name}. Appuie sur « Enregistrer ».` : `Ton fichier ${x.name} est à jour${x.syncedAt ? ' (' + fmtWhen(x.syncedAt) + ')' : ''}.`;
+  return U.lastSaved ? `Copie exportée à ${hm(U.lastSaved)}.` : 'Pour l’instant, ton espace est gardé dans ce navigateur. Enregistre-le dans un fichier pour le garder en sécurité.';
 }
 function kidMeHTML(m, k, lv, T){
   const cur = (S.kind === 'kid' ? (k.mascot || S.settings.mascot) : (k.mascot || currentLook(true).mascot)), R = kidRank(k), L = currentLook(true);
-  const curSkin = kidSkinFor(k);
+  const curSkin = kidSkinFor(k), accs = kidAccessories(k), mid = (S.kind === 'kid' ? (k.mascot || S.settings.mascot) : (k.mascot || currentLook(true).mascot));
+  const accHTML = `<h2 class="kh">Ma mascotte ${H('kid-acc')}</h2><section class="kcard accpreview"><div class="ap-pic">${piggy('happy', 130, 'nocoin')}</div><p class="khint">Gagne des succès pour débloquer des accessoires. Un par emplacement : tête, visage, cou.</p></section>
+    <div class="accgrid" role="group" aria-label="Accessoires">${accs.map(a => `<button type="button" class="acctile ${a.got ? '' : 'locked'}" data-act="kid-acc" data-id="${a.id}" aria-pressed="${a.on}" aria-label="${esc(a.name)}${a.got ? '' : ', verrouillé'}"><span class="at-ico" aria-hidden="true">${a.got ? a.icon : '🔒'}</span><b>${esc(a.name)}</b><small>${a.got ? (a.on ? 'Porté' : 'Mettre') : esc('Succès : ' + KID_BADGES.find(b => b.id === a.badge).name)}</small></button>`).join('')}</div>`;
   const colors = `<h2 class="kh">Mes couleurs</h2><div class="look-grid" role="group" aria-label="Mes couleurs">${Object.entries(SKIN_INFO).filter(([, i]) => i.kid).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-skin" data-id="${id}" aria-pressed="${curSkin === id}"><span class="sw3">${i.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(i.name)}</button>`).join('')}</div>`;
   const own = S.kind === 'kid' ? `${colors}
-    <h2 class="kh">Mon fichier ${H('kid-fichier')}</h2><section class="kcard"><p class="khint">${esc(kidFileStatus())}</p><div class="kactions"><button type="button" class="btn kbtn" data-act="save">Enregistrer</button><button type="button" class="btn kbtn" data-act="export">Exporter</button></div></section>` : '';
+    <h2 class="kh">Mon fichier ${H('kid-fichier')}</h2><section class="kcard"><p class="khint">${esc(kidFileStatus())}</p><div class="kactions"><button type="button" class="btn kbtn" data-act="save">Enregistrer</button><button type="button" class="btn kbtn" data-act="export">Exporter</button></div>${srcInfo() ? '<div class="kactions one"><button type="button" class="btn kbtn" data-act="src-reload">Recharger depuis le fichier</button></div>' : ''}</section>
+    <div class="kactions one"><button type="button" class="btn kbtn" data-act="spaces">Changer d’espace</button></div>` : '';
   return `<h2 class="kh">${T.me}</h2><section class="kcard"><p class="kc-v small">${esc(m.name)}</p><p class="khint">Niveau ${R.n} · ${esc(R.name)}</p></section>
-    <h2 class="kh">Ma mascotte</h2><div class="look-grid" role="group" aria-label="Ma mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-mascot" data-id="${id}" aria-pressed="${cur === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}</button>`).join('')}</div>
-    ${S.kind === 'kid' ? own : colors}<p class="khint verline">${versionLine()}</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-parent"><span aria-hidden="true">🔒</span> Espace parent</button></div>`;
+    <h2 class="kh">Choisir ma mascotte</h2><div class="look-grid" role="group" aria-label="Ma mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-mascot" data-id="${id}" aria-pressed="${cur === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}</button>`).join('')}</div>
+    <div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-bulletin">Mon bulletin d’épargne</button></div>
+    ${accHTML}${S.kind === 'kid' ? own : colors}<p class="khint verline">${versionLine()}</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-parent"><span aria-hidden="true">🔒</span> Espace parent</button></div>`;
 }
 const kidNote0 = k => ({badges:new Set(kidBadges(k).filter(b => b.got).map(b => b.id)), rank:kidRank(k).n});
 function kidNotify(k, before, msg){
   const nb = kidBadges(k).filter(b => b.got && !before.badges.has(b.id)), rk = kidRank(k);
   if(rk.n > before.rank) celebrate(`Niveau ${rk.n} : tu deviens ${rk.name} !`);
-  else if(nb.length) celebrate(`Nouveau succès : ${nb[0].name} !`);
+  else if(nb.length){ const na = KID_ACC.find(a => nb.some(b => b.id === a.badge)); celebrate(na ? `Nouvel accessoire : ${na.name} ! Essaie-le dans « ${(KT[k.level] || KT.junior).me} ».` : `Nouveau succès : ${nb[0].name} !`); }
   else toast(msg);
 }
 function kidApp(){
   const m = kidMember(); if(!m){ U.kid = null; return shell(); }
   const k = ensureKid(m), lv = k.level, T = KT[lv] || KT.junior, tab = U.kid.tab || 'home', R = kidRank(k);
   if(k.passage && !U.passageShown){ U.passageShown = true; setTimeout(() => celebrate(`Tu as ${kidAge(k, new Date(k.passage.date + 'T00:00:00'))} ans : ton espace grandit !`), 300); }
-  const body = tab === 'dreams' ? kidDreamsHTML(m, k, lv, T) : tab === 'badges' ? kidBadgesHTML(m, k, lv, T) : tab === 'me' ? kidMeHTML(m, k, lv, T) : kidHomeHTML(m, k, lv, T);
-  const tabs = [['home', 'Tirelire'], ['dreams', lv === 'ado' ? 'Objectifs' : 'Rêves'], ['badges', T.badges], ['me', T.me]];
+  const body = tab === 'dreams' ? kidDreamsHTML(m, k, lv, T) : tab === 'lessons' ? kidLessonsHTML(m, k, lv, T) : tab === 'badges' ? kidBadgesHTML(m, k, lv, T) : tab === 'me' ? kidMeHTML(m, k, lv, T) : kidHomeHTML(m, k, lv, T);
+  const tabs = [['home', 'Tirelire'], ['dreams', lv === 'ado' ? 'Objectifs' : 'Rêves'], ['lessons', 'Leçons'], ['badges', T.badges], ['me', T.me]];
   return `<div class="kidapp lv-${lv}"><header class="kid-top"><div class="kid-id">${lv === 'ado' ? piggy('happy', kidMascotSize(k), 'nocoin') : ''}<div><p class="kid-hello">${T.hello} ${esc(m.name)} !</p><p class="kid-rank">Niveau ${R.n} · ${esc(R.name)}</p></div></div>
       <button type="button" class="kid-lock" data-act="kid-parent" aria-label="Espace parent, code requis"><span aria-hidden="true">🔒</span></button></header>
     <main class="kid-main" id="kid-main">${bannerHTML()}${body}</main>
@@ -2497,7 +3077,92 @@ function kidOpenGot(){
 }
 function kidOpenSpent(){
   const k = ensureKid(kidMember()), J = kidJars(k);
-  kidDlg('J’ai dépensé', `<p class="envmini">Dans le bocal « dépenser » : <b>${money(J.spend)}</b></p>${kAmount('kd-amount', 'Combien ?')}<div class="grid2"><label class="field">C’était pour<select class="inp" id="kd-cat">${KID_CATS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label><label class="field">Quoi ? <small class="muted">(facultatif)</small><input class="inp" id="kd-note" autocomplete="off" enterkeyhint="done"></label></div>`, kBtns('kid-spent-save', 'Noter')); focusQuiet($('#kd-amount'));
+  kidDlg('J’ai dépensé', `<p class="envmini">Dans le bocal « dépenser » : <b>${money(J.spend)}</b></p>${kAmount('kd-amount', 'Combien ?')}<div class="grid2"><label class="field">C’était pour<select class="inp" id="kd-cat">${KID_CATS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label><label class="field">Quoi ? <small class="muted">(facultatif)</small><input class="inp" id="kd-note" autocomplete="off" enterkeyhint="done"></label></div><div id="kd-wait" class="waithint hidden" role="note">Un achat plaisir de plus de ${BIG_SPEND} € ? Essaie la règle d’attente : note-le d’abord dans tes envies, et décide dans ${waitWord(k.rules.wait, k.level)}. <button type="button" class="btn small" data-act="kid-spend-wish">Mettre en envie</button></div>`, kBtns('kid-spent-save', 'Noter')); focusQuiet($('#kd-amount'));
+}
+const BIG_SPEND = 15;
+function kidOpenWish(pre){
+  const k = ensureKid(kidMember()); U.kidTpl = null;
+  kidDlg('J’ai une envie', `<p class="hint">Note-la : on attend ${waitWord(k.rules.wait, k.level)} avant de décider. Si tu la veux toujours, elle devient un rêve.</p><label class="field">Mon envie<input class="inp" id="kw2-name" placeholder="Ex. un casque" autocomplete="off" enterkeyhint="done" value="${esc((pre && pre.name) || '')}"></label><div class="grid2">${kAmount('kw2-price', 'Combien ça coûte ?', pre && pre.price)}<label class="field">Mon image<select class="inp" id="kw2-icon">${KID_ICONS.map(i => `<option value="${i}">${i}</option>`).join('')}</select></label></div>`, kBtns('kid-wish-save', 'Noter mon envie'));
+}
+function kidLessonBody(){
+  const c = U.les, l = KID_LESSONS.find(x => x.id === c.id), nc = l.cards.length, nq = l.quiz.length, st = c.step;
+  const dots = n => `<span class="lsdots" aria-hidden="true">${Array.from({length:nc + nq}, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
+  if(st < nc) return {title:`${l.icon} ${esc(l.title)}`, body:`${dots(st + 1)}<p class="lsstep">Carte ${st + 1} sur ${nc}</p><p class="lscard">${esc(l.cards[st])}</p>`, foot:`<div class="r">${st > 0 ? '<button type="button" class="btn" data-act="les-prev">Retour</button>' : '<button type="button" class="btn" data-act="close-dlg">Fermer</button>'}<button type="button" class="btn primary" data-act="les-next">${st === nc - 1 ? 'Au quiz !' : 'Suivant'}</button></div>`};
+  if(st < nc + nq){
+    const qi = st - nc, q = l.quiz[qi], ans = c.answers[qi], shown = ans !== undefined;
+    return {title:`${l.icon} Quiz`, body:`${dots(st + 1)}<p class="lsstep">Question ${qi + 1} sur ${nq}</p><p class="lscard">${esc(q.q)}</p>
+      <div class="lsopts" role="group" aria-label="Réponses">${q.o.map((o, i) => `<button type="button" class="btn kbtn lsopt ${shown ? (i === q.a ? 'right' : (i === ans ? 'wrong' : '')) : ''}" data-act="les-pick" data-i="${i}" ${shown ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+      ${shown ? `<p class="lswhy ${ans === q.a ? 'right' : 'wrong'}" role="status"><b>${ans === q.a ? 'Bravo !' : 'Pas tout à fait.'}</b> ${esc(q.why)}</p>` : ''}`,
+      foot:`<div class="r">${shown ? `<button type="button" class="btn primary" data-act="les-next">${qi === nq - 1 ? 'Voir mon résultat' : 'Question suivante'}</button>` : '<button type="button" class="btn" data-act="close-dlg">Fermer</button>'}</div>`};
+  }
+  const score = c.answers.filter((a, i) => a === l.quiz[i].a).length, pass = score * 2 >= nq;
+  return {title:`${l.icon} ${esc(l.title)}`, body:`<p class="kc-v small">${score} sur ${nq}</p><p class="lscard">${score === nq ? 'Parfait, tu as tout bon !' : (pass ? 'Bravo, leçon réussie !' : 'Pas encore. Relis les cartes puis réessaie : tu vas y arriver.')}</p>${pass ? '<p class="khint">Cette leçon est enregistrée dans tes succès.</p>' : ''}`,
+    foot:`<div class="r"><button type="button" class="btn" data-act="les-restart">${pass ? 'Refaire le quiz' : 'Relire la leçon'}</button><button type="button" class="btn primary" data-act="close-dlg">Terminer</button></div>`};
+}
+function kidLessonRender(){ const b = kidLessonBody(), dlg = $('#dlg'); U.editing = null; dlg.innerHTML = dlgShell(b.title, `<div class="kform">${b.body}</div>`, b.foot); if(!dlg.open) dlg.showModal(); }
+function kidOpenLesson(id){ if(!KID_LESSONS.find(x => x.id === id)) return; U.les = {id, step:0, answers:[]}; kidLessonRender(); }
+function kidBudgetBody(){
+  const m = kidMember(), k = ensureKid(m), inc = kidMonthlyIncome(k, m);
+  return `<p class="hint">Combien veux-tu dépenser au maximum chaque mois ? Laisse vide pour ne pas fixer de plafond.</p>
+    <p class="envmini">Argent prévu chaque mois : <b>${money(inc)}</b> (argent de poche + petits boulots)</p>
+    <label class="field">Petits boulots, cadeaux réguliers <small class="muted">(€ par mois)</small><input class="inp" type="number" min="0" step="1" inputmode="decimal" id="kb-income" value="${k.income || ''}" placeholder="0"></label>
+    <div class="grid2">${KID_ENV_CATS.filter(c => c !== 'abos').map(c => `<label class="field">${KID_ENV_LABEL[c]}<input class="inp" type="number" min="0" step="1" inputmode="decimal" data-kb="${c}" value="${k.env[c] || ''}" placeholder="—"></label>`).join('')}</div>
+    <h3 class="who">Mes abonnements ${H('kid-budget')}</h3>
+    ${k.subs.length ? `<ul class="subl">${k.subs.map(x => `<li><span class="sl-n"><b>${esc(x.name)}</b><small>le ${x.day} du mois${x.active ? '' : ' · en pause'}${x.missed ? ` · non payé ${x.missed} fois` : ''}</small></span><span class="sl-v">${money(x.amount)}</span><button type="button" class="btn small" data-act="kid-sub-toggle" data-id="${esc(x.id)}">${x.active ? 'Pause' : 'Reprendre'}</button><button type="button" class="btn small danger" data-act="kid-sub-del" data-id="${esc(x.id)}" aria-label="Supprimer ${esc(x.name)}">Supprimer</button></li>`).join('')}</ul><p class="khint">${money(kidSubsMonthly(k))} par mois, soit ${money(kidSubsMonthly(k) * 12)} par an.</p>` : '<p class="khint">Aucun abonnement. Ajoute ceux que tu paies chaque mois : musique, vidéo, jeu…</p>'}
+    <div class="subadd"><label class="field">Nom<input class="inp" id="sb-name" maxlength="40" placeholder="Ex. musique" autocomplete="off" enterkeyhint="done"></label>
+      <div class="grid2"><label class="field">Prix par mois (€)<input class="inp" id="sb-amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label><label class="field">Jour du mois<select class="inp" id="sb-day">${Array.from({length:28}, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select></label></div>
+      <button type="button" class="btn small" data-act="kid-sub-add">Ajouter l’abonnement</button></div>`;
+}
+function kidOpenBudget(){ kidDlg('Mon budget', kidBudgetBody(), kBtns('kid-budget-save', 'Enregistrer')); }
+function kidBudgetRefresh(){ const dlg = $('#dlg'), body = $('.kform', dlg); if(body) body.innerHTML = kidBudgetBody(); }
+function kidBudgetCollect(){
+  const m = kidMember(), k = ensureKid(m); k.income = Math.max(0, num($('#kb-income').value)); const env = {}; $$('#dlg [data-kb]').forEach(i => { const v = round2(num(i.value)); if(v > 0) env[i.dataset.kb] = v; });
+  if(k.env.abos > 0) env.abos = k.env.abos; k.env = env;
+}
+
+/* ---------- Simulateurs ---------- */
+function simChart(pts){
+  const W = 300, H = 110, pad = 8, max = Math.max(...pts, 1), n = pts.length - 1, X = i => pad + (W - 2 * pad) * (n ? i / n : 0), Y = v => H - pad - (H - 2 * pad) * (v / max);
+  const line = pts.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  return `<svg class="simchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution de l’épargne dans le temps" focusable="false"><polygon points="${X(0)},${H - pad} ${line} ${X(n)},${H - pad}" fill="var(--kj-save, var(--credit))" fill-opacity=".22"/><polyline points="${line}" fill="none" stroke="var(--kj-save, var(--credit))" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(n)}" cy="${Y(pts[n])}" r="4.5" fill="var(--kj-save, var(--credit))"/></svg>`;
+}
+const SIM_TITLES = {savings:'Et si j’épargne chaque mois ?', sub:'Combien coûte vraiment un abonnement ?', use:'Quel prix par usage ?'};
+function simOut(){
+  const t = U.sim && U.sim.type, v = id => num(($('#' + id) || {value:0}).value), f = x => money(x);
+  if(t === 'savings'){
+    const r = simSavings({monthly:v('sim-monthly'), months:+$('#sim-months').value, annualPct:+$('#sim-rate').value, start:v('sim-start')}), yrs = r.months >= 12 ? `${Math.floor(r.months / 12)} an${r.months >= 24 ? 's' : ''}${r.months % 12 ? ` et ${r.months % 12} mois` : ''}` : `${r.months} mois`;
+    return `${simChart(r.points)}<p class="simbig">${f(r.final)}</p><p class="khint">Après ${yrs}. Tu auras mis <b>${f(r.deposits)}</b>${r.interest > 0.004 ? `, et les intérêts t’apportent <b>${f(r.interest)}</b>` : ' (sans intérêts)'}.</p><p class="note">Simulation indicative : les taux réels changent.</p>`;
+  }
+  if(t === 'sub'){ const r = simSub({amount:v('sim-amount'), years:+$('#sim-years').value}); return `<p class="simbig">${f(r.year)} <small>par an</small></p><p class="khint">Soit <b>${f(r.total)}</b> en ${r.years} an${r.years > 1 ? 's' : ''}. Avec cet argent, tu pourrais t’offrir autre chose : est-ce que l’abonnement le vaut vraiment ?</p>`; }
+  const r = simPerUse({price:v('sim-price'), uses:v('sim-uses')}); return r === null ? '<p class="khint">Indique combien de fois tu l’utiliseras.</p>' : `<p class="simbig">${f(r)} <small>par usage</small></p><p class="khint">${f(v('sim-price'))} utilisés ${Math.floor(v('sim-uses'))} fois. Plus tu l’utilises, moins chaque usage coûte.</p>`;
+}
+function kidOpenSim(type){
+  const m = kidMember(), k = ensureKid(m); U.sim = {type}; const J = kidJars(k);
+  const body = type === 'savings'
+    ? `<div class="grid2"><label class="field">J’épargne par mois (€)<input class="inp" id="sim-monthly" type="number" min="0" step="1" inputmode="decimal" value="${Math.max(5, Math.round(kidAllowanceAmount(m) * k.split.save / 100))}"></label><label class="field">J’ai déjà (€)<input class="inp" id="sim-start" type="number" min="0" step="1" inputmode="decimal" value="${Math.round(J.save)}"></label></div>
+       <div class="grid2"><label class="field">Pendant<select class="inp" id="sim-months">${[[6, '6 mois'], [12, '1 an'], [24, '2 ans'], [60, '5 ans']].map(([v, l]) => `<option value="${v}" ${v === 12 ? 'selected' : ''}>${l}</option>`).join('')}</select></label><label class="field">Intérêts par an<select class="inp" id="sim-rate">${[0, 1, 2, 3, 5].map(v => `<option value="${v}" ${v === (k.rules.interest.on ? Math.min(5, k.rules.interest.pct * 12) : 2) ? 'selected' : ''}>${v} %</option>`).join('')}</select></label></div>`
+    : (type === 'sub' ? `<div class="grid2"><label class="field">Prix par mois (€)<input class="inp" id="sim-amount" type="number" min="0" step="0.01" inputmode="decimal" value="${k.subs[0] ? k.subs[0].amount : 8}"></label><label class="field">Sur<select class="inp" id="sim-years">${[1, 2, 3, 5].map(v => `<option value="${v}" ${v === 5 ? 'selected' : ''}>${v} an${v > 1 ? 's' : ''}</option>`).join('')}</select></label></div>`
+    : `<div class="grid2"><label class="field">Prix (€)<input class="inp" id="sim-price" type="number" min="0" step="0.5" inputmode="decimal" value="60"></label><label class="field">Utilisé combien de fois ?<input class="inp" id="sim-uses" type="number" min="1" step="1" inputmode="numeric" value="30"></label></div>`);
+  kidDlg(SIM_TITLES[type], `${body}<div id="sim-out" class="simout" role="status" aria-live="polite">${''}</div>`, `<div class="simtabs" role="group" aria-label="Choisir un simulateur">${Object.keys(SIM_TITLES).map(t => `<button type="button" class="btn small" data-act="kid-sim" data-id="${t}" aria-pressed="${t === type}">${t === 'savings' ? 'Épargne' : (t === 'sub' ? 'Abonnement' : 'Par usage')}</button>`).join('')}</div><button type="button" class="btn primary" data-act="close-dlg">Fermer</button>`);
+  $('#sim-out').innerHTML = simOut();
+}
+
+/* ---------- Bulletin d'épargne ---------- */
+function bulletinHTML(b){
+  const f = v => money(v), e = esc, ds = d => d ? fmtShort(d) : '';
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bulletin d’épargne de ${e(b.name)}</title><style>body{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#2b2350;background:#fffaf0}h1{font-size:1.7rem;margin:.2em 0}h2{font-size:1.1rem;margin:1.4em 0 .4em;border-bottom:2px solid #f0d9a6}.big{font-size:2.4rem;font-weight:800}.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted #ccb}ul{padding-left:1.2rem}.badge{display:inline-block;margin:2px;padding:3px 10px;border-radius:99px;background:#ffe9a8;border:1px solid #e0a800;font-size:.9rem}footer{margin-top:2em;font-size:.85rem;color:#6b5f8c}@media print{body{background:#fff}}</style></head><body><p>MaTirelire · Bulletin d’épargne</p><h1>${e(b.name)}</h1><p>Édité le ${ds(b.date)}${b.since ? ` · épargne suivie depuis ${ds(b.since)} (${b.months} mois)` : ''}</p>
+    <h2>Niveau</h2><p class="big">${e(b.rank.name)}</p><p>Niveau ${b.rank.n} · ${f(b.saved)} mis de côté au total · ${f(b.total)} dans la tirelire aujourd’hui</p>
+    <h2>Rêves réalisés</h2>${b.dreams.length ? `<ul>${b.dreams.map(d => `<li>${e(d.name)} (${f(d.price)}${d.date ? ', ' + ds(d.date) : ''})</li>`).join('')}</ul>` : '<p>Pas encore : le prochain est peut-être le bon.</p>'}
+    <h2>Habitudes</h2><div class="row"><span>Donné</span><b>${f(b.given)}</b></div><div class="row"><span>Dépenses évitées grâce à la patience</span><b>${f(b.avoided)}</b></div><div class="row"><span>Meilleure série d’épargne</span><b>${b.streak} semaine${b.streak > 1 ? 's' : ''}</b></div><div class="row"><span>Défis réussis</span><b>${b.challenges}</b></div><div class="row"><span>Leçons terminées</span><b>${b.lessons} sur ${b.lessonsTotal}</b></div>${b.boost > 0 ? `<div class="row"><span>Boosts des parents</span><b>${f(b.boost)}</b></div>` : ''}${b.interest > 0 ? `<div class="row"><span>Intérêts gagnés</span><b>${f(b.interest)}</b></div>` : ''}
+    <h2>Succès (${b.badges.length} sur ${b.badgeTotal})</h2><p>${b.badges.map(x => `<span class="badge">${e(x)}</span>`).join('') || 'Aucun pour l’instant.'}</p>
+    <footer>Ce bulletin est un souvenir : il ne contient que ce que ${e(b.name)} a noté dans MaTirelire, sur son appareil.</footer></body></html>`;
+}
+function kidOpenBulletin(){
+  const m = kidMember(), k = ensureKid(m), b = kidBulletin(k, m.name), f = v => money(v);
+  kidDlg(`Bulletin · ${esc(m.name)}`, `<p class="kc-v small">${esc(b.rank.name)}</p><p class="khint">Niveau ${b.rank.n} · ${f(b.saved)} mis de côté${b.since ? ` depuis ${b.months} mois` : ''}</p>
+    <ul class="leaders"><li><span>Rêves réalisés</span><i class="dots"></i><b>${b.dreams.length}</b></li><li><span>Leçons terminées</span><i class="dots"></i><b>${b.lessons} sur ${b.lessonsTotal}</b></li><li><span>Défis réussis</span><i class="dots"></i><b>${b.challenges}</b></li><li><span>Donné</span><i class="dots"></i><b>${f(b.given)}</b></li><li><span>Succès</span><i class="dots"></i><b>${b.badges.length} sur ${b.badgeTotal}</b></li></ul>
+    <p class="note">Le bulletin est un souvenir à garder ou à imprimer. Il se télécharge en une page.</p>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="kid-bulletin-dl">Télécharger le bulletin</button></div>`);
 }
 function kidOpenGive(){
   const k = ensureKid(kidMember()), J = kidJars(k);
@@ -2531,7 +3196,7 @@ function kidParentPanel(){
   const tools = solo
     ? `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">${S.settings.parentPin ? 'Changer le code' : 'Créer un code parent'}</button></div>
        <div class="toolbar"><button type="button" class="btn small" data-act="kid-adult">Passer à l’âge adulte</button><button type="button" class="btn small danger" data-act="kid-delete">Supprimer mon espace</button></div>`
-    : `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">Changer le code</button><button type="button" class="btn small" data-act="kid-export" data-id="${esc(m.id)}">Exporter son espace</button></div>${kidAge(k) >= 18 ? '<div class="toolbar"><button type="button" class="btn small primary" data-act="kid-grow">Passer adulte dans le foyer</button></div>' : ''}`;
+    : `<div class="toolbar"><button type="button" class="btn small" data-act="kid-payout">Verser maintenant</button><button type="button" class="btn small" data-act="kid-pin-change">Changer le code</button><button type="button" class="btn small" data-act="kid-export" data-id="${esc(m.id)}">Exporter son espace</button></div><div class="toolbar"><button type="button" class="btn small" data-act="kid-bulletin">Bulletin d’épargne</button>${kidAge(k) >= 18 ? '<button type="button" class="btn small primary" data-act="kid-grow">Passer adulte dans le foyer</button>' : ''}</div>`;
   kidDlg(`Espace parent · ${esc(m.name)}`, `${amountField}
     <div class="grid2"><label class="field">Versement<select class="inp" data-kp="freq"><option value="month" ${k.freq === 'month' ? 'selected' : ''}>Chaque mois</option><option value="week" ${k.freq === 'week' ? 'selected' : ''}>Chaque semaine</option></select></label><label class="field">Quel jour<select class="inp" data-kp="day">${dayOpts}</select></label></div>
     <p class="envmini">Chaque versement : <b>${money(kidAllowanceAmount(m))}</b></p>
@@ -2539,14 +3204,56 @@ function kidParentPanel(){
     <label class="field">Couleurs suggérées pour<select class="inp" data-kp="who"><option value="" ${k.who ? '' : 'selected'}>Non précisé</option><option value="f" ${k.who === 'f' ? 'selected' : ''}>Une fille</option><option value="m" ${k.who === 'm' ? 'selected' : ''}>Un garçon</option><option value="x" ${k.who === 'x' ? 'selected' : ''}>Je ne veux pas dire</option></select><small class="muted">Sert uniquement à proposer une couleur de départ. L’enfant choisit la sienne dans « Moi ».</small></label>
     <label class="field">Âge de l’enfant<select class="inp" data-kp="age">${k.birth ? '' : '<option value="" selected>À renseigner</option>'}${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<option value="${a}" ${kidAge(k) === a ? 'selected' : ''}>${a} ans</option>`).join('')}</select><small class="muted">${esc(KW_GROUPS[k.level])}. Le niveau suit l’âge tout seul, chaque année.${kidAge(k) >= 18 ? ' Il a 18 ans : tu peux passer à l’âge adulte.' : ''}</small></label>
     <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-kp="month" ${k.birth ? '' : 'disabled'}><option value="" ${k.birth ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${k.birth && +k.birth.slice(5, 7) === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+    <h3 class="who">Encouragements ${H('kid-boost')}</h3>
+    <div class="grid2"><label class="field">Boost du parent<select class="inp" data-kp="boost-pct"><option value="0" ${k.rules.boost.on ? '' : 'selected'}>Désactivé</option>${[10, 25, 50, 100].map(v => `<option value="${v}" ${k.rules.boost.on && k.rules.boost.pct === v ? 'selected' : ''}>+${v} %</option>`).join('')}</select></label>
+      <label class="field">Plafond du boost<select class="inp" data-kp="boost-cap">${[5, 10, 20, 50].map(v => `<option value="${v}" ${k.rules.boost.cap === v ? 'selected' : ''}>${v} €/mois</option>`).join('')}</select></label></div>
+    <div class="grid2"><label class="field">Intérêts<select class="inp" data-kp="int-pct"><option value="0" ${k.rules.interest.on ? '' : 'selected'}>Désactivés</option>${[1, 2, 3, 5].map(v => `<option value="${v}" ${k.rules.interest.on && k.rules.interest.pct === v ? 'selected' : ''}>${v} %/mois</option>`).join('')}</select></label>
+      <label class="field">Plafond des intérêts<select class="inp" data-kp="int-cap">${[2, 5, 10].map(v => `<option value="${v}" ${k.rules.interest.cap === v ? 'selected' : ''}>${v} €/mois</option>`).join('')}</select></label></div>
+    <label class="field">Règle d’attente avant un achat plaisir<select class="inp" data-kp="wait">${[[0, 'Désactivée'], [24, '24 h'], [48, '48 h']].map(([v, l]) => `<option value="${v}" ${k.rules.wait === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="field">Récompense d’un défi réussi <small class="muted">(facultatif)</small><input class="inp" data-kp="reward" maxlength="80" placeholder="Ex. une glace" value="${esc(k.rules.reward)}"></label>
+    <p class="note" id="kp-cost">${esc(kidCostNote(k))}</p>
     ${ready.length ? `<h3 class="who">Achats à valider</h3>${ready.map(g => `<div class="rowitem"><span>${esc(g.icon)} ${esc(g.name)} · ${money(g.price)}</span><button type="button" class="btn small primary" data-act="kid-validate" data-id="${esc(g.id)}">Valider l’achat</button></div>`).join('')}` : ''}
+    <div class="toolbar"><button type="button" class="btn small primary" data-act="kid-report" data-id="${esc(m.id)}">Bilan du mois</button></div>
     ${tools}`,
     solo ? `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>` : `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Rester ici</button><button type="button" class="btn primary" data-act="kid-exit">Quitter l’espace enfant</button></div>`);
+}
+const kidCostNote = k => {
+  const f = v => String(round2(v)).replace('.', ',') + ' €', b = k.rules.boost, it = k.rules.interest, now = new Date();
+  const parts = [b.on ? `Boost : ${f(kidBoostUsed(k, kidMonthKey(now)))} versé ce mois-ci, ${f(b.cap)} au maximum par mois` : 'Boost désactivé', it.on ? `intérêts : ${f(it.cap)} au maximum par mois` : 'intérêts désactivés'];
+  return parts.join(' · ') + '. Ces sommes sont à ta charge : elles ne sont pas déduites du budget.';
+};
+const MONTHS_FULL = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function reportData(id, off){
+  const m = S.members.find(x => x.id === id); if(!m) return null; const k = ensureKid(m), d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + off);
+  const r = kidReport(k, d.getFullYear(), d.getMonth() + 1); return {m, k, r, label:`${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`, talk:kidTalk(r, m.name)};
+}
+function reportText(x){
+  const f = v => String(round2(v)).replace('.', ',') + ' €', {m, r} = x, L = [`Bilan de ${m.name} · ${x.label}`, '', `Reçu : ${f(r.received)}`, `Dépensé : ${f(r.spent)}`, `Donné : ${f(r.given)}`, `Mis de côté : ${f(r.saved)}`];
+  if(r.boost > 0) L.push(`Boost du parent : ${f(r.boost)}`); if(r.interest > 0) L.push(`Intérêts : ${f(r.interest)}`);
+  if(r.bought.length) L.push('', 'Rêves réalisés : ' + r.bought.join(', ')); if(r.goals.length) L.push('Rêves en cours : ' + r.goals.map(g => `${g.name} (${g.pct} %)`).join(', '));
+  if(r.dropped.length) L.push('Envies abandonnées après réflexion : ' + r.dropped.join(', ')); if(r.won.length) L.push('Défis réussis : ' + r.won.join(', ')); if((r.lessons || []).length) L.push('Leçons terminées : ' + r.lessons.map(x => `${x.title} (${x.best}/${x.total})`).join(', '));
+  L.push('', 'Pistes de discussion :', ...x.talk.map(t => '- ' + t)); return L.join('\n');
+}
+function kidOpenReport(id, off){
+  const x = reportData(id, off); if(!x) return; U.repCtx = {id, off}; const {r} = x, f = v => money(v);
+  kidDlg(`Bilan · ${esc(x.m.name)}`, `<div class="repnav"><button type="button" class="btn small" data-act="kid-report-nav" data-off="${off - 1}" aria-label="Mois précédent">‹</button><b>${esc(x.label)}</b><button type="button" class="btn small" data-act="kid-report-nav" data-off="${off + 1}" aria-label="Mois suivant" ${off >= 0 ? 'disabled' : ''}>›</button></div>
+    <ul class="leaders"><li><span>Reçu</span><i class="dots"></i><b>${f(r.received)}</b></li><li><span>Dépensé</span><i class="dots"></i><b>${f(r.spent)}</b></li><li><span>Donné</span><i class="dots"></i><b>${f(r.given)}</b></li><li><span>Mis de côté</span><i class="dots"></i><b>${f(r.saved)}</b></li>${r.boost > 0 ? `<li><span>Boost du parent</span><i class="dots"></i><b>${f(r.boost)}</b></li>` : ''}${r.interest > 0 ? `<li><span>Intérêts</span><i class="dots"></i><b>${f(r.interest)}</b></li>` : ''}${off === 0 ? `<li><span>Dans la tirelire aujourd’hui</span><i class="dots"></i><b>${f(r.total)}</b></li>` : ''}</ul>
+    ${r.bought.length || r.goals.length ? `<h3 class="who">Rêves</h3><ul class="repl">${r.bought.map(n => `<li>Réalisé : <b>${esc(n)}</b></li>`).join('')}${r.goals.map(g => `<li>${esc(g.name)} : ${g.pct} % (${f(g.saved)} sur ${f(g.price)})</li>`).join('')}</ul>` : ''}
+    ${(r.lessons || []).length ? `<h3 class="who">Leçons</h3><ul class="repl">${r.lessons.map(x => `<li>${esc(x.title)} (${x.best} sur ${x.total})</li>`).join('')}</ul>` : ''}
+    ${r.dropped.length || r.kept.length || r.won.length || r.lost ? `<h3 class="who">Patience et défis</h3><ul class="repl">${r.dropped.map(n => `<li>Envie abandonnée après réflexion : <b>${esc(n)}</b></li>`).join('')}${r.kept.map(n => `<li>Envie devenue rêve : ${esc(n)}</li>`).join('')}${r.won.map(n => `<li>Défi réussi : <b>${esc(n)}</b></li>`).join('')}${r.lost ? `<li>${r.lost} défi${r.lost > 1 ? 's' : ''} essayé${r.lost > 1 ? 's' : ''} sans réussir : sans importance</li>` : ''}</ul>` : ''}
+    <h3 class="who">Pistes de discussion ${H('kid-bilan')}</h3><ul class="repl talk">${x.talk.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="kid-report-copy">Copier le bilan</button><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
 }
 function kidPanelChange(el){
   const m = kidMember(); if(!m) return; const k = ensureKid(m), key = el.dataset.kp, v = el.value;
   if(key === 'amount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, m.id); touch(false); const e = $('.envmini b', $('#dlg')); if(e) e.textContent = money(kidAllowanceAmount(m)); return; }
   if(key === 'kamount'){ k.amount = Math.abs(num(v)); touch(false); const e = $('.envmini b', $('#dlg')); if(e) e.textContent = money(kidAllowanceAmount(m)); return; }
+  if(key === 'boost-pct'){ k.rules.boost.on = +v > 0; if(+v > 0) k.rules.boost.pct = +v; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
+  if(key === 'boost-cap'){ k.rules.boost.cap = +v; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
+  if(key === 'int-pct'){ k.rules.interest.on = +v > 0; if(+v > 0) k.rules.interest.pct = +v; else k.interestUntil = null; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
+  if(key === 'int-cap'){ k.rules.interest.cap = +v; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
+  if(key === 'wait'){ k.rules.wait = [0, 24, 48].includes(+v) ? +v : 24; touch(false); return; }
+  if(key === 'reward'){ k.rules.reward = String(v).trim().slice(0, 80); touch(false); return; }
   if(key === 'freq'){ k.freq = v === 'week' ? 'week' : 'month'; k.day = 1; touch(false); kidParentPanel(); return; }
   if(key === 'day'){ k.day = parseInt(v) || 1; touch(false); return; }
   if(key === 'who'){ k.who = ['f', 'm', 'x'].includes(v) ? v : null; touch(); kidParentPanel(); return; }
@@ -2565,8 +3272,9 @@ function kidSaveGoalMove(sign){
   if(!(a > 0)){ toast('Saisis un montant.'); return; }
   if(sign > 0){ const miss = round2(g.price - g.saved); if(miss <= 0.005){ toast('Ce rêve est déjà complet.'); return; } a = Math.min(a, miss); }
   const r = kidAllocate(k, g.id, sign * a);
-  if(!r.ok){ toast(r.reason === 'free' ? `Il te reste seulement ${money(r.left)} d’épargne libre.` : (r.reason === 'saved' ? `Il n’y a que ${money(r.left)} dans ce rêve.` : 'Impossible pour ce rêve.')); return; }
+  if(!r.ok){ toast(r.reason === 'free' ? `Il te reste seulement ${money(r.left)} d’épargne libre.` : (r.reason === 'boost' ? `Le boost du parent reste dans le rêve. Tu peux reprendre jusqu’à ${money(r.left)}.` : (r.reason === 'saved' ? `Il n’y a que ${money(r.left)} dans ce rêve.` : 'Impossible pour ce rêve.'))); return; }
   $('#dlg').close(); touch();
+  if(r.boost > 0) setTimeout(() => toast(`Boost du parent : +${money(r.boost)} pour ton rêve !`), r.status === 'ready' || r.crossed.length ? 2600 : 0);
   if(r.status === 'ready') celebrate('Ton rêve est complet ! Fais valider l’achat par un parent.');
   else if(r.crossed.length) celebrate(`Bravo ! ${r.crossed[r.crossed.length - 1]} % de ton rêve.`);
   else toast(sign > 0 ? `${money(a)} ajoutés à ton rêve` : `${money(a)} repris`);
@@ -2641,7 +3349,7 @@ async function kwFinish(skip){
   const goal = (w.gname.trim() && num(w.gprice) > 0 && !(w.step === 4 && skip)) ? {name:w.gname.trim(), price:num(w.gprice), icon:w.gicon, tpl:w.tpl} : null;
   S = buildKidSpace({name:w.name.trim(), age:w.age, month:w.month, level:w.level, who:w.who, skin:w.skin, mascot:w.mascot, amount:w.unknown ? 0 : num(w.amount), freq:w.freq, day:+w.day, goal, pin});
   U.kidWizard = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.notice = null; U.dirty = true; U.kid = {id:S.members[0].id, tab:'home'};
-  idbDel('handle'); backupNow(); render(); window.scrollTo(0, 0); celebrate(`Bienvenue, ${S.members[0].name} !`);
+  backupNow(); render(); window.scrollTo(0, 0); celebrate(`Bienvenue, ${S.members[0].name} !`);
 }
 /* Garde-fous parentaux : code s'il existe, sinon simple question de confiance dans un fichier enfant */
 function kidTrust(next, why){
@@ -3255,8 +3963,11 @@ function viewReglages(){
       <p class="hint">${U.fileHandle ? `Fichier lié : <b>${esc(U.fileName)}</b>. Chaque modification y est enregistrée automatiquement.` : FSA ? 'Aucun fichier lié. Choisis un fichier JSON sur l’appareil : il sera mis à jour automatiquement.' : 'Ce navigateur ne permet pas de lier un fichier : utilise « Exporter » pour enregistrer une copie, et « Ouvrir » pour la recharger.'}</p>
       <div class="toolbar"><button class="btn primary" data-act="save">${FSA && !U.fileHandle ? 'Choisir un fichier' : 'Enregistrer'}</button>
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
-      <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Garder une copie de secours dans ce navigateur (elle ne quitte jamais l’appareil)</label>
-      <div class="toolbar"><button class="btn danger small" data-act="reset-template">Repartir d’un modèle vierge</button><button class="btn danger small" data-act="forget">Fermer et effacer de ce navigateur</button></div>
+      ${sourceBlockHTML()}
+      <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Filet de sécurité : garder aussi une copie dans ce navigateur (elle ne quitte jamais l’appareil)</label>
+      <div class="field">Plusieurs espaces sur cet appareil ${H('espaces')}<div class="toolbar"><button class="btn primary" data-act="spaces">Changer d’espace</button></div><small class="muted">Rien n’est effacé : tu retrouves ce foyer dans la liste, avec tes autres espaces (foyers, enfants).</small></div>
+      <div class="field">Accès à ce foyer ${H('verrou')}<div class="chips"><button type="button" class="chip" data-act="lock-toggle" aria-pressed="${!!S.settings.lockSpace}">${S.settings.lockSpace ? 'Code parent demandé à l’ouverture' : 'Aucun code à l’ouverture'}</button></div><small class="muted">Utile si un enfant utilise le même appareil : le code est demandé pour ouvrir ce foyer depuis la liste.</small></div>
+      <div class="toolbar"><button class="btn danger small" data-act="forget">Supprimer cet espace de cet appareil</button></div>
     </div></section>
     <section class="card" id="apropos"><h2>À propos ${H('apropos')}</h2><div class="form">
       <dl class="legend"><div><dt>Version</dt><dd>${esc(APP_VERSION)}</dd></div><div><dt>Date</dt><dd>${esc(APP_DATE)}</dd></div><div><dt>Build</dt><dd><code>${esc(APP_BUILD)}</code></dd></div></dl>
@@ -3474,6 +4185,11 @@ function updateWizardUI(){
   if(n) n.disabled = !!issues.length;
   if(i) i.textContent = issues.length ? 'Pour continuer : ' + issues.join(' ') : '';
 }
+function kidSeedBox(seed){
+  const k = seed.kid, subs = k.subs.filter(s => s.active), envs = Object.entries(k.env).filter(([c, v]) => c !== 'abos' && v > 0);
+  return `<section class="seedbox" aria-label="Ce qui t’accompagne"><p class="hint">Ton historique d’épargne, ta mascotte et tes couleurs te suivent. ${subs.length || envs.length ? `Ton budget d’ado devient tes premières lignes : <b>${subs.length}</b> abonnement${subs.length > 1 ? 's' : ''} et <b>${envs.length}</b> enveloppe${envs.length > 1 ? 's' : ''}.` : 'Tu pourras ensuite construire ton budget dans l’onglet Budget.'}</p>
+    <label class="field">Ton revenu net par mois <small class="muted">(facultatif, tu pourras le changer)</small><input class="inp" type="number" min="0" step="10" inputmode="decimal" data-w="seed:income" value="${esc(U.wizard.seedIncome || '')}" placeholder="0"></label></section>`;
+}
 function wizardStep1(){
   const w = U.wizard;
   const rows = w.members.map(m => `<article class="wz-card">
@@ -3482,7 +4198,8 @@ function wizardStep1(){
     ${m.type === 'adult' ? `<label class="check"><input type="checkbox" data-w="m:${m.id}:contributes" ${m.contributes ? 'checked' : ''}> Participe au budget commun</label>` : `<div class="grid2"><label class="field">Âge<select class="inp" data-w="m:${m.id}:age"><option value="" ${m.age == null ? 'selected' : ''}>À choisir</option>${Array.from({length:18}, (_, i) => `<option value="${i}" ${m.age === i ? 'selected' : ''}>${i} an${i > 1 ? 's' : ''}</option>`).join('')}</select></label>
       <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-w="m:${m.id}:month"><option value="" ${m.month ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${m.month === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>`}
     ${w.members.length > 1 ? `<div><button type="button" class="btn danger small" data-act="wiz-del-member" data-id="${m.id}">Retirer</button></div>` : ''}</article>`).join('');
-  return `<section class="wz-body"><h1>Qui vit sous le même toit ? ${H('wiz-membres')}</h1>
+  const seedBox = w.seed ? kidSeedBox(w.seed) : '';
+  return `<section class="wz-body"><h1>${w.seed ? 'Ton premier foyer' : 'Qui vit sous le même toit ?'} ${H('wiz-membres')}</h1>${seedBox}
     <p class="hint">Étape obligatoire : les membres du foyer. Tu pourras en ajouter d’autres plus tard, dans l’onglet Foyer.</p>
     <div class="rowlist">${rows}</div>
     <div class="toolbar"><button type="button" class="btn" data-act="wiz-add-member" data-type="adult">Ajouter un adulte</button><button type="button" class="btn" data-act="wiz-add-member" data-type="child">Ajouter un enfant</button></div>
@@ -3518,6 +4235,7 @@ function onWizardField(el){
     else if(f === 'contributes') m.contributes = el.checked;
     else if(f === 'age'){ m.age = el.value === '' ? null : +el.value; updateWizardUI(); }
     else if(f === 'month') m.month = el.value === '' ? null : +el.value;
+  } else if(k === 'seed'){ w.seedIncome = el.value;
   } else if(k === 'a'){
     const a = w.accounts.find(x => x.id === id); if(!a) return;
     if(f === 'name'){ a.name = el.value; a.edited = true; updateWizardUI(); }
@@ -3533,10 +4251,11 @@ function finishWizard(){
   if(w.seed){
     const m0 = S.members[0]; m0.kid = JSON.parse(JSON.stringify(w.seed.kid)); m0.kid.on = true; m0.kid.amount = null; m0.kid.mascot = null;
     S.settings.mascot = w.seed.mascot; S.settings.skin = w.seed.skin;
+    var seeded = seedFirstBudget(S, m0.id, m0.kid, {income:num(w.seedIncome)}); m0.kid.subs = []; m0.kid.env = {}; m0.kid.income = 0;   // ils vivent maintenant dans le budget
   }
   U.kid = null; U.wizard = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.notice = null; U.tab = 'foyer'; U.dirty = true;
   U.collapsed = {}; U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.bubbleIdx = 0; U.bubbleChanged = 0;
-  idbDel('handle'); touch(); window.scrollTo(0, 0); toast(w.seed ? `Ton foyer est créé, ${S.members[0].name} : ton historique d’épargne t’attend dans Foyer.` : 'Foyer créé ! Commence par les salaires, puis les montants dans Budget.');
+  touch(); window.scrollTo(0, 0); toast(w.seed ? `Ton foyer est créé, ${S.members[0].name} : ton historique t’attend dans Foyer${seeded && (seeded.income + seeded.subs + seeded.env) ? `, et ${seeded.income + seeded.subs + seeded.env} ligne${seeded.income + seeded.subs + seeded.env > 1 ? 's' : ''} de budget sont déjà prêtes` : ''}.` : 'Foyer créé ! Commence par les salaires, puis les montants dans Budget.');
 }
 
 /* ---------- Événements ---------- */
@@ -3556,12 +4275,46 @@ document.addEventListener('click', async e => {
     case 'update-check': checkUpdate(); break;
     case 'update-go': updateGo(); break;
     case 'kid-open': openKid(id); break;
+    case 'kid-report': kidOpenReport(id, 0); break;
+    case 'kid-report-nav': { const c = U.repCtx; if(c) kidOpenReport(c.id, +t.dataset.off); break; }
+    case 'kid-report-open': kidGate(() => kidOpenReport(id, 0), 'Un parent doit saisir son code pour ouvrir le bilan.'); break;
+    case 'kid-report-copy': { const c = U.repCtx, x = c && reportData(c.id, c.off); if(!x) break; const txt = reportText(x);
+      try{ await navigator.clipboard.writeText(txt); toast('Bilan copié'); }catch{ const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Bilan copié'); }catch{ toast('Copie impossible : sélectionne le texte à la main.'); } ta.remove(); } break; }
+    case 'kid-lesson': kidOpenLesson(id); break;
+    case 'les-prev': U.les.step = Math.max(0, U.les.step - 1); kidLessonRender(); break;
+    case 'les-next': { const l = KID_LESSONS.find(x => x.id === U.les.id), nc = l.cards.length, nq = l.quiz.length; let fin = false;
+      if(U.les.step < nc + nq) U.les.step++;
+      if(U.les.step === nc + nq){ const m = kidMember(), k = ensureKid(m), nb = kidNote0(k), r = kidAnswerLesson(k, l.id, U.les.answers.slice(0, nq)); if(r.ok && r.pass){ touch(false); kidNotify(k, nb, r.perfect ? 'Leçon parfaite !' : 'Leçon réussie !'); fin = true; } }
+      kidLessonRender(); if(fin) render(); break; }
+    case 'les-pick': { const c = U.les; const l = KID_LESSONS.find(x => x.id === c.id), qi = c.step - l.cards.length; if(c.answers[qi] === undefined){ c.answers[qi] = +t.dataset.i; kidLessonRender(); } break; }
+    case 'les-restart': U.les.step = 0; U.les.answers = []; kidLessonRender(); break;
+    case 'kid-acc': { const m = kidMember(), k = m && ensureKid(m); if(!k) break; const r = kidEquip(k, id); if(!r.ok){ toast(r.reason === 'locked' ? `Il te faut le succès « ${KID_BADGES.find(b => b.id === r.badge).name} » pour cet accessoire.` : 'Accessoire inconnu.'); break; } touch(); break; }
+    case 'kid-budget': kidOpenBudget(); break;
+    case 'kid-budget-save': { kidBudgetCollect(); $('#dlg').close(); touch(); toast('Budget enregistré'); break; }
+    case 'kid-sub-add': { const m = kidMember(), k = ensureKid(m); kidBudgetCollect(); const r = kidAddSub(k, {name:$('#sb-name').value, amount:num($('#sb-amount').value), day:+$('#sb-day').value});
+      if(!r){ toast(k.subs.length >= 10 ? 'Dix abonnements au maximum.' : 'Donne un nom et un prix à l’abonnement.'); break; } touch(false); kidBudgetRefresh(); toast(`« ${r.name} » ajouté : le premier prélèvement aura lieu ${r.paidUntil === kidMonthKey(new Date()) ? 'le mois prochain' : 'bientôt'}.`); break; }
+    case 'kid-sub-del': { const m = kidMember(), k = ensureKid(m); kidBudgetCollect(); k.subs = k.subs.filter(x => x.id !== id); touch(false); kidBudgetRefresh(); break; }
+    case 'kid-sub-toggle': { const m = kidMember(), k = ensureKid(m), x = k.subs.find(y => y.id === id); kidBudgetCollect(); if(x){ x.active = !x.active; if(x.active){ const d = new Date(); x.paidUntil = kidMonthKey(x.day <= d.getDate() ? d : new Date(d.getFullYear(), d.getMonth() - 1, 1)); } } touch(false); kidBudgetRefresh(); break; }
+    case 'kid-sim': { const d = $('#dlg'); if(d.open) d.close(); kidOpenSim(id); break; }
+    case 'kid-bulletin': kidOpenBulletin(); break;
+    case 'kid-bulletin-dl': { const m = kidMember(); if(m){ const b = kidBulletin(ensureKid(m), m.name), nm = `Bulletin-${m.name.replace(/[^\p{L}\p{N}_-]+/gu, '') || 'Enfant'}.html`; const url = URL.createObjectURL(new Blob([bulletinHTML(b)], {type:'text/html'})); const el = document.createElement('a'); el.href = url; el.download = nm; document.body.appendChild(el); el.click(); el.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); toast('Bulletin téléchargé : ' + nm); } break; }
+    case 'kid-news-ok': { const m = kidMember(); if(m){ kidDismissNews(ensureKid(m), id); touch(); } break; }
+    case 'kid-news-wish': { const m = kidMember(); if(m){ kidDismissNews(ensureKid(m), id); U.kid.tab = 'dreams'; touch(); window.scrollTo(0, 0); } break; }
+    case 'kid-newwish': kidOpenWish(); break;
+    case 'kid-spend-wish': { const amt = num($('#kd-amount') ? $('#kd-amount').value : 0), note = $('#kd-note') ? $('#kd-note').value.trim() : ''; $('#dlg').close(); kidOpenWish({price:amt > 0 ? amt : '', name:note}); break; }
+    case 'kid-wish-save': { const m = kidMember(), k = ensureKid(m), r = kidAddWish(k, {name:$('#kw2-name').value, icon:$('#kw2-icon').value, price:num($('#kw2-price').value)});
+      if(!r){ toast(k.wishes.filter(x => x.status === 'wait').length >= 12 ? 'Tu as déjà beaucoup d’envies en attente : décide d’abord de certaines.' : 'Donne un nom à ton envie et indique combien elle coûte.'); break; }
+      $('#dlg').close(); U.kid.tab = 'dreams'; touch(); toast(`C’est noté ! Rendez-vous dans ${waitWord(k.rules.wait, k.level)}.`); break; }
+    case 'kid-wish-keep': case 'kid-wish-drop': { const m = kidMember(), k = ensureKid(m), keep = a === 'kid-wish-keep', nb = kidNote0(k), r = kidDecideWish(k, id, keep);
+      if(!r.ok){ toast(r.reason === 'wait' ? `Encore un peu de patience : ${hoursLeftTxt(r.hoursLeft, k.level)}.` : 'Cette envie est déjà décidée.'); break; }
+      touch(); kidNotify(k, nb, keep ? 'Ton envie devient un rêve !' : `Bravo, tu as évité de dépenser ${money(r.price)} !`); break; }
+    case 'kid-chal-start': { const m = kidMember(), k = ensureKid(m), r = kidStartChallenge(k, id); if(!r.ok){ toast(r.reason === 'run' ? 'Un seul défi à la fois !' : 'Défi inconnu.'); break; } touch(); toast('Défi lancé : bonne chance !'); break; }
     case 'age-ok': { const c = U.ageCtx, m = c && S.members.find(x => x.id === c.id), v = $('#ag-age').value; if(!m) break; if(v === ''){ toast('Choisis l’âge.'); break; }
       const mo = $('#ag-month').value; kidSetAge(ensureKid(m), +v, undefined, mo === '' ? undefined : +mo); $('#dlg').close(); touch(false); const st = kidStage(m.kid); if(st.locked){ render(); lockedMsg(m); break; } if(c.next) c.next(); break; }
     case 'kid-setage': { const m = kidMember(); if(m){ kidSetAge(ensureKid(m), +t.dataset.age); touch(); } break; }
     case 'kid-passage-ok': { const m = kidMember(); if(m){ ensureKid(m).passage = null; U.passageShown = false; touch(); } break; }
     case 'kid-adult-later': { const m = kidMember(); if(m){ ensureKid(m).adultSeen = true; touch(); } break; }
-    case 'kid-grow': { const m = kidMember(); if(m && confirm(`${m.name} devient adulte dans le foyer ? Son historique d’épargne est conservé. Ses revenus et ses comptes se règlent ensuite dans Foyer.`)){ m.type = 'adult'; m.contributes = false; m.pocket.amount = 0; ensureKid(m).adultSeen = true; syncAllPockets(S); $('#dlg').close(); U.kid = null; touch(); toast(`${m.name} est maintenant adulte dans le foyer.`); } break; }
+    case 'kid-grow': { const m = kidMember(); if(m && confirm(`${m.name} devient adulte dans le foyer ? Son historique d’épargne est conservé. Ses revenus et ses comptes se règlent ensuite dans Foyer.`)){ m.type = 'adult'; m.contributes = false; m.pocket.amount = 0; ensureKid(m).adultSeen = true; syncAllPockets(S); const sd = seedFirstBudget(S, m.id, m.kid, {income:0}), nl = sd.income + sd.subs + sd.env; m.kid.subs = []; m.kid.env = {}; m.kid.income = 0; $('#dlg').close(); U.kid = null; touch(); toast(`${m.name} est maintenant adulte dans le foyer.${nl ? ` ${nl} ligne${nl > 1 ? 's' : ''} de budget reprise${nl > 1 ? 's' : ''} de son budget d’ado.` : ''}`); } break; }
     case 'kid-tab': U.kid.tab = t.dataset.tab; render(); window.scrollTo(0, 0); break;
     case 'kid-got': kidOpenGot(); break;
     case 'kid-spent': kidOpenSpent(); break;
@@ -3589,7 +4342,7 @@ document.addEventListener('click', async e => {
     case 'kid-import': openPickKid(); break;
     case 'kid-adult18': { const m = kidMember(); if(m) startAdultFromKid(m); break; }
     case 'kid-adult': { const m = kidMember(); if(m && confirm(`Créer un foyer à ton nom, ${m.name} ? Ton historique d’épargne, ta mascotte et tes couleurs sont conservés. Ton espace enfant actuel n’est pas effacé.`)){ $('#dlg').close(); startWizard({name:m.name, kid:JSON.parse(JSON.stringify(ensureKid(m))), mascot:S.settings.mascot, skin:S.settings.skin}); } break; }
-    case 'kid-delete': if(confirm('Supprimer cet espace de ce navigateur ? Les fichiers que tu as exportés ne sont pas touchés.')){ localStorage.removeItem(LS_KEY); await idbDel('handle'); $('#dlg').close(); S = null; U.kid = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.dirty = false; render(); } break;
+    case 'kid-delete': if(confirm('Supprimer cet espace de cet appareil ? Les fichiers que tu as exportés ne sont pas touchés.')) await deleteSpace(S.id); break;
     case 'pin-ok': pinSubmit(); break;
     case 'kid-pin-change': openPinSetup(() => kidParentPanel(), !!S.settings.parentPin); break;
     case 'kid-exit': $('#dlg').close(); U.kid = null; render(); window.scrollTo(0, 0); break;
@@ -3681,7 +4434,12 @@ document.addEventListener('click', async e => {
     case 'open': openFile(); break;
     case 'save': saveFile(false); break;
     case 'save-as': saveFile(true); break;
-    case 'export': download(defaultFileName(), JSON.stringify(S, null, 2)); U.lastSaved = new Date(); updateStatus(); toast('Copie téléchargée'); break;
+    case 'export': { const nm = (getSrc(S.id) || {}).name || defaultFileName(); download(nm, JSON.stringify(S, null, 2)); markSynced(nm); U.lastSaved = new Date(); toast('Copie téléchargée'); askWhere(); render(); break; }
+    case 'src-reload': pickReload(); break;
+    case 'src-forget': if(confirm('Oublier la source de ce fichier ? Tes données ne sont pas touchées.')){ dropSrc(S.id); render(); } break;
+    case 'src-where': { putSrc(S.id, {where:id === 'none' ? null : id, asked:true}); const dlg = $('#dlg'); if(dlg.open) dlg.close(); render(); break; }
+    case 'dismiss-src': U.noticeSrc = 'off'; render(); break;
+    case 'sync-load': case 'sync-keep': case 'sync-cancel': syncAnswer(a); break;
     case 'reconnect': reconnect(); break;
     case 'dismiss': U.notice = null; render(); break;
     case 'add-member': {
@@ -3717,12 +4475,17 @@ document.addEventListener('click', async e => {
     case 'del-method':
       S.lines.forEach(l => { if(l.method === id) l.method = null; });
       S.settings.methods = S.settings.methods.filter(m => m.id !== id); touch(); break;
-    case 'reset-template':
-      if(!confirm('Repartir d’un modèle vierge ? Tes données actuelles ne sont remplacées qu’à la fin de la création du foyer.')) break;
-      startWizard(); break;
+    case 'spaces': await leaveSpace(); break;
+    case 'space-open': spaceOpen(id); break;
+    case 'space-del': { const e = readSpaces().find(x => x.id === id); if(e && confirm(`Supprimer l’espace « ${e.name} » de cet appareil ? Les fichiers que tu as exportés ne sont pas touchés.`)) await deleteSpace(id); break; }
+    case 'lock-toggle':
+      if(S.settings.lockSpace) openPinCheck(() => { S.settings.lockSpace = false; touch(); toast('Le code n’est plus demandé à l’ouverture.'); }, 'Un parent doit saisir son code pour retirer la protection.');
+      else if(!S.settings.parentPin) openPinSetup(() => { S.settings.lockSpace = true; touch(); toast('Le code sera demandé pour ouvrir ce foyer depuis la liste des espaces.'); });
+      else { S.settings.lockSpace = true; touch(); toast('Le code sera demandé pour ouvrir ce foyer depuis la liste des espaces.'); }
+      break;
     case 'forget':
-      if(!confirm('Fermer ce foyer et effacer la copie de secours de ce navigateur ? Le fichier JSON sur l’appareil n’est pas touché.')) break;
-      localStorage.removeItem(LS_KEY); await idbDel('handle'); S = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.dirty = false; render(); break;
+      if(!confirm('Supprimer cet espace de cet appareil ? Le fichier JSON que tu as enregistré n’est pas touché, et tes autres espaces non plus.')) break;
+      await deleteSpace(S.id); break;
   }
 });
 document.addEventListener('keydown', e => {
@@ -3744,6 +4507,8 @@ document.addEventListener('input', e => {
   if(t.dataset && t.dataset.kw && t.tagName === 'INPUT' && t.type !== 'checkbox'){ kwField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
   if(e.target.id === 'ne-name'){ neRefresh(); return; }
+  if(e.target.id && e.target.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
+  if(e.target.id === 'kd-amount' && $('#kd-wait')){ const km = kidMember(); $('#kd-wait').classList.toggle('hidden', !(km && km.kid.rules.wait > 0 && num(e.target.value) >= BIG_SPEND)); return; }
   if(e.target.id === 'py-amount' || e.target.id === 'py-date'){ paySync(e.target.id === 'py-amount'); return; }
   if(e.target.id === 'rc-real'){ $('#rc-info').innerHTML = recalageInfo(); return; }
   if(e.target.closest('#dlg') && $('#f-preview')) refreshLineForm();
@@ -3752,6 +4517,7 @@ document.addEventListener('change', e => {
   const el = e.target;
   if(el.dataset && el.dataset.w){ onWizardField(el); return; }
   if(el.dataset && el.dataset.kw){ kwField(el); return; }
+  if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.dataset && el.dataset.kp){ kidPanelChange(el); return; }
@@ -3806,7 +4572,7 @@ function onBind(el, b){
     touch();
   }
   else if(k === 'distc'){ S.settings.distribution.custom[id] = Math.max(0, num(v)); touch(false); }
-  else if(k === 'set'){ if(f === 'backup' && !v){ try{ localStorage.removeItem(LS_KEY); }catch{} } S.settings[f] = f === 'commonAccountId' ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' || f === 'provisionBlock' ? true : false); }
+  else if(k === 'set'){ if(f === 'backup' && !v) removeLocalCopy(S.id); S.settings[f] = f === 'commonAccountId' ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' || f === 'provisionBlock' ? true : false); }
   else if(k === 'acc'){
     const a = accById(id); if(!a) return;
     a[f] = f === 'ownerId' ? (v || null) : String(v).trim(); touch(f === 'ownerId');
