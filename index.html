@@ -654,6 +654,19 @@ svg.pig{overflow:visible}
 .simtabs{display:flex;gap:6px;flex-wrap:wrap}
 .simtabs .btn[aria-pressed=true]{background:var(--kprimary);color:var(--kprimary-ink)}
 .seedbox{padding:12px;border:2px dashed var(--line);border-radius:14px;display:grid;gap:8px;margin-bottom:10px}
+
+/* Démo */
+.demobox{display:grid;gap:6px;justify-items:center;margin:4px 0 2px}
+.demobtn{min-height:48px;font-weight:700}
+.banner.demo{background:var(--amber-soft);border:2px dashed var(--amber);color:var(--ink);display:grid;gap:8px}
+
+/* Enveloppes : réserve et mensualité à définir */
+.env-res{display:block;font-size:.85rem;color:var(--muted)}
+.tbdnote{color:var(--muted);font-style:italic}
+.amt b.tbd{color:var(--muted);font-weight:600}
+.spend-row.fixed{display:flex;gap:8px;align-items:baseline;width:100%;padding:6px 0;cursor:default}
+.envfoot{display:flex;gap:8px;flex-wrap:wrap}
+.hidden{display:none !important}
 </style>
 </head>
 <body>
@@ -925,6 +938,7 @@ function normalize(d){
       reserved: x.reserved != null && x.reserved !== '' ? +x.reserved : null,
       lastDate: x.lastDate || null, note: String(x.note||''), auto: x.auto || null, forMember: x.forMember || null,
       envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero,
+      funds: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.funds)) ? x.funds.map(f => ({id:String((f && f.id) || uid()), date:String((f && f.date) || ''), amount:Math.round((+(f && f.amount) || 0) * 100) / 100, from:(f && f.from) === 'pot' ? 'pot' : 'free', potId:(f && f.potId) ? String(f.potId) : null})).filter(f => Math.abs(f.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) : [],
       paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
@@ -946,7 +960,7 @@ function normalize(d){
   const lineIds = new Set(S.lines.map(l => l.id));
   S.spends = arr(d.spends).map(x => ({id:String((x && x.id) || uid()), lineId:String((x && x.lineId) || ''), date:String((x && x.date) || ''), amount:Math.abs(+(x && x.amount)) || 0, note:String((x && x.note) || '')}))
     .filter(x => lineIds.has(x.lineId) && x.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
-  const POT_KINDS = ['reliquat', 'ecart', 'epargne', 'ajustement', 'recalage'];
+  const POT_KINDS = ['reliquat', 'ecart', 'epargne', 'ajustement', 'recalage', 'enveloppe'];
   S.pot = arr(d.pot).map(x => ({id:String((x && x.id) || uid()), date:String((x && x.date) || ''), amount:+(x && x.amount) || 0, kind:POT_KINDS.includes(x && x.kind) ? x.kind : 'ajustement',
     label:String((x && x.label) || ''), note:String((x && x.note) || ''), dest:(x && x.dest) ? String(x.dest) : null, lineId:(x && x.lineId) ? String(x.lineId) : null}))
     .filter(x => Math.abs(x.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
@@ -962,7 +976,7 @@ function newLine(S, o={}){
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, paid:[]
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], paid:[]
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -1562,6 +1576,66 @@ function seedFirstBudget(S, memberId, kid, o){
   return made;
 }
 
+/* ---------- Démonstration : le budget d'une famille de 4 dans la moyenne ---------- */
+/* Repères : revenus nets typiques d'un couple avec deux enfants (≈ 4 600 €/mois, dont ≈ 300 € d'aides familiales),
+   parts de consommation INSEE 2024 (logement ≈ 28 %, transports ≈ 13 %, alimentation ≈ 12 %), courses ≈ 650 €/mois pour 4 personnes. */
+const DEMO_AMOUNTS = {
+  'Salaire net – Camille':2500, 'Salaire net – Alex':1800, 'Allocations et aides (CAF…)':300,
+  'Loyer ou prêt immobilier':1050, 'Assurance habitation':28, 'Entretien chaudière':150, 'Travaux et entretien du logement':800,
+  'Électricité':105, 'Gaz':85, 'Eau':45,
+  'Internet / box':32, 'Forfaits mobiles':30, 'Streaming vidéo':16, 'Streaming musique':14, 'Stockage cloud / logiciels':30,
+  'Assurance auto':62, 'Carburant':170, 'Entretien et révision':320, 'Contrôle technique':90, 'Pneus':450, 'Péages et parkings':25,
+  'Mutuelle santé':150, 'Assurance vie / prévoyance':25, 'Frais de santé non remboursés':55,
+  'Courses alimentaires':650, 'Restaurants et livraisons':100,
+  'École / cantine':85, 'Activités et clubs':450, 'Fournitures et vêtements':900,
+  'Impôt sur le revenu':140, 'Frais bancaires et cartes':8,
+  'Sport et loisirs':70, 'Vacances':2400, 'Cadeaux et fêtes':700, 'Coiffeur et beauté':55,
+  'Alimentation et litière':30, 'Vétérinaire':150,
+  'Épargne mensuelle':200, 'Provision imprévus':40, 'Dépenses diverses':150,
+};
+const DEMO_UNUSED = ['Charges de copropriété', 'Assurance emprunteur', 'Transports en commun', 'Garde d’enfants', 'Taxe foncière'];
+const DEMO_ENVELOPES = ['Courses alimentaires', 'Carburant', 'Restaurants et livraisons', 'Dépenses diverses'];
+const DEMO_SPENDS = {   // [jour du mois, montant, libellé]
+  'Courses alimentaires':[[2, 92.4, 'Supermarché'], [6, 67.8, 'Marché et boulangerie'], [9, 118.35, 'Grande surface'], [13, 54.2, 'Supermarché'], [17, 86.9, 'Drive'], [21, 73.1, 'Supermarché']],
+  'Carburant':[[4, 68.5, 'Plein'], [15, 72.1, 'Plein']], 'Restaurants et livraisons':[[8, 38, 'Pizzeria'], [19, 56.5, 'Restaurant']],
+  'Dépenses diverses':[[3, 24.9, 'Pharmacie'], [12, 15, 'Papeterie'], [20, 41.3, 'Bricolage']],
+};
+function buildDemoHousehold(now){
+  const d = now || new Date(), iso = x => isoOf(x), back = (months, day) => iso(new Date(d.getFullYear(), d.getMonth() - months, day || Math.min(d.getDate(), 28)));
+  const S = buildHousehold([{name:'Camille', type:'adult', contributes:true}, {name:'Alex', type:'adult', contributes:true}, {name:'Léa', type:'teen', age:13, now:d}, {name:'Noé', type:'child', age:9, now:d}],
+    [{name:'Compte joint', owner:null}, {name:'Compte Camille', owner:0}, {name:'Compte Alex', owner:1}, {name:'Livret A', owner:null}], 0);
+  S.settings.backup = false; S.settings.envGuideHidden = true; S.settings.distribution = Object.assign({}, S.settings.distribution, {mode:'proportional'});
+  const byName = n => S.lines.find(l => l.name === n);
+  const trId = (S.categories.find(c => /transport/i.test(c.name)) || S.categories[0]).id;   // un crédit auto : le poste « transports » INSEE inclut l'achat de véhicules
+  S.lines.push(newLine(S, {name:'Crédit auto', catId:trId, kind:'debit', amount:170, method:'prelevement', day:10, cycle:{every:1, unit:'month', times:1}}));
+  Object.entries(DEMO_AMOUNTS).forEach(([n, v]) => { const l = byName(n); if(l){ l.amount = v; l.zero = false; } });
+  DEMO_UNUSED.forEach(n => { const l = byName(n); if(l) l.active = false; });
+  byName('Allocations et aides (CAF…)').note = 'Allocations familiales (≈ 148 €) et prime d’activité (≈ 152 €)';
+  // lignes à échéance longue : dernier paiement connu, pour que les provisions se remplissent
+  const last = {'Entretien chaudière':back(7, 12), 'Travaux et entretien du logement':back(4, 5), 'Stockage cloud / logiciels':back(5, 20), 'Entretien et révision':back(6, 9), 'Contrôle technique':back(14, 18), 'Pneus':back(10, 3),
+    'Activités et clubs':back(1, 4), 'Fournitures et vêtements':back(2, 28), 'Vacances':back(2, 10), 'Cadeaux et fêtes':back(9, 22), 'Vétérinaire':back(5, 14)};
+  Object.entries(last).forEach(([n, dt]) => { const l = byName(n); if(l) l.lastDate = dt; });
+  // dépenses variables : des enveloppes avec des dépenses déclarées ce mois-ci
+  DEMO_ENVELOPES.forEach(n => { const l = byName(n); if(!l) return; l.envelope = true; l.method = 'cb'; l.day = null; l.cycle = {every:1, unit:'month', times:1};
+    (DEMO_SPENDS[n] || []).filter(([dd]) => dd <= d.getDate()).forEach(([dd, amt, note]) => S.spends.push({id:uid(), lineId:l.id, date:iso(new Date(d.getFullYear(), d.getMonth(), dd)), amount:amt, note})); });
+  // cagnotte et un paiement partiel
+  potAdd(S, 'reliquat', 85.6, back(1, dimOf(new Date(d.getFullYear(), d.getMonth() - 1, 1).getFullYear(), new Date(d.getFullYear(), d.getMonth() - 1, 1).getMonth() + 1)), 'Reliquat du mois dernier');
+  potAdd(S, 'ecart', 22.3, back(2, 28), 'Écart sur une facture d’énergie');
+  const tr = byName('Travaux et entretien du logement'); if(tr) payPartial(S, tr.id, 250, back(0, Math.max(1, d.getDate() - 6)), 'Acompte plombier');
+  // argent de poche et espaces enfants avec un peu d'histoire
+  const lea = S.members.find(m => m.name === 'Léa'), noe = S.members.find(m => m.name === 'Noé');
+  lea.pocket.amount = 25; noe.pocket.amount = 8; syncPocket(S, lea.id); syncPocket(S, noe.id);
+  [[lea, 'f', 'fox'], [noe, 'm', 'toucan']].forEach(([m, who, mascot]) => { const k = ensureKid(m); k.on = true; k.who = who; k.mascot = mascot; k.paidUntil = back(3, 1); kidRunAllowance(m, d); });
+  const kl = lea.kid, kn = noe.kid;
+  kidCredit(kl, 15, back(2, 14), 'gift', 'Anniversaire de mamie', 'split'); kidSpend(kl, 12, back(1, 9), 'sorties', 'Cinéma'); kidSpend(kl, 6.5, back(0, Math.max(1, d.getDate() - 3)), 'friandises', 'Goûter');
+  const g1 = kidAddGoal(kl, {name:'Écouteurs', icon:'🎧', price:45}); kidAllocate(kl, g1.id, Math.min(kidFree(kl), 20), d);
+  kidAddWish(kl, {name:'Sweat à capuche', icon:'👕', price:38}, new Date(d.getTime() - 3 * 3600000)); kidStartChallenge(kl, 'giveonce', d);
+  kidCredit(kn, 5, back(1, 20), 'gift', 'Visite de papi', 'split'); kidGive(kn, 1, back(1, 21), 'Pour la tirelire de l’école');
+  const g2 = kidAddGoal(kn, {name:'Journée au parc', icon:'🎢', price:35}); kidAllocate(kn, g2.id, Math.min(kidFree(kn), 6), d);
+  kidAddWish(kn, {name:'Peluche', icon:'🧸', price:9}, new Date(d.getTime() - 30 * 3600000));
+  return S;
+}
+
 /* ============================================================
    ENVELOPPES : dépenses variables (courses, essence…) prévues pour le mois et déclarées au fil des achats
    ============================================================ */
@@ -1575,18 +1649,53 @@ function addSpend(S, lineId, amount, date, note){
   const sp = {id:uid(), lineId, date, amount:Math.abs(+amount) || 0, note:String(note || '').trim()};
   S.spends = S.spends || []; S.spends.push(sp); return sp;
 }
+/* Réserve d'une enveloppe : somme de départ ou sommes ajoutées. Elle couvre les dépenses APRÈS la mensualité prévue et se reporte
+   de mois en mois jusqu'à épuisement. Chaque somme garde son origine (cagnotte ou non) ; on consomme les plus anciennes d'abord. */
+function envelopeFund(S, l, y, m){
+  const fs = (l.funds || []).slice().sort((a, b) => a.date.localeCompare(b.date)), out = {before:0, draw:0, after:0, potLeft:0, freeLeft:0, added:0};
+  out.added = Math.round(fs.reduce((a, f) => a + Math.max(0, f.amount), 0) * 100) / 100;
+  if(!fs.length) return out;
+  const f0 = parseISO(fs[0].date), base = f0.y * 12 + f0.m - 1, tgt = y * 12 + m - 1, lots = [], sumOf = from => lots.filter(x => !from || x.from === from).reduce((a, x) => a + x.left, 0);
+  const eat = (n, from) => { let rest = n; lots.filter(x => !from || x.from === from).forEach(x => { const t = Math.min(x.left, rest); x.left -= t; rest -= t; }); return n - rest; };
+  const giveBack = (n, from) => { let rest = n; lots.filter(x => x.from === from).reverse().forEach(x => { const t = Math.min(x.left, rest); x.left -= t; rest -= t; }); };   // un retour reprend d'abord les sommes les plus récentes : celles que les dépenses n'ont pas encore entamées
+  if(tgt < base) return out;
+  for(let i = base; i <= tgt && i - base < 240; i++){
+    const yy = Math.floor(i / 12), mm = i % 12 + 1, key = `${yy}-${String(mm).padStart(2, '0')}`;
+    fs.filter(f => f.date.startsWith(key)).forEach(f => { if(f.amount > 0) lots.push({from:f.from, left:f.amount}); else giveBack(-f.amount, f.from); });
+    const before = sumOf(), need = Math.max(0, spentIn(S, l.id, yy, mm) - amountInMonth(l, mm)), draw = Math.min(before, need);
+    if(i === tgt){ const r = v => Math.round(v * 100) / 100; return {before:r(before), draw:r(draw), after:r(before - draw), potLeft:r(sumOf('pot') - Math.min(sumOf('pot'), eatPeek(lots, draw))), freeLeft:0, added:out.added}; }
+    eat(draw);
+  }
+  return out;
+}
+/* part de « draw » prélevée sur les sommes issues de la cagnotte (plus anciennes d'abord) */
+function eatPeek(lots, draw){ let rest = draw, pot = 0; lots.forEach(x => { const t = Math.min(x.left, rest); rest -= t; if(x.from === 'pot') pot += t; }); return pot; }
 function envelopeStats(S, y, m, now){
   now = now || new Date();
   const ty = now.getFullYear(), tm = now.getMonth() + 1, dim = dimOf(y, m);
   const isCur = (y === ty && m === tm), past = (y < ty || (y === ty && m < tm));
   const dayJ = isCur ? now.getDate() : (past ? dim : 0);
   const items = S.lines.filter(l => l.active && l.envelope && l.kind === 'debit').map(l => {
-    const planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m);
-    const left = Math.max(0, planned - spent), over = Math.max(0, spent - planned), daysLeft = isCur ? dim - dayJ + 1 : 0;
-    return {id:l.id, name:l.name, planned, spent, left, over, pct:planned > 0 ? spent / planned : (spent > 0 ? 1 : 0), perDay:daysLeft > 0 ? left / daysLeft : 0, elapsed:dim ? dayJ / dim : 0};
-  }).filter(x => x.planned > 0 || x.spent > 0);
+    const planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m), F = envelopeFund(S, l, y, m), avail = planned + F.before;
+    const left = Math.max(0, avail - spent), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, tbd = !(l.amount > 0);
+    return {id:l.id, name:l.name, planned, spent, avail, left, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund:(l.funds || []).length > 0, tbd,
+      pct:avail > 0 ? spent / avail : (spent > 0 ? 1 : 0), perDay:daysLeft > 0 ? left / daysLeft : 0, elapsed:dim ? dayJ / dim : 0};
+  });
   const sum = f => items.reduce((a, x) => a + f(x), 0);
-  return {y, m, isCur, dim, dayJ, items, planned:sum(x => x.planned), spent:sum(x => x.spent), over:sum(x => x.over), left:sum(x => x.left)};
+  return {y, m, isCur, dim, dayJ, items, planned:sum(x => x.planned), avail:sum(x => x.avail), spent:sum(x => x.spent), over:sum(x => x.over), left:sum(x => x.left), reserve:sum(x => x.fundAfter)};
+}
+/* Ajoute une somme à la réserve d'une enveloppe, prélevée ou non sur la cagnotte */
+function envelopeAddFund(S, lineId, amount, from, date, now){
+  const l = S.lines.find(x => x.id === lineId), a = Math.round((+amount || 0) * 100) / 100; if(!l || !l.envelope || !(a > 0)) return null;
+  const f = {id:uid(), date:date || isoOf(now || new Date()), amount:a, from:from === 'pot' ? 'pot' : 'free', potId:null};
+  if(f.from === 'pot'){ const p = potAdd(S, 'enveloppe', -a, f.date, 'Mise de côté : ' + l.name, {lineId:l.id}); f.potId = p ? p.id : null; }
+  l.funds = (l.funds || []).concat([f]); return f;
+}
+/* Remet dans la cagnotte ce qui reste de la réserve issue de la cagnotte */
+function envelopeReturnToPot(S, lineId, now){
+  const l = S.lines.find(x => x.id === lineId); if(!l || !l.envelope) return 0; const d = now || new Date(), F = envelopeFund(S, l, d.getFullYear(), d.getMonth() + 1), a = Math.round(F.potLeft * 100) / 100;
+  if(!(a > 0.004)) return 0; const date = isoOf(d), p = potAdd(S, 'enveloppe', a, date, 'Retour de l’enveloppe : ' + l.name, {lineId:l.id});
+  l.funds = (l.funds || []).concat([{id:uid(), date, amount:-a, from:'pot', potId:p ? p.id : null}]); return a;
 }
 /* Lignes qui ressemblent à des dépenses variables : carte ou espèces sans jour fixe, ou nom évocateur */
 function envelopeCandidates(S){
@@ -1796,13 +1905,20 @@ function provisionSummary(S, now){
   const dimM = dimOf(curY, curM), dayJ = today0.getDate();
   const provIds = new Set(rows.map(r => r.l.id));
   const mlines = [];
+  let envReserve = 0;
   S.lines.forEach(l => {
-    if(!l.active || !(l.amount > 0) || provIds.has(l.id)) return;
-    const cf = commonFraction(l, S); if(!(cf > 0)) return;
-    const v = amountInMonth(l, curM) * cf; if(!(v > 0)) return;
     const env = !!l.envelope && l.kind === 'debit';
+    if(!l.active || provIds.has(l.id)) return;
+    if(!(l.amount > 0) && !(env && ((l.funds || []).length || spentIn(S, l.id, curY, curM) > 0))) return;   // une enveloppe à 0 € compte dès qu'elle a des dépenses ou une réserve
+    const cf = commonFraction(l, S); if(!(cf > 0)) return;
+    const v = amountInMonth(l, curM) * cf; if(!(v > 0) && !env) return;
     const spread = !l.day || l.method === 'cb' || l.method === 'especes' || l.cycle.unit === 'day' || l.cycle.unit === 'week';
-    mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread, env, spent:env ? spentIn(S, l.id, curY, curM, dayJ) * cf : 0});
+    let spentEff = 0;
+    if(env){
+      const sp = spentIn(S, l.id, curY, curM, dayJ), F = envelopeFund(S, l, curY, curM), draw = Math.min(sp, F.draw);
+      spentEff = (sp - draw) * cf; envReserve += F.potLeft * cf;   // la réserve issue de la cagnotte reste de l'argent du compte : on la garde dans l'état
+    }
+    mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread, env, spent:spentEff});
   });
   let execDeb = 0, execCr = 0, remD = 0, remC = 0, envOver = 0;
   mlines.forEach(x => {
@@ -1818,7 +1934,7 @@ function provisionSummary(S, now){
   const treasury = arrived(today0) - mensAlloc(today0) - exJ.deb + exJ.cr;
   const remainNet = remD - remC;
   const incomingShares = arrived(monthEnd) - arrived(today0);
-  const state = accrued + pot + treasury;
+  const state = accrued + pot + envReserve + treasury;
   const endBalance = state + incomingShares - remainNet - debits;
   const provisionsEnd = proj.length ? proj[0].balance : accrued + pot;
   const pending = [];
@@ -1826,7 +1942,7 @@ function provisionSummary(S, now){
   const groups = {};
   mlines.filter(x => x.sign < 0 && !x.spread && x.day > dayJ).forEach(x => { (groups[x.day] = groups[x.day] || {day:x.day, total:0, names:[]}); groups[x.day].total += x.v; groups[x.day].names.push(x.name); });
   const upcomingDebits = Object.values(groups).sort((a, b) => a.day - b.day).map(g => ({date:{y:curY, m:curM, d:g.day}, total:g.total, names:g.names}));
-  const cash = {state, provisions:accrued, pot, treasury, remainNet, incomingShares, endBalance, provisionsEnd, treasuryEnd:endBalance - provisionsEnd, pending, upcomingDebits, spentSoFar:exJ.deb - exJ.cr, envOver};
+  const cash = {state, provisions:accrued, pot, envReserve, treasury, remainNet, incomingShares, endBalance, provisionsEnd, treasuryEnd:endBalance - provisionsEnd, pending, upcomingDebits, spentSoFar:exJ.deb - exJ.cr, envOver};
 
   const overRows = counted.filter(r => r.p.over >= 1).sort((a, b) => b.p.over - a.p.over);
   return {count:counted.length, accrued, goal:sum(p => p.goal), rest:sum(p => p.rest), over:overRows.reduce((a, r) => a + r.p.over, 0),
@@ -1861,6 +1977,8 @@ function computeAdvice(S, now){
     else if(st.locked && st.opens) push('info', 'kid-locked', {name:m.name, year:st.opens.year, month:st.opens.month}, {tab:'foyer'});
     else if(st.next && st.next.monthsLeft === 1 && st.next.to !== 'adult') push('info', 'kid-soon', {name:m.name, to:st.next.to, year:st.next.year, month:st.next.month}, {tab:'synthese'});
   });
+  const tbdEnv = S.lines.filter(l => l.active && l.envelope && l.kind === 'debit' && !(l.amount > 0));
+  if(tbdEnv.length) push('info', 'env-tbd', {count:tbdEnv.length, names:tbdEnv.slice(0, 4).map(l => l.name)}, {tab:'synthese'});
   if(!S.lines.some(l => l.amount > 0)) return out;
 
   const R = computeMonth(S, 0); // moyenne mensuelle sur l'année
@@ -1885,7 +2003,7 @@ function computeAdvice(S, now){
     else push('good','epargne-ok',{pc:pcE, amount:ep, income});
   }
 
-  const todo = S.lines.filter(l => l.active && l.amount === 0 && !l.zero);
+  const todo = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope);
   if(todo.length) push('warn','todo',{count:todo.length, names:todo.slice(0,4).map(l=>l.name)}, {tab:'budget', todo:true});
 
   const incomplete = S.lines.filter(l => l.active && l.amount > 0 && (!l.method || linePartsOf(l).some(p => !p.accountId)));
@@ -1948,7 +2066,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
 
 </script>
 <script>
@@ -1966,7 +2084,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.9', APP_DATE = '4 octobre 2026', APP_BUILD = '01d297';
+const APP_VERSION = '2.10', APP_DATE = '4 octobre 2026', APP_BUILD = 'c7676c';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2147,7 +2265,7 @@ function markSynced(name){
 function removeLocalCopy(id){ dropSrc(id); try{ localStorage.removeItem(spKey(id)); writeSpaces(readSpaces().filter(e => e.id !== id)); if(localStorage.getItem(ACT_KEY) === id) localStorage.removeItem(ACT_KEY); }catch{} }
 function resetSession(){
   clearTimeout(autosaveT);
-  Object.assign(U, {tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
+  Object.assign(U, {demo:false, tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
 }
 async function flushFile(){
   if(!U.fileHandle || !S || !U.dirty) return;
@@ -2381,7 +2499,18 @@ function shell(){
     <main class="wrap" id="main">${bannerHTML()}${views[U.tab]()}</main>
     <footer class="foot wrap">${piggy('happy', 28, 'nocoin')}<span>MaTirelire garde tes sous chez toi : rien ne quitte cet appareil. <span class="verline">${versionLine(true)}</span></span></footer>`;
 }
+async function startDemo(){
+  const d = new Date(), S0 = buildDemoHousehold(d), salt = uid(); S0.settings.parentPin = {salt, hash:await pinHash(salt, DEMO_PIN)};
+  if(S && S.id && !U.demo) backupNow();
+  resetSession(); S = S0; U.demo = true; U.tab = 'synthese'; render(); window.scrollTo(0, 0);
+}
+function quitDemo(then){ S = null; U.demo = false; resetSession(); render(); window.scrollTo(0, 0); if(then) then(); }
+const DEMO_PIN = '1234';
+function demoBannerHTML(){
+  return `<div class="banner demo" role="note"><span><b>Démo</b> · famille de 4 dans la moyenne. Données d’exemple : rien n’est enregistré. Code parent de la démo : <b>${DEMO_PIN}</b>. ${H('demo')}</span><span class="bn-acts"><button type="button" class="btn primary small" data-act="demo-create">Créer mon foyer</button><button type="button" class="btn small" data-act="demo-quit">Quitter la démo</button></span></div>`;
+}
 function bannerHTML(){
+  if(U.demo) return demoBannerHTML();
   if(U.pending) return `<div class="banner slim"><span>Fichier <b>${esc(U.fileName)}</b> lié : à rouvrir.</span><button class="btn primary small" data-act="reconnect">Autoriser</button></div>`;
   const src = srcInfo();
   if(src){
@@ -2409,6 +2538,7 @@ function welcome(){
     <p class="doors-h">${readSpaces().length ? 'Créer un nouvel espace' : ''}</p>
     <div class="doors"><button type="button" class="door" data-act="setup"><span class="door-ico" aria-hidden="true">🏠</span><b>Je suis un adulte</b><small>Créer mon foyer : budget, comptes, argent de poche des enfants</small></button>
       <button type="button" class="door kidsdoor" data-act="kid-setup"><span class="door-ico" aria-hidden="true">🎒</span><b>Je suis un enfant</b><small>Ma tirelire : mes rêves, mon épargne, mes succès</small></button></div>
+    <div class="demobox"><button type="button" class="btn demobtn" data-act="demo"><span aria-hidden="true">👀</span> Voir une démo</button><p class="note">Une famille de 4 dans la moyenne : tu peux tout essayer, rien n’est enregistré.</p></div>
     <div class="acts"><button class="btn" data-act="open">Ouvrir mon fichier JSON</button></div>
     <p class="note">Un foyer et un espace enfant sont deux fichiers séparés. Plus tard, un parent peut rapatrier l’espace de son enfant dans son foyer, et un enfant devenu grand peut créer son propre foyer.</p>
     <p class="note verline">${versionLine()}</p>
@@ -2416,7 +2546,7 @@ function welcome(){
 }
 
 /* ----- Paiement (partiel ou final) et cagnotte ----- */
-const POT_LABEL = {reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage'};
+const POT_LABEL = {reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage', enveloppe:'Enveloppe'};
 const accLabel = id => { const a = id && accById(id); return a ? a.name : (id || ''); };
 const fmtShort = iso => new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
 const potSigned = v => `${v < 0 ? '−' : '+'}${money(Math.abs(v))}`;
@@ -2481,6 +2611,7 @@ function savePay(){
 }
 /* Cagnotte */
 function potEntryRow(x){
+  if(x.kind === 'enveloppe') return `<li><span class="spend-row fixed"><span>${fmtShort(x.date)} <small>${POT_LABEL[x.kind]}${x.label ? ' · ' + esc(x.label) : ''}<br>Géré depuis l’enveloppe</small></span><i class="dots"></i><b class="${x.amount < 0 ? 'debit' : 'credit'}">${potSigned(x.amount)}</b></span></li>`;
   return `<li><button type="button" class="spend-row" data-act="pot-edit" data-id="${esc(x.id)}" aria-label="Modifier cette ligne de la cagnotte"><span>${fmtShort(x.date)} <small>${POT_LABEL[x.kind] || ''}${x.label ? ' · ' + esc(x.label) : ''}${x.dest ? ' → ' + esc(accLabel(x.dest)) : ''}</small></span><i class="dots"></i><b class="${x.amount < 0 ? 'debit' : 'credit'}">${potSigned(x.amount)}</b></button></li>`;
 }
 function openPot(){
@@ -2584,7 +2715,8 @@ const HELP = {
   'wiz-comptes':{title:'Les comptes du foyer', body:`<p>Déclare les comptes bancaires que vous utilisez : un compte joint, un compte par personne, un livret pour l’argent de poche…</p><p>Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses. Les lignes du budget sont ensuite rattachées à ces comptes, ce qui alimente les virements à programmer.</p><p class="note">Un compte par adulte est proposé. Tu peux tout renommer, ajouter ou retirer.</p>`},
   env:{title:'Enveloppes', body:`<p>Une enveloppe est une <b>somme prévue pour le mois</b> pour une dépense qui varie : courses, essence, pain, vêtements…</p>
     <p>Au fil des achats, tu appuies sur <b>+</b> et tu déclares le montant. La barre montre ce qui est dépensé, ce qu’il reste et le montant par jour restant.</p>
-    <p>Si tu dépasses, le <b>dépassement</b> s’affiche à part : il ne change pas ton reste à vivre prévu, mais il baisse l’état du compte provisions.</p><p class="note">Appuie sur une enveloppe pour voir, modifier ou supprimer ses dépenses.</p>`},
+    <p>Si tu dépasses, le <b>dépassement</b> s’affiche à part : il ne change pas ton reste à vivre prévu, mais il baisse l’état du compte provisions.</p><p>Tu peux mettre <b>0 €</b> de mensualité si tu ne sais pas encore combien provisionner : l’enveloppe est alors « à définir », et ses dépenses sont quand même suivies.</p><p>Une <b>somme de départ</b> crée une réserve : elle couvre les dépenses <b>après</b> la mensualité et se reporte d’un mois sur l’autre. Elle peut venir de la cagnotte ou non.</p><p class="note">Appuie sur une enveloppe pour voir, modifier ou supprimer ses dépenses.</p>`},
+  'env-reserve':{title:'Réserve des enveloppes', body:`<p>Une réserve est une somme mise de côté dans une enveloppe : elle sert <b>après</b> la mensualité prévue, et ce qui reste se reporte au mois suivant.</p><ul><li><b>Prise dans la cagnotte</b> : la cagnotte baisse, mais l’argent est toujours sur le compte. C’est pourquoi l’état du compte ne change pas : la somme est comptée comme « réserve des enveloppes ».</li><li><b>Hors cagnotte</b> : la somme est déjà disponible ailleurs (espèces, solde existant). Elle couvre des dépenses sans baisser l’état du compte.</li></ul><p class="note">Tu peux remettre dans la cagnotte ce qui reste de la réserve issue de la cagnotte.</p>`},
   'env-guide':{title:'Suivre mes dépenses variables', body:`<p>MaTirelire repère les lignes qui ressemblent à des dépenses variables : payées par carte ou en espèces sans jour fixe, ou nommées courses, carburant, pain, vêtements, restaurants…</p><p>Coche celles à suivre : elles deviennent des enveloppes, avec le même montant prévu. Tu pourras toujours les modifier dans Budget.</p>`},
   'kid-espace':{title:'Espace enfants', body:`<p>Un espace plein écran, <b>pensé pour l’enfant</b> : une tirelire à trois bocaux (dépenser, épargner, donner), des <b>rêves</b> à réaliser, des succès et des niveaux.</p>
     <ul><li>L’argent de poche arrive tout seul au jour prévu, selon le montant du budget.</li><li>Un <b>code parent</b> à quatre chiffres protège les réglages, la validation des achats et la sortie de l’espace.</li><li>Tout reste dans ton fichier : pas de compte, pas de publicité, pas d’achat.</li></ul><p class="note">Le vocabulaire s’adapte à l’âge : petits, juniors, ados.</p>`},
@@ -2594,6 +2726,7 @@ const HELP = {
   espaces:{title:'Plusieurs espaces', body:`<p>Sur un même appareil, tu peux garder <b>plusieurs espaces</b> : le foyer des parents, et l’espace de chaque enfant. Chacun a son propre fichier JSON et sa propre copie de secours.</p><ul><li><b>Changer d’espace</b> ne supprime rien : tu retrouves tout dans la liste de l’accueil.</li><li><b>Supprimer</b> retire un espace de l’appareil. Les fichiers que tu as enregistrés ne sont pas touchés.</li></ul><p class="note">Un parent peut importer l’espace d’un enfant dans son foyer, et inversement.</p>`},
   verrou:{title:'Accès à ce foyer', body:`<p>Quand un enfant utilise le même appareil, active le <b>code parent à l’ouverture</b> : pour ouvrir ce foyer depuis la liste des espaces, le code est demandé. L’appli ne rouvre alors pas le foyer toute seule au démarrage.</p><p class="note">C’est un garde-fou familial, pas un coffre-fort : le fichier JSON reste lisible par qui y a accès.</p>`},
   'kid-fichier':{title:'Mon fichier', body:`<p>Ta tirelire est rangée dans un fichier, sur cet appareil. Rien n’est envoyé sur Internet.</p><ul><li><b>Enregistrer</b> met le fichier à jour (selon ton appareil, il est téléchargé).</li><li><b>Exporter</b> crée une copie que tu peux garder ou donner à un parent.</li></ul><p class="note">Un parent peut importer ce fichier dans son foyer pour suivre ta tirelire avec toi.</p>`},
+  demo:{title:'La démo', body:`<p>Un budget d’exemple pour une <b>famille de 4</b> : deux adultes, une adolescente de 13 ans et un garçon de 9 ans, avec leurs espaces enfants.</p><ul><li><b>Revenus</b> : environ 4 600 € nets par mois (deux salaires et des aides familiales).</li><li><b>Dépenses</b> : réparties comme la moyenne des ménages français (logement, transports et alimentation en tête), avec des provisions, des enveloppes de dépenses variables et une cagnotte.</li><li>Les montants s’appuient sur les parts de consommation de l’INSEE et sur des budgets types de familles avec deux enfants.</li></ul><p class="note">Tu peux tout modifier. Rien n’est enregistré : en quittant la démo, tout disparaît. « Créer mon foyer » lance ton propre foyer.</p>`},
   'kid-budget':{title:'Mon budget', body:`<p>Un budget, c’est un plan pour le mois : <b>combien tu peux dépenser</b> dans chaque catégorie.</p><ul><li>Fixe un plafond par enveloppe (sorties, jeux…). La barre se remplit à mesure que tu notes tes dépenses.</li><li>Les <b>abonnements</b> sont prélevés tout seuls, chaque mois, dans ton bocal « dépenser ». S’il n’y a pas assez d’argent, rien n’est prélevé et on te le dit, sans punition.</li><li>Tout cela te prépare à ton premier vrai budget d’adulte.</li></ul>`},
   'kid-simu':{title:'Simulateurs', body:`<p>Pour <b>s’entraîner</b> : change les chiffres et regarde ce qui se passe.</p><ul><li><b>Épargne</b> : ce que tu auras après quelques mois ou années, avec ou sans intérêts.</li><li><b>Abonnement</b> : ce qu’il coûte par an et sur plusieurs années.</li><li><b>Par usage</b> : le vrai prix d’un achat selon le nombre de fois où tu t’en sers.</li></ul><p class="note">Ce sont des estimations : les vrais taux et prix changent.</p>`},
   'kid-lecons':{title:'Leçons', body:`<p>Chaque leçon tient en <b>trois cartes</b> à lire, puis un <b>petit quiz</b> de deux questions.</p><ul><li>Une leçon est réussie quand tu as au moins la moitié des bonnes réponses. Tu peux recommencer : ton meilleur score est gardé.</li><li>Les leçons gagnées te donnent des succès, et débloquent des accessoires pour ta mascotte.</li><li>Elles sont adaptées à ton âge : les petits, les juniors et les ados n’ont pas les mêmes.</li></ul>`},
@@ -2716,15 +2849,16 @@ function envelopeCardHTML(){
     ${cand.length > 6 ? `<p class="note">${cand.length - 6} autre${cand.length - 6 > 1 ? 's' : ''} ligne${cand.length - 6 > 1 ? 's' : ''} : à convertir depuis Budget.</p>` : ''}
     <div class="toolbar"><button type="button" class="btn primary small" data-act="env-guide-create">Créer les enveloppes</button><button type="button" class="btn small" data-act="env-guide-hide">Plus tard</button></div></div>` : '';
   const rows = E.items.map(x => {
-    const w = Math.min(100, Math.round(x.pct * 100));
-    const sub = x.over > 0.005 ? `<span class="debit">Dépassement +${money(x.over)}</span>` : `<span>Reste ${money(x.left)}${E.isCur && x.perDay > 0 ? ` · ≈ ${money(x.perDay)} par jour` : ''}</span>`;
+    const w = Math.min(100, Math.round(x.pct * 100)), idle = x.tbd && !(x.spent > 0) && !(x.fundBefore > 0);
+    const sub = idle ? `<span class="tbdnote">Mensualité à définir</span>` : (x.over > 0.005 ? `<span class="debit">Dépassement +${money(x.over)}</span>` : `<span>Reste ${money(x.left)}${E.isCur && x.perDay > 0 ? ` · ≈ ${money(x.perDay)} par jour` : ''}</span>`);
+    const res = x.fundBefore > 0.005 || x.fundAfter > 0.005 ? `<span class="env-res">Réserve ${money(x.fundAfter)}${x.tbd ? ' · mensualité à définir' : ''}</span>` : '';
     return `<div class="envrow"><button type="button" class="env-main" data-act="env-open" data-id="${esc(x.id)}" aria-label="Voir les dépenses : ${esc(x.name)}">
-        <span class="env-top"><b>${esc(x.name)}</b><span class="env-amt">${money(x.spent)} <small>sur ${money(x.planned)}</small></span></span>
+        <span class="env-top"><b>${esc(x.name)}</b><span class="env-amt">${money(x.spent)} <small>sur ${money(x.avail)}</small></span></span>
         <span class="env-bar" role="img" aria-label="${w} % dépensé"><i class="${envBarClass(x)}" style="width:${w}%"></i></span>
-        <span class="env-sub">${sub}</span></button>
+        <span class="env-sub">${sub}</span>${res}</button>
       <button type="button" class="btn env-plus" data-act="env-add" data-id="${esc(x.id)}" aria-label="Déclarer une dépense : ${esc(x.name)}">+</button></div>`;
   }).join('');
-  const total = E.items.length > 1 ? `<div class="envtotal"><span>Total : ${money(E.spent)} sur ${money(E.planned)}</span>${E.over > 0.005 ? `<span class="debit">Dépassement +${money(E.over)}</span>` : ''}</div>` : '';
+  const total = E.items.length > 1 ? `<div class="envtotal"><span>Total : ${money(E.spent)} sur ${money(E.avail)}</span>${E.over > 0.005 ? `<span class="debit">Dépassement +${money(E.over)}</span>` : ''}</div>` : '';
   const empty = !E.items.length && !showGuide ? `<p class="hint">Aucune enveloppe pour l’instant. Une enveloppe est une somme prévue pour le mois (courses, essence…), que tu déclares au fil des achats.</p>` : '';
   return `<section class="card env" aria-label="Enveloppes du mois"><header><h2>Enveloppes · ${MONTHS[m - 1]} ${H('env')}</h2><button type="button" class="btn small" data-act="env-new">Nouvelle enveloppe</button></header>
     ${empty}${guide}${rows}${total}</section>`;
@@ -2763,14 +2897,39 @@ function saveSpend(){
 /* Historique d'une enveloppe */
 function openEnvelope(lineId){
   const l = S.lines.find(x => x.id === lineId); if(!l) return;
-  const {y, m} = envMonthYear(), E = envelopeStats(S, y, m), it = E.items.find(x => x.id === lineId) || {planned:amountInMonth(l, m), spent:0, left:0, over:0};
+  const {y, m} = envMonthYear(), E = envelopeStats(S, y, m), it = E.items.find(x => x.id === lineId) || {planned:amountInMonth(l, m), avail:amountInMonth(l, m), spent:0, left:0, over:0, fundBefore:0, fundAfter:0, potLeft:0, tbd:!(l.amount > 0)};
   const list = (S.spends || []).filter(x => x.lineId === lineId && x.date.startsWith(`${y}-${String(m).padStart(2, '0')}`)).sort((a, b) => b.date.localeCompare(a.date));
+  const funds = (l.funds || []).slice().sort((a, b) => b.date.localeCompare(a.date));
   const dlg = $('#dlg'); U.editing = null; U.spendCtx = null;
-  dlg.innerHTML = dlgShell(`${esc(l.name)} · ${MONTHS[m - 1]}`, `<dl class="legend"><div><dt>Prévu</dt><dd>${money(it.planned)}</dd></div><div><dt>Dépensé</dt><dd>${money(it.spent)}</dd></div>
-      ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}</dl>
-    ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Ajouter » pour noter un achat.</p>'}`,
-    `<div><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button></div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
+  dlg.innerHTML = dlgShell(`${esc(l.name)} · ${MONTHS[m - 1]}`, `<dl class="legend"><div><dt>Prévu</dt><dd>${it.tbd ? 'à définir' : money(it.planned)}</dd></div>${it.fundBefore > 0.005 || it.fundAfter > 0.005 ? `<div><dt>Réserve en début de mois ${H('env-reserve')}</dt><dd>${money(it.fundBefore)}</dd></div>` : ''}<div><dt>Dépensé</dt><dd>${money(it.spent)}</dd></div>
+      ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}${it.fundAfter > 0.005 ? `<div><dt>Réserve restante</dt><dd>${money(it.fundAfter)}</dd></div>` : ''}</dl>
+    ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Ajouter » pour noter un achat.</p>'}
+    ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
+    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Ajouter à la réserve</button>${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
   dlg.showModal();
+}
+/* Choix de l'origine d'une somme : cagnotte ou non */
+function fundSourceHTML(name, pot){
+  const empty = !(pot > 0.004);
+  return `<div class="seg" role="radiogroup" aria-label="Origine de la somme"><label><input type="radio" name="${name}" value="pot" ${empty ? '' : 'checked'}>Prendre dans la cagnotte <small>(${empty ? 'vide' : money(pot)})</small></label><label><input type="radio" name="${name}" value="free" ${empty ? 'checked' : ''}>Ne pas toucher à la cagnotte</label></div>`;
+}
+function envelopeReturnToPotPreview(lineId){ const l = S.lines.find(x => x.id === lineId); if(!l || !l.envelope) return 0; const d = new Date(); return envelopeFund(S, l, d.getFullYear(), d.getMonth() + 1).potLeft; }
+function openEnvFund(lineId){
+  const l = S.lines.find(x => x.id === lineId); if(!l) return; const dlg = $('#dlg'); U.editing = null; U.fundCtx = {lineId};
+  dlg.innerHTML = dlgShell(`Réserve · ${esc(l.name)}`, `<p class="hint">La réserve couvre les dépenses <b>après</b> la mensualité prévue, et se reporte d’un mois sur l’autre jusqu’à épuisement.</p>
+    <label class="field">Somme à ajouter<input class="inp" id="ef-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+    <div class="field">Origine ${fundSourceHTML('ef-from', potTotal(S))}<small class="muted" id="ef-note"></small></div>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="env-fund-save">Ajouter à la réserve</button></div>`);
+  dlg.showModal();
+}
+function envFundCheck(amount, from){
+  if(from === 'pot' && amount > potTotal(S) + 0.005) return confirm(`La cagnotte ne contient que ${money(Math.max(0, potTotal(S)))}. Elle passera à ${money(potTotal(S) - amount)} (« manque »). Continuer ?`);
+  return true;
+}
+function envFundSave(){
+  const c = U.fundCtx, l = c && S.lines.find(x => x.id === c.lineId), a = Math.abs(num($('#ef-amount').value)), from = ($('input[name=ef-from]:checked') || {}).value || 'free';
+  if(!l) return; if(!(a > 0)){ toast('Indique la somme à ajouter.'); focusQuiet($('#ef-amount')); return; } if(!envFundCheck(a, from)) return;
+  envelopeAddFund(S, l.id, a, from, isoToday()); $('#dlg').close(); touch(); toast(from === 'pot' ? `${money(a)} pris dans la cagnotte et mis dans « ${l.name} ».` : `${money(a)} ajoutés à la réserve de « ${l.name} ».`);
 }
 /* Nouvelle enveloppe en trois questions */
 function openNewEnvelope(){
@@ -2781,7 +2940,9 @@ function openNewEnvelope(){
     <div class="field">1 · Que veux-tu suivre ?<div class="chips wrapchips" role="group" aria-label="Suggestions">${ENV_SUGGEST.map((s, i) => `<button type="button" class="chip" data-act="ne-pick" data-i="${i}" aria-pressed="false">${esc(s.name)}</button>`).join('')}</div>
       <input class="inp" id="ne-name" placeholder="Ou écris ton propre nom" autocomplete="off" enterkeyhint="done"></div>
     <div id="ne-existing" class="note"></div>
-    <label class="field">2 · Combien prévois-tu par mois ?<input class="inp" id="ne-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+    <label class="field">2 · Combien prévois-tu par mois ? <small class="muted">(0 si tu ne sais pas encore)</small><input class="inp" id="ne-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+    <div class="field">Somme de départ <small class="muted">(facultatif)</small><input class="inp" id="ne-fund" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done">
+      <div id="ne-from" class="hidden">${fundSourceHTML('ne-from', potTotal(S))}</div><small class="muted" id="ne-fundnote">Une réserve qui couvre les dépenses au-delà de la mensualité, et qui se reporte d’un mois sur l’autre.</small></div>
     <div class="grid2"><label class="field">3 · Avec quel compte ?<select class="inp" id="ne-account">${accOpts || '<option value="">— aucun —</option>'}</select></label>
       <label class="field">Catégorie<select class="inp" id="ne-cat">${catOpts}</select></label></div>`,
     `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="ne-create">Créer l’enveloppe</button></div>`);
@@ -2797,14 +2958,23 @@ function neRefresh(){
   box.innerHTML = ex ? `Tu as déjà une ligne « ${esc(ex.name)} » (${money(ex.amount)} par mois). L’enveloppe la <b>convertira</b> au lieu d’en créer une seconde.` : '';
 }
 function neCreate(){
-  const name = ($('#ne-name').value || '').trim(), amount = Math.abs(num($('#ne-amount').value));
+  const name = ($('#ne-name').value || '').trim(), amount = Math.abs(num($('#ne-amount').value)), fund = Math.abs(num($('#ne-fund').value)), from = ($('input[name=ne-from]:checked') || {}).value || 'free';
   if(!name){ toast('Donne un nom à l’enveloppe.'); focusQuiet($('#ne-name')); return; }
-  if(!(amount > 0)){ toast('Indique la somme prévue par mois.'); focusQuiet($('#ne-amount')); return; }
-  const ex = neMatch();
-  if(ex){ ex.envelope = true; ex.amount = amount; ex.day = null; ex.cycle = {every:1, unit:'month', times:1}; ex.months = null; ex.zero = false; $('#dlg').close(); touch(); toast(`« ${ex.name} » est maintenant une enveloppe. Déclare une dépense avec le +.`); return; }
-  const accId = $('#ne-account').value || null, acc = accById(accId), owner = acc && acc.ownerId ? acc.ownerId : 'common';
-  S.lines.push(newLine(S, {name, catId:$('#ne-cat').value, kind:'debit', amount, method:'cb', accountId:accId, ownerId:owner, envelope:true, day:null}));
-  $('#dlg').close(); touch(); toast(`Enveloppe « ${name} » créée. Déclare une dépense avec le +.`);
+  if(fund > 0 && !envFundCheck(fund, from)) return;
+  const ex = neMatch(); let line;
+  if(ex){ ex.envelope = true; ex.amount = amount; ex.day = null; ex.cycle = {every:1, unit:'month', times:1}; ex.months = null; ex.zero = false; line = ex; }
+  else {
+    const accId = $('#ne-account').value || null, acc = accById(accId), owner = acc && acc.ownerId ? acc.ownerId : 'common';
+    line = newLine(S, {name, catId:$('#ne-cat').value, kind:'debit', amount, method:'cb', accountId:accId, ownerId:owner, envelope:true, day:null}); S.lines.push(line);
+  }
+  if(fund > 0) envelopeAddFund(S, line.id, fund, from, isoToday());
+  $('#dlg').close(); touch();
+  toast(ex ? `« ${line.name} » est maintenant une enveloppe.` : (amount > 0 || fund > 0 ? `Enveloppe « ${name} » créée${fund > 0 ? ` avec ${money(fund)} de départ` : ''}. Déclare une dépense avec le +.` : `Enveloppe « ${name} » créée : mensualité à définir. Déclare une dépense avec le +.`));
+}
+function neFundRefresh(){
+  const f = Math.abs(num(($('#ne-fund') || {value:0}).value)), box = $('#ne-from'), note = $('#ne-fundnote'); if(!box) return;
+  box.classList.toggle('hidden', !(f > 0)); const from = ($('input[name=ne-from]:checked') || {}).value;
+  note.textContent = f > 0 ? (from === 'pot' ? (f > potTotal(S) + 0.005 ? `La cagnotte ne contient que ${money(Math.max(0, potTotal(S)))} : elle passera en « manque ».` : `Il restera ${money(potTotal(S) - f)} dans la cagnotte. L’état du compte ne change pas : la somme reste comptée comme réserve.`) : 'La cagnotte n’est pas touchée : la somme est déjà disponible ailleurs.') : 'Une réserve qui couvre les dépenses au-delà de la mensualité, et qui se reporte d’un mois sur l’autre.';
 }
 function neFromSuggest(i){
   const s = ENV_SUGGEST[i]; if(!s) return;
@@ -3433,7 +3603,7 @@ function provisionCardHTML(){
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
   return `<section class="card joint"><header><h2>Compte provisions ${H('prov-block')}</h2><span class="badge">attendu</span></header>
     <div class="rest"><b>${money(C.state)}</b><span>état du compte au ${fmtDay(objOf(now))}</span></div>
-    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div>${Math.abs(C.pot) > 0.004 || (S.pot || []).length ? `<div><dt>dont cagnotte ${H('pot')}</dt><dd class="${C.pot < -0.004 ? 'debit' : ''}">${C.pot < -0.004 ? '−' : ''}${money(Math.abs(C.pot))}${C.pot < -0.004 ? ' <small class="muted">manque</small>' : ''}</dd></div>` : ''}<div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
+    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div>${Math.abs(C.pot) > 0.004 || (S.pot || []).length ? `<div><dt>dont cagnotte ${H('pot')}</dt><dd class="${C.pot < -0.004 ? 'debit' : ''}">${C.pot < -0.004 ? '−' : ''}${money(Math.abs(C.pot))}${C.pot < -0.004 ? ' <small class="muted">manque</small>' : ''}</dd></div>` : ''}${C.envReserve > 0.004 ? `<div><dt>dont réserve des enveloppes ${H('env-reserve')}</dt><dd>${money(C.envReserve)}</dd></div>` : ''}<div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
     ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="rc-open">Recaler sur mon solde réel</button><button class="btn small" data-act="pot-open">Cagnotte</button><button class="btn small" data-act="tab" data-tab="provisions">Détail par ligne</button></div></section>`;
@@ -3729,6 +3899,7 @@ const ADVICE_META = {
   'env-depasse': d => ({title:`Enveloppe dépassée : ${esc(d.name)}`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu (+${money(d.over)})${d.count > 1 ? `, et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''} dépassée${d.count > 2 ? 's' : ''}` : ''}. Le dépassement est suivi à part et baisse l’état du compte provisions.`}),
   'env-rythme': d => ({title:`${esc(d.name)} : rythme soutenu`, text:`« ${esc(d.name)} » est à ${Math.round(d.pct * 100)} % du prévu alors que ${Math.round(d.elapsed * 100)} % du mois est écoulé${d.count > 1 ? ` (et ${d.count - 1} autre${d.count > 2 ? 's' : ''} enveloppe${d.count > 2 ? 's' : ''})` : ''}.`}),
   'env-guide': d => ({title:'Suivre vos dépenses variables', text:`${d.count} ligne${d.count > 1 ? 's' : ''} ressemble${d.count > 1 ? 'nt' : ''} à des dépenses variables (dont « ${esc(d.name)} »). Crée des enveloppes pour les déclarer au fil du mois.`}),
+  'env-tbd': d => ({title:`${d.count > 1 ? d.count + ' enveloppes ont' : 'Une enveloppe a'} une mensualité à définir`, text:`${d.names.map(esc).join(', ')} : quand tu sauras combien provisionner chaque mois, fixe la mensualité dans Budget. En attendant, les dépenses sont suivies et, s’il y en a une, la réserve les couvre.`}),
   'kid-age': d => ({title:`Âge de ${esc(d.name)} à renseigner`, text:`Indique l’âge de ${esc(d.name)} dans Foyer : il adapte son espace (mots, couleurs, mascotte) et le fait évoluer tout seul.`}),
   'kid-18': d => ({title:`${esc(d.name)} a 18 ans`, text:`${esc(d.name)} est majeur(e) : son espace propose le passage à l’âge adulte. Dans l’espace parent, « Passer adulte dans le foyer » conserve son historique d’épargne.`}),
   'kid-locked': d => ({title:`L’espace de ${esc(d.name)} s’ouvre bientôt`, text:`L’espace enfant commence à 6 ans : celui de ${esc(d.name)} s’ouvrira en ${MONTHS[d.month - 1]} ${d.year}.`}),
@@ -3775,7 +3946,7 @@ const lineOwners = l => linePartsOf(l).map(p => p.ownerId);
 function viewBudget(){
   const owners = [['all','Tout le monde'],['common','Commun'],...S.members.map(m => [m.id, m.name])];
   if(U.cat && U.cat !== 'all' && !S.categories.some(c => c.id === U.cat)) U.cat = 'all';
-  const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero).length, nf = activeFilters();
+  const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope).length, nf = activeFilters();
   return `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
       <input class="inp grow" id="q" type="search" placeholder="Rechercher une ligne…" value="${esc(U.q)}" aria-label="Rechercher">
       <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${S.categories.map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
@@ -3795,7 +3966,7 @@ function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.
 function listHTML(){
   const q = U.q.trim().toLowerCase(), filtering = activeFilters() > 0;
   const match = l => (U.owner === 'all' || lineOwners(l).includes(U.owner)) && (U.kind === 'all' || l.kind === U.kind) && (!U.cat || U.cat === 'all' || l.catId === U.cat) &&
-    (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero));
+    (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   ENV_CAND = new Set(envelopeCandidates(S).map(l => l.id));
   S.categories.forEach(c => {
@@ -3835,11 +4006,11 @@ function lineRow(l){
     parts ? splitText(l) : (l.accountId ? accName(l.accountId) : ''), !parts && l.ownerId !== 'common' ? memberName(l.ownerId) : '',
     l.zero ? 'montant nul à chaque échéance' : '', l.envelope ? 'enveloppe' : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
     .filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('') + (ENV_CAND.has(l.id) ? `<button type="button" class="linklike" data-act="env-convert" data-id="${esc(l.id)}">Suivre au fil du mois</button>` : '');
-  const empty = l.amount === 0 && !l.zero, sum = (l.amount === 0 || !l.active) ? null : lineSummary(l);
+  const empty = l.amount === 0 && !l.zero && !l.envelope, tbd = l.amount === 0 && !!l.envelope, sum = (l.amount === 0 || !l.active) ? null : lineSummary(l);
   return `<div class="line ${l.active?'':'off'}" data-act="edit-line" data-id="${l.id}" role="button" tabindex="0" aria-label="Modifier ${esc(l.name)}">
     <label class="sw" title="Inclure dans le calcul"><input type="checkbox" data-b="line:${l.id}:active" ${l.active?'checked':''} aria-label="Inclure ${esc(l.name)} dans le calcul"></label>
     <div class="lmain"><span class="lname">${esc(l.name)}</span><i class="dots"></i></div>
-    <div class="amt"><b class="${empty?'todo':l.kind}">${empty ? 'à renseigner' : (l.zero ? money(0) : signed(l.kind, l.amount))}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
+    <div class="amt"><b class="${empty ? 'todo' : (tbd ? 'tbd' : l.kind)}">${empty ? 'à renseigner' : (tbd ? 'à définir' : (l.zero ? money(0) : signed(l.kind, l.amount)))}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
     <div class="meta">${metas}</div></div>`;
 }
 
@@ -4112,7 +4283,7 @@ function refreshLineForm(){
     $('#f-splitsum', dlg).textContent = Math.abs(tot - 100) < 0.01 ? 'Total : 100 %' : `Total : ${Math.round(tot * 100) / 100} % (ramené à 100 %)`;
     if(l.amount > 0 && tot > 0) split = '<br>' + l.split.map(p => `${esc(p.accountId ? accName(p.accountId) : memberName(p.ownerId))} : <b>${money(l.amount * p.pct / tot)}</b>`).join(' · ') + ' à chaque échéance.';
   } else if(on) $('#f-splitsum', dlg).textContent = '';
-  $('#f-preview', dlg).innerHTML = (variable ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à déclarer au fil des dépenses (bouton + dans la Synthèse).` : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l)))) + split;
+  $('#f-preview', dlg).innerHTML = (variable ? (l.amount > 0 ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à déclarer au fil des dépenses (bouton + dans la Synthèse).` : 'Enveloppe : <b>mensualité à définir</b> (0 € pour l’instant). Tu peux la fixer plus tard.') : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l)))) + split;
 }
 function previewText(sum){
   switch(sum.mode){
@@ -4375,6 +4546,9 @@ document.addEventListener('click', async e => {
     case 'spend-edit': openSpend(U.spendCtx ? U.spendCtx.lineId : (S.spends.find(x => x.id === id) || {}).lineId, id); break;
     case 'spend-save': saveSpend(); break;
     case 'spend-del': { const c = U.spendCtx; if(c && c.spendId){ const sp = S.spends.find(x => x.id === c.spendId); S.spends = S.spends.filter(x => x.id !== c.spendId); $('#dlg').close(); touch(); toastUndo('Dépense supprimée', () => { if(sp){ S.spends.push(sp); touch(); } }); } break; }
+    case 'env-fund': openEnvFund(id); break;
+    case 'env-fund-save': envFundSave(); break;
+    case 'env-return': { const l = S.lines.find(x => x.id === id), got = l ? envelopeReturnToPot(S, id) : 0; if(got > 0){ touch(); openEnvelope(id); toast(`${money(got)} remis dans la cagnotte.`); } break; }
     case 'env-edit-line': $('#dlg').close(); openLine(id); break;
     case 'ne-pick': neFromSuggest(+t.dataset.i); break;
     case 'ne-create': neCreate(); break;
@@ -4415,7 +4589,7 @@ document.addEventListener('click', async e => {
       const c = {...l, id:uid(), name:l.name + ' (copie)', auto:null, forMember:null};
       S.lines.push(c); $('#dlg').close(); touch(); toast('Ligne dupliquée'); break; }
     case 'del-line':
-      if(confirm('Supprimer cette ligne ?')){ S.lines = S.lines.filter(l => l.id !== U.editing.id); S.spends = (S.spends || []).filter(x => x.lineId !== U.editing.id); $('#dlg').close(); touch(); toast('Ligne supprimée'); } break;
+      if(confirm('Supprimer cette ligne ?')){ const lid = U.editing.id, back = envelopeReturnToPotPreview(lid); if(back > 0.004 && confirm(`Il reste ${money(back)} de réserve issue de la cagnotte. Les remettre dans la cagnotte ?`)) envelopeReturnToPot(S, lid); S.lines = S.lines.filter(l => l.id !== U.editing.id); S.spends = (S.spends || []).filter(x => x.lineId !== U.editing.id); $('#dlg').close(); touch(); toast('Ligne supprimée'); } break;
     case 'split-add': { const parts = readSplit(); const used = new Set(parts.map(p => p.ownerId)); const nxt = ['common', ...S.members.map(m => m.id)].find(o => !used.has(o)) || 'common';
       parts.push({ownerId:nxt, accountId:defaultAccountFor(S, nxt) || null, pct:0}); const eq = Math.round(10000 / parts.length) / 100; writeSplit(parts.map(p => ({...p, pct:eq}))); refreshLineForm(); break; }
     case 'split-del': { const parts = readSplit(); parts.splice(+t.dataset.i, 1);
@@ -4438,6 +4612,9 @@ document.addEventListener('click', async e => {
     case 'src-reload': pickReload(); break;
     case 'src-forget': if(confirm('Oublier la source de ce fichier ? Tes données ne sont pas touchées.')){ dropSrc(S.id); render(); } break;
     case 'src-where': { putSrc(S.id, {where:id === 'none' ? null : id, asked:true}); const dlg = $('#dlg'); if(dlg.open) dlg.close(); render(); break; }
+    case 'demo': await startDemo(); break;
+    case 'demo-quit': quitDemo(); break;
+    case 'demo-create': quitDemo(() => startWizard()); break;
     case 'dismiss-src': U.noticeSrc = 'off'; render(); break;
     case 'sync-load': case 'sync-keep': case 'sync-cancel': syncAnswer(a); break;
     case 'reconnect': reconnect(); break;
@@ -4507,6 +4684,7 @@ document.addEventListener('input', e => {
   if(t.dataset && t.dataset.kw && t.tagName === 'INPUT' && t.type !== 'checkbox'){ kwField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
   if(e.target.id === 'ne-name'){ neRefresh(); return; }
+  if(e.target.id === 'ne-fund'){ neFundRefresh(); return; }
   if(e.target.id && e.target.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(e.target.id === 'kd-amount' && $('#kd-wait')){ const km = kidMember(); $('#kd-wait').classList.toggle('hidden', !(km && km.kid.rules.wait > 0 && num(e.target.value) >= BIG_SPEND)); return; }
   if(e.target.id === 'py-amount' || e.target.id === 'py-date'){ paySync(e.target.id === 'py-amount'); return; }
@@ -4517,6 +4695,7 @@ document.addEventListener('change', e => {
   const el = e.target;
   if(el.dataset && el.dataset.w){ onWizardField(el); return; }
   if(el.dataset && el.dataset.kw){ kwField(el); return; }
+  if(el.name === 'ne-from'){ neFundRefresh(); return; }
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
@@ -4608,7 +4787,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   init();
 });
-window.addEventListener('beforeunload', e => { if(S && U.dirty && !U.fileHandle && !S.settings.backup){ e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if(S && !U.demo && U.dirty && !U.fileHandle && !S.settings.backup){ e.preventDefault(); e.returnValue = ''; } });
 
 </script>
 </body>
