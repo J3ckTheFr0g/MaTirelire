@@ -939,7 +939,7 @@ function normalize(d){
       lastDate: x.lastDate || null, note: String(x.note||''), auto: x.auto || null, forMember: x.forMember || null,
       envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero,
       funds: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.funds)) ? x.funds.map(f => ({id:String((f && f.id) || uid()), date:String((f && f.date) || ''), amount:Math.round((+(f && f.amount) || 0) * 100) / 100, from:(f && f.from) === 'pot' ? 'pot' : 'free', potId:(f && f.potId) ? String(f.potId) : null})).filter(f => Math.abs(f.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) : [],
-      paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
+      paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], topups: Array.isArray(x.topups) ? x.topups.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
   // Références orphelines
@@ -976,7 +976,7 @@ function newLine(S, o={}){
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], paid:[]
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], paid:[], topups:[]
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -1812,15 +1812,19 @@ function payPartial(S, lineId, amount, date, note){
   l.paid = l.paid || []; l.paid.push(p); return p;
 }
 /* Paiement final : solde la dépense, le suivi repart de la date de paiement, l'écart va dans la cagnotte */
-function payFinal(S, lineId, amount, date, note, clock){
+function payFinal(S, lineId, amount, date, note, clock, cover){
   const l = S.lines.find(x => x.id === lineId); if(!l) return null;
   const d = parseISO(date) || objOf(new Date());
   const p = provisionLine(l, new Date(d.y, d.m - 1, d.d), clock);
   const total = p.paid + Math.abs(+amount || 0);
   const delta = p.noStart ? 0 : p.gross - total;
-  const entry = potAdd(S, delta > 0 ? 'reliquat' : 'ecart', delta, date, l.name, {lineId, note:String(note || '').trim()});
+  /* Dépassement complété de sa poche : seul le provisionné est consommé, la cagnotte ne bouge pas */
+  const pocket = delta < -0.004 && cover === 'pocket';
+  const entry = pocket ? null : potAdd(S, delta > 0 ? 'reliquat' : 'ecart', delta, date, l.name, {lineId, note:String(note || '').trim()});
+  let topup = null;
+  if(pocket){ topup = {id:uid(), date, amount:Math.round(-delta * 100) / 100, note:String(note || '').trim()}; l.topups = l.topups || []; l.topups.push(topup); }
   l.paid = []; l.lastDate = date;
-  return {delta, total, entry, gross:p.gross};
+  return {delta, total, entry, topup, gross:p.gross};
 }
 /* Recalage : l'écart entre le solde réel saisi et l'état attendu devient une entrée de cagnotte */
 function recalage(S, real, date, now){
@@ -2084,7 +2088,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.11', APP_DATE = '5 octobre 2026', APP_BUILD = 'f80f35';
+const APP_VERSION = '2.12', APP_DATE = '6 octobre 2026', APP_BUILD = 'b596db';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2564,12 +2568,14 @@ function payConsequence(){
     const left = Math.max(0, p.toPay - amt);
     return left > 0.005 ? `Il restera <b>${money(left)}</b> à payer sur ${money(p.goal)} prévus. Tu pourras compléter plus tard.` : `Le montant couvre déjà tout ce qui restait : choisis plutôt « Paiement final ».`;
   }
-  const delta = p.gross - (p.paid + amt);
+  const delta = p.gross - (p.paid + amt), cv = payCover();
   if(p.noStart) return 'La dépense est soldée et le suivi démarre à la date du paiement.';
   if(Math.abs(delta) < 0.005) return 'La dépense est soldée, sans écart. Le suivi repart de zéro.';
   return delta > 0 ? `La dépense est soldée. Écart : <b class="credit">+${money(delta)}</b> → ajouté à la cagnotte. Le suivi repart de zéro.`
-                   : `La dépense est soldée. Écart : <b class="debit">−${money(-delta)}</b> → la cagnotte baisse (manque). Le suivi repart de zéro.`;
+                   : (cv === 'pocket' ? `La dépense est soldée : <b>${money(p.gross)}</b> viennent des provisions et <b>${money(-delta)}</b> de ta poche. La cagnotte ne change pas. Le suivi repart de zéro.`
+                                      : `La dépense est soldée. Écart : <b class="debit">−${money(-delta)}</b> → la cagnotte baisse (manque). Le suivi repart de zéro.`);
 }
+function payCover(){ const r = $('input[name=py-cover]:checked'); return r ? r.value : 'pocket'; }
 function openPay(lineId){
   const info = payInfo(lineId, isoToday()); if(!info) return;
   const {l, p} = info, dlg = $('#dlg'); U.editing = null; U.payCtx = {lineId, modeTouched:false};
@@ -2579,9 +2585,10 @@ function openPay(lineId){
     <label class="field">Montant payé<input class="inp bigamt" id="py-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${dflt || ''}" enterkeyhint="done"></label>
     <div class="grid2"><label class="field">Date<input class="inp" id="py-date" type="date" value="${isoToday()}"></label><label class="field">Note (facultatif)<input class="inp" id="py-note" placeholder="Ex. photo du fils" autocomplete="off" enterkeyhint="done"></label></div>
     <div class="field">Ce paiement est<div class="seg" role="radiogroup" aria-label="Type de paiement"><label><input type="radio" name="py-mode" value="partial">Partiel</label><label><input type="radio" name="py-mode" value="final" checked>Final</label></div></div>
-    <div class="preview" id="py-info" aria-live="polite"></div>${hist}`,
+    <div class="field" id="py-cover-box" hidden>Le dépassement est complété<div class="seg" role="radiogroup" aria-label="Origine du complément"><label><input type="radio" name="py-cover" value="pocket" checked>De ma poche</label><label><input type="radio" name="py-cover" value="pot">Par la cagnotte</label></div></div>
+    <div class="preview" id="py-info" aria-live="polite"></div>${hist}${(l.topups || []).length ? `<h3 class="who">Compléments de ta poche</h3><ul class="leaders">${l.topups.map(x => `<li><span>${fmtShort(x.date)}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></li>`).join('')}</ul>` : ''}`,
     `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="pay-save">Valider le paiement</button></div>`);
-  dlg.showModal(); $('#py-info').innerHTML = payConsequence(); focusQuiet($('#py-amount'));
+  dlg.showModal(); payCoverShow(); $('#py-info').innerHTML = payConsequence(); focusQuiet($('#py-amount'));
 }
 function paySync(fromAmount){
   const c = U.payCtx; if(!c) return;
@@ -2589,7 +2596,12 @@ function paySync(fromAmount){
     const info = payInfo(c.lineId, $('#py-date').value), amt = Math.abs(num($('#py-amount').value));
     const r = $(`input[name=py-mode][value=${info && amt > 0 && amt < info.p.toPay - 0.005 ? 'partial' : 'final'}]`); if(r) r.checked = true;
   }
-  $('#py-info').innerHTML = payConsequence();
+  payCoverShow(); $('#py-info').innerHTML = payConsequence();
+}
+function payCoverShow(){
+  const c = U.payCtx, box = $('#py-cover-box'); if(!c || !box) return;
+  const info = payInfo(c.lineId, $('#py-date').value), amt = Math.abs(num($('#py-amount').value)), mode = ($('input[name=py-mode]:checked') || {}).value;
+  box.hidden = !(info && mode === 'final' && !info.p.noStart && amt > 0 && info.p.gross - (info.p.paid + amt) < -0.004);
 }
 function savePay(){
   const c = U.payCtx; if(!c) return;
@@ -2597,7 +2609,7 @@ function savePay(){
   if(!(amount > 0)){ toast('Saisis le montant payé.'); focusQuiet($('#py-amount')); return; }
   if(!parseISO(date)){ toast('Choisis la date du paiement.'); return; }
   const l = S.lines.find(x => x.id === c.lineId); if(!l) return;
-  const snap = {paid:JSON.parse(JSON.stringify(l.paid || [])), lastDate:l.lastDate, potLen:(S.pot || []).length};
+  const snap = {paid:JSON.parse(JSON.stringify(l.paid || [])), topups:JSON.parse(JSON.stringify(l.topups || [])), lastDate:l.lastDate, potLen:(S.pot || []).length};
   const before = provInfo(l, undefined, provisionClock(S));
   if(mode === 'partial'){
     const pay = payPartial(S, l.id, amount, date, note); $('#dlg').close(); touch();
@@ -2605,9 +2617,10 @@ function savePay(){
     toastUndo(`${money(amount)} payés sur ${l.name} · reste ${money(left)}`, () => { l.paid = l.paid.filter(x => x.id !== pay.id); touch(); });
     return;
   }
-  const r = payFinal(S, l.id, amount, date, note, provisionClock(S)); $('#dlg').close(); touch();
-  const extra = r && Math.abs(r.delta) >= 0.005 ? ` · ${r.delta > 0 ? 'reliquat' : 'manque'} ${money(Math.abs(r.delta))} ${r.delta > 0 ? 'ajouté à' : 'dans'} la cagnotte` : '';
-  toastUndo(`${l.name} soldé${extra}`, () => { l.paid = snap.paid; l.lastDate = snap.lastDate; S.pot = S.pot.slice(0, snap.potLen); touch(); });
+  const cover = $('#py-cover-box') && !$('#py-cover-box').hidden ? payCover() : 'pot';
+  const r = payFinal(S, l.id, amount, date, note, provisionClock(S), cover); $('#dlg').close(); touch();
+  const extra = r && r.topup ? ` · ${money(r.topup.amount)} complétés de ta poche, cagnotte inchangée` : r && Math.abs(r.delta) >= 0.005 ? ` · ${r.delta > 0 ? 'reliquat' : 'manque'} ${money(Math.abs(r.delta))} ${r.delta > 0 ? 'ajouté à' : 'dans'} la cagnotte` : '';
+  toastUndo(`${l.name} soldé${extra}`, () => { l.paid = snap.paid; l.topups = snap.topups; l.lastDate = snap.lastDate; S.pot = S.pot.slice(0, snap.potLen); touch(); });
 }
 /* Cagnotte */
 function potEntryRow(x){
@@ -2618,7 +2631,7 @@ function openPot(){
   const tot = potTotal(S), dlg = $('#dlg'); U.editing = null;
   const list = (S.pot || []).slice().sort((a, b) => b.date.localeCompare(a.date) || 0);
   dlg.innerHTML = dlgShell(`Cagnotte ${H('pot')}`, `<div class="rest"><b class="${tot < -0.005 ? 'neg' : ''}">${tot < -0.005 ? '−' : ''}${money(Math.abs(tot))}</b><span>${tot < -0.005 ? 'manque dans les provisions' : 'écart disponible dans les provisions'}</span></div>
-    ${list.length ? `<ul class="leaders spendlist">${list.map(potEntryRow).join('')}</ul>` : '<p class="hint">La cagnotte est vide. Elle reçoit les reliquats quand tu paies moins que prévu, et le manque quand tu paies plus.</p>'}`,
+    ${list.length ? `<ul class="leaders spendlist">${list.map(potEntryRow).join('')}</ul>` : '<p class="hint">La cagnotte est vide. Elle reçoit les reliquats quand tu paies moins que prévu, et le manque quand tu paies plus sans compléter de ta poche.</p>'}`,
     `<div class="potacts"><button type="button" class="btn" data-act="pot-save" ${tot > 0.005 ? '' : 'disabled'}>Épargner</button><button type="button" class="btn" data-act="pot-adjust">Ajuster</button><button type="button" class="btn" data-act="pot-fix">Fixer à…</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
   dlg.showModal();
 }
@@ -2739,7 +2752,7 @@ const HELP = {
   'kid-reves':{title:'Mes rêves', body:`<p>Un rêve, c’est quelque chose qui te ferait vraiment plaisir : un jeu, une sortie, des baskets…</p><p>Tu y mets de l’argent de ton épargne libre. La barre se remplit, et on t’indique à peu près quand tu y arriveras. Quand il est complet, un parent valide l’achat.</p>`},
   'kid-succes':{title:'Succès et niveaux', body:`<p>Chaque fois que tu épargnes, tu avances : <b>Graine</b>, <b>Pousse</b>, <b>Arbuste</b>, <b>Arbre</b>, <b>Forêt</b>.</p><p>Les succès se gagnent en épargnant, en réalisant tes rêves, en donnant ou en comptant tes pièces. Rien ne se perd si tu fais une pause.</p>`},
   pot:{title:'Cagnotte', body:`<p>La cagnotte est l’<b>écart</b> entre l’argent réellement mis de côté pour une dépense et ce que tu as payé.</p>
-    <ul><li>Tu paies <b>moins</b> que prévu : le reliquat va dans la cagnotte.</li><li>Tu paies <b>plus</b> : la cagnotte baisse, et si elle passe sous zéro elle indique un <b>manque</b>.</li><li>Tu peux <b>épargner</b> la cagnotte (elle sort des provisions, donc du compte joint), l’<b>ajuster</b> à la main, ou la <b>recaler</b> sur ton solde bancaire réel.</li></ul>
+    <ul><li>Tu paies <b>moins</b> que prévu : le reliquat va dans la cagnotte.</li><li>Tu paies <b>plus</b> : tu choisis de compléter <b>de ta poche</b> (la cagnotte ne bouge pas) ou <b>par la cagnotte</b>, qui baisse et indique un <b>manque</b> si elle passe sous zéro.</li><li>Tu peux <b>épargner</b> la cagnotte (elle sort des provisions, donc du compte joint), l’<b>ajuster</b> à la main, ou la <b>recaler</b> sur ton solde bancaire réel.</li></ul>
     <p class="note">Elle fait partie de l’état du compte provisions. Chaque ligne de l’historique se modifie ou se supprime.</p>`},
   rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
     <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
@@ -4259,7 +4272,7 @@ function readLineForm(){
     method:g('f-method').value || null, accountId:(parts && parts.length) ? parts[0].accountId : (g('f-account').value || null), ownerId:(parts && parts.length) ? parts[0].ownerId : g('f-owner').value,
     split:parts && parts.length > 1 ? parts : null, zero, envelope:variable,
     active:g('f-active').checked, smooth: variable ? null : (sm === 'yes' ? true : sm === 'no' ? false : null),
-    goal:(!variable && g('f-goal').value !== '') ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null, paid:cur.paid || [], funds:variable ? (cur.funds || []) : [],
+    goal:(!variable && g('f-goal').value !== '') ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null, paid:cur.paid || [], topups:cur.topups || [], funds:variable ? (cur.funds || []) : [],
     lastDate:variable ? null : (g('f-last').value || null), note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null,
   };
 }
@@ -4705,6 +4718,7 @@ document.addEventListener('change', e => {
   if(el.name === 'ne-from'){ neFundRefresh(); return; }
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
+  if(el.name === 'py-cover'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.dataset && el.dataset.kp){ kidPanelChange(el); return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
