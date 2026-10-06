@@ -176,6 +176,7 @@ tfoot td{font-weight:700;border-bottom:0}
 .form{display:grid;gap:12px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px}
 .field{display:grid;gap:4px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.field[hidden]{display:none}
 .field .inp{color:var(--ink);font-weight:400}
 .check{display:flex;align-items:center;gap:8px;font-size:.95rem;color:var(--ink);font-weight:500}
 .check input{width:18px;height:18px;accent-color:var(--brand)}
@@ -1812,7 +1813,7 @@ function payPartial(S, lineId, amount, date, note){
   l.paid = l.paid || []; l.paid.push(p); return p;
 }
 /* Paiement final : solde la dépense, le suivi repart de la date de paiement, l'écart va dans la cagnotte */
-function payFinal(S, lineId, amount, date, note, clock, cover){
+function payFinal(S, lineId, amount, date, note, clock, cover, restPocket){
   const l = S.lines.find(x => x.id === lineId); if(!l) return null;
   const d = parseISO(date) || objOf(new Date());
   const p = provisionLine(l, new Date(d.y, d.m - 1, d.d), clock);
@@ -1821,8 +1822,11 @@ function payFinal(S, lineId, amount, date, note, clock, cover){
   /* Dépassement complété de sa poche : seul le provisionné est consommé, la cagnotte ne bouge pas */
   const pocket = delta < -0.004 && cover === 'pocket';
   const entry = pocket ? null : potAdd(S, delta > 0 ? 'reliquat' : 'ecart', delta, date, l.name, {lineId, note:String(note || '').trim()});
+  /* Reste du prévu complété de sa poche (ex. 354 € provisionnés + 71 € de la poche pour 425 € prévus) */
+  const short = restPocket ? Math.max(0, p.goal - total) : 0;
+  const pocketAmt = Math.round(((pocket ? -delta : 0) + short) * 100) / 100;
   let topup = null;
-  if(pocket){ topup = {id:uid(), date, amount:Math.round(-delta * 100) / 100, note:String(note || '').trim()}; l.topups = l.topups || []; l.topups.push(topup); }
+  if(pocketAmt > 0.004){ topup = {id:uid(), date, amount:pocketAmt, note:String(note || '').trim()}; l.topups = l.topups || []; l.topups.push(topup); }
   l.paid = []; l.lastDate = date;
   return {delta, total, entry, topup, gross:p.gross};
 }
@@ -2088,7 +2092,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.12', APP_DATE = '6 octobre 2026', APP_BUILD = 'b596db';
+const APP_VERSION = '2.13', APP_DATE = '6 octobre 2026', APP_BUILD = 'e22678';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2564,6 +2568,11 @@ function payConsequence(){
   if(!info) return '';
   const {p} = info;
   if(!(amt > 0)) return 'Saisis le montant payé.';
+  const rp = payRestPocket(p, amt, mode);
+  if(rp){
+    const delta0 = p.gross - (p.paid + amt), fromProv = Math.min(p.gross, p.paid + amt);
+    return `La dépense est soldée : <b>${money(fromProv)}</b> viennent des provisions et <b>${money(p.goal - fromProv)}</b> de ta poche. ${delta0 > 0.004 ? `Le reliquat de ${money(delta0)} va dans la cagnotte. ` : 'La cagnotte ne change pas. '}Le suivi repart de zéro.`;
+  }
   if(mode === 'partial'){
     const left = Math.max(0, p.toPay - amt);
     return left > 0.005 ? `Il restera <b>${money(left)}</b> à payer sur ${money(p.goal)} prévus. Tu pourras compléter plus tard.` : `Le montant couvre déjà tout ce qui restait : choisis plutôt « Paiement final ».`;
@@ -2575,6 +2584,10 @@ function payConsequence(){
                    : (cv === 'pocket' ? `La dépense est soldée : <b>${money(p.gross)}</b> viennent des provisions et <b>${money(-delta)}</b> de ta poche. La cagnotte ne change pas. Le suivi repart de zéro.`
                                       : `La dépense est soldée. Écart : <b class="debit">−${money(-delta)}</b> → la cagnotte baisse (manque). Le suivi repart de zéro.`);
 }
+function payRestPocket(p, amt, mode){
+  const r = $('input[name=py-rest]:checked');
+  return !!(r && r.value === 'pocket' && mode === 'partial' && amt > 0 && amt < p.toPay - 0.005);
+}
 function payCover(){ const r = $('input[name=py-cover]:checked'); return r ? r.value : 'pocket'; }
 function openPay(lineId){
   const info = payInfo(lineId, isoToday()); if(!info) return;
@@ -2585,6 +2598,7 @@ function openPay(lineId){
     <label class="field">Montant payé<input class="inp bigamt" id="py-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${dflt || ''}" enterkeyhint="done"></label>
     <div class="grid2"><label class="field">Date<input class="inp" id="py-date" type="date" value="${isoToday()}"></label><label class="field">Note (facultatif)<input class="inp" id="py-note" placeholder="Ex. photo du fils" autocomplete="off" enterkeyhint="done"></label></div>
     <div class="field">Ce paiement est<div class="seg" role="radiogroup" aria-label="Type de paiement"><label><input type="radio" name="py-mode" value="partial">Partiel</label><label><input type="radio" name="py-mode" value="final" checked>Final</label></div></div>
+    <div class="field" id="py-rest-box" hidden>Le reste à payer<div class="seg" role="radiogroup" aria-label="Le reste à payer"><label><input type="radio" name="py-rest" value="later" checked>Plus tard</label><label><input type="radio" name="py-rest" value="pocket">De ma poche, solder</label></div></div>
     <div class="field" id="py-cover-box" hidden>Le dépassement est complété<div class="seg" role="radiogroup" aria-label="Origine du complément"><label><input type="radio" name="py-cover" value="pocket" checked>De ma poche</label><label><input type="radio" name="py-cover" value="pot">Par la cagnotte</label></div></div>
     <div class="preview" id="py-info" aria-live="polite"></div>${hist}${(l.topups || []).length ? `<h3 class="who">Compléments de ta poche</h3><ul class="leaders">${l.topups.map(x => `<li><span>${fmtShort(x.date)}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></li>`).join('')}</ul>` : ''}`,
     `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="pay-save">Valider le paiement</button></div>`);
@@ -2602,6 +2616,7 @@ function payCoverShow(){
   const c = U.payCtx, box = $('#py-cover-box'); if(!c || !box) return;
   const info = payInfo(c.lineId, $('#py-date').value), amt = Math.abs(num($('#py-amount').value)), mode = ($('input[name=py-mode]:checked') || {}).value;
   box.hidden = !(info && mode === 'final' && !info.p.noStart && amt > 0 && info.p.gross - (info.p.paid + amt) < -0.004);
+  const rb = $('#py-rest-box'); if(rb) rb.hidden = !(info && mode === 'partial' && amt > 0 && amt < info.p.toPay - 0.005);
 }
 function savePay(){
   const c = U.payCtx; if(!c) return;
@@ -2611,14 +2626,15 @@ function savePay(){
   const l = S.lines.find(x => x.id === c.lineId); if(!l) return;
   const snap = {paid:JSON.parse(JSON.stringify(l.paid || [])), topups:JSON.parse(JSON.stringify(l.topups || [])), lastDate:l.lastDate, potLen:(S.pot || []).length};
   const before = provInfo(l, undefined, provisionClock(S));
-  if(mode === 'partial'){
+  const restBox = $('#py-rest-box'), restPocket = !!(restBox && !restBox.hidden && ($('input[name=py-rest]:checked') || {}).value === 'pocket');
+  if(mode === 'partial' && !restPocket){
     const pay = payPartial(S, l.id, amount, date, note); $('#dlg').close(); touch();
     const left = Math.max(0, before.toPay - amount);
     toastUndo(`${money(amount)} payés sur ${l.name} · reste ${money(left)}`, () => { l.paid = l.paid.filter(x => x.id !== pay.id); touch(); });
     return;
   }
-  const cover = $('#py-cover-box') && !$('#py-cover-box').hidden ? payCover() : 'pot';
-  const r = payFinal(S, l.id, amount, date, note, provisionClock(S), cover); $('#dlg').close(); touch();
+  const cover = restPocket || ($('#py-cover-box') && !$('#py-cover-box').hidden && payCover() === 'pocket') ? 'pocket' : 'pot';
+  const r = payFinal(S, l.id, amount, date, note, provisionClock(S), cover, restPocket); $('#dlg').close(); touch();
   const extra = r && r.topup ? ` · ${money(r.topup.amount)} complétés de ta poche, cagnotte inchangée` : r && Math.abs(r.delta) >= 0.005 ? ` · ${r.delta > 0 ? 'reliquat' : 'manque'} ${money(Math.abs(r.delta))} ${r.delta > 0 ? 'ajouté à' : 'dans'} la cagnotte` : '';
   toastUndo(`${l.name} soldé${extra}`, () => { l.paid = snap.paid; l.topups = snap.topups; l.lastDate = snap.lastDate; S.pot = S.pot.slice(0, snap.potLen); touch(); });
 }
@@ -4718,7 +4734,7 @@ document.addEventListener('change', e => {
   if(el.name === 'ne-from'){ neFundRefresh(); return; }
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
-  if(el.name === 'py-cover'){ paySync(false); return; }
+  if(el.name === 'py-cover' || el.name === 'py-rest'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.dataset && el.dataset.kp){ kidPanelChange(el); return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
