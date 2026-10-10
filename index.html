@@ -154,7 +154,9 @@ tfoot td{font-weight:700;border-bottom:0}
 .cathead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--line)}
 .cathead .tog{flex:1;min-width:0;display:flex;align-items:center;gap:9px;background:none;border:0;text-align:left;font-weight:700;cursor:pointer;padding:4px 0}
 .cathead .tot{font-weight:650;font-size:.92rem;white-space:nowrap}
-.cathead .tog{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cathead .tog{flex:1 1 9rem;white-space:normal;overflow-wrap:break-word;line-height:1.25}
+.cathead{flex-wrap:wrap;row-gap:4px}
+.cathead .tot{margin-left:auto}
 .line{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"sw main amt" "sw meta meta";gap:4px 12px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:baseline}
 .line:last-child{border-bottom:0}
 .line:hover{background:var(--surface2)}
@@ -2092,7 +2094,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.13', APP_DATE = '6 octobre 2026', APP_BUILD = 'e22678';
+const APP_VERSION = '2.15', APP_DATE = '10 octobre 2026', APP_BUILD = 'f4cafa';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2253,6 +2255,101 @@ function backupNow(){
     const list = readSpaces(), i = list.findIndex(e => e.id === S.id), meta = spaceMeta(S); if(i >= 0) list[i] = meta; else list.push(meta); writeSpaces(list);
   }catch{}
 }
+/* ---------- Sauvegardes tournantes : versions successives gardées dans ce navigateur (IndexedDB) ---------- */
+const SNAP_LEVEL_KEY = 'matirelire:snaplevel';
+const SNAP_LEVELS = {
+  none:{label:'Aucune', last:0, days:0, desc:'Aucune sauvegarde automatique. Seules les sauvegardes de sécurité (avant un chargement ou une restauration) sont gardées.'},
+  light:{label:'Légère', last:3, days:0, desc:'Les 3 dernières versions.'},
+  standard:{label:'Standard', last:7, days:14, desc:'Les 7 dernières versions, plus une par jour pendant 14 jours.'},
+  large:{label:'Large', last:10, days:30, desc:'Les 10 dernières versions, plus une par jour pendant 30 jours.'}
+};
+function snapLevel(){ try{ const v = localStorage.getItem(SNAP_LEVEL_KEY); return SNAP_LEVELS[v] ? v : 'light'; }catch{ return 'light'; } }
+function setSnapLevel(v){ try{ localStorage.setItem(SNAP_LEVEL_KEY, v); }catch{} }
+const snapKey = id => 'snaps:' + id;
+async function snapList(id){ const a = await idbGet(snapKey(id)); return Array.isArray(a) ? a.filter(x => x && x.t && typeof x.data === 'string') : []; }
+function snapPrune(list, level, nowMs){
+  const L = SNAP_LEVELS[level] || SNAP_LEVELS.light, keep = new Set();
+  const sorted = list.slice().sort((a, b) => b.t.localeCompare(a.t)), auto = sorted.filter(x => !x.safe);
+  auto.slice(0, L.last).forEach(x => keep.add(x.t));
+  if(L.days > 0){
+    const seen = new Set(), cutoff = nowMs - L.days * 864e5;
+    auto.forEach(x => { const day = x.t.slice(0, 10); if(!seen.has(day) && Date.parse(x.t) >= cutoff){ seen.add(day); keep.add(x.t); } });
+  }
+  sorted.filter(x => x.safe).slice(0, 5).forEach(x => keep.add(x.t));
+  return sorted.filter(x => keep.has(x.t));
+}
+/* Prend une sauvegarde de `json` (état de l'espace id). safe : sauvegarde de sécurité, gardée même au niveau « Aucune ». */
+async function snapTake(id, json, reason, opts){
+  const o = opts || {}, lv = snapLevel();
+  if(!id || !json || U.demo || (lv === 'none' && !o.safe)) return false;
+  try{
+    const list = await snapList(id), newest = list.slice().sort((a, b) => b.t.localeCompare(a.t))[0];
+    if(newest && newest.data === json){ if(o.safe && !newest.safe){ newest.safe = true; await idbSet(snapKey(id), snapPrune(list, lv, Date.now())); } return false; }
+    if(!o.safe && o.minGap && newest && Date.now() - Date.parse(newest.t) < o.minGap) return false;
+    list.push({t:nowIso(), reason:String(reason || ''), safe:!!o.safe, data:json});
+    await idbSet(snapKey(id), snapPrune(list, lv, Date.now())); return true;
+  }catch{ return false; }
+}
+function snapOpen(){ if(!S || U.demo) return; const j = JSON.stringify(S); U.snapPrev = j; snapTake(S.id, j, 'À l’ouverture', {minGap:3600000}); }
+/* À chaque modification : on garde l'état d'AVANT (au plus une fois toutes les 10 minutes) */
+function snapOnTouch(){
+  if(!S || U.demo) return;
+  const j = JSON.stringify(S);
+  if(U.snapPrev && U.snapPrev !== j) snapTake(S.id, U.snapPrev, 'Avant modification', {minGap:600000});
+  U.snapPrev = j;
+}
+function snapSummary(json){
+  try{ const d = JSON.parse(json), n = (d.lines || []).length, pot = (d.pot || []).reduce((a, x) => a + (+x.amount || 0), 0), env = (d.lines || []).filter(l => l.envelope).length;
+    return `${n} ligne${n > 1 ? 's' : ''}${env ? ` · ${env} enveloppe${env > 1 ? 's' : ''}` : ''}${Math.abs(pot) >= 0.005 ? ` · cagnotte ${money(pot)}` : ''}`; }catch{ return ''; }
+}
+async function openSnaps(){
+  if(!S) return; const dlg = $('#dlg'), lv = snapLevel(); U.editing = null;
+  const list = (await snapList(S.id)).sort((a, b) => b.t.localeCompare(a.t));
+  const rows = list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><span class="spend-row fixed"><span>${esc(fmtWhen(x.t))} <small>${esc(x.reason)}${x.safe ? ' · sécurité' : ''}<br>${esc(snapSummary(x.data))}</small></span><i class="dots"></i><button type="button" class="btn small" data-act="snap-restore" data-id="${esc(x.t)}">Restaurer</button></span></li>`).join('')}</ul>` : '<p class="hint">Aucune sauvegarde pour le moment. Elles apparaissent au fil de tes modifications.</p>';
+  dlg.innerHTML = dlgShell('Sauvegardes', `<p class="hint">Versions successives de ce foyer, gardées dans ce navigateur. Elles permettent de revenir en arrière ; ton fichier reste ta sauvegarde durable.</p>
+    <div class="field">Niveau de sauvegarde<div class="seg" role="radiogroup" aria-label="Niveau de sauvegarde">${Object.entries(SNAP_LEVELS).map(([k, v]) => `<label><input type="radio" name="sn-level" value="${k}" ${k === lv ? 'checked' : ''}>${v.label}</label>`).join('')}</div><small class="muted" id="sn-desc">${esc(SNAP_LEVELS[lv].desc)}</small></div>
+    ${rows}`,
+    `<div class="potacts"><button type="button" class="btn" data-act="snap-export">Exporter les sauvegardes</button><button type="button" class="btn" data-act="snap-import">Importer</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
+  if(!dlg.open) dlg.showModal();
+}
+async function snapLevelChanged(v){
+  if(!SNAP_LEVELS[v]) return; setSnapLevel(v); const d = $('#sn-desc'); if(d) d.textContent = SNAP_LEVELS[v].desc;
+  if(S){ const list = await snapList(S.id); if(list.length) await idbSet(snapKey(S.id), snapPrune(list, v, Date.now())); await openSnaps(); }
+}
+async function snapRestore(t){
+  if(!S) return; const list = await snapList(S.id), x = list.find(y => y.t === t); if(!x) return;
+  if(!confirm(`Restaurer la version du ${fmtWhen(x.t)} ?\n\nTa version actuelle est d'abord sauvegardée : tu pourras y revenir.`)) return;
+  await snapTake(S.id, JSON.stringify(S), 'Avant restauration', {safe:true});
+  let data; try{ data = normalize(JSON.parse(x.data)); }catch{ toast('Cette sauvegarde est illisible.'); return; }
+  data.id = S.id; const h = U.fileHandle, fn = U.fileName, tab = U.tab;
+  resetSession(); S = data; U.fileHandle = h; U.fileName = fn; U.tab = tab; U.snapPrev = null;
+  const dlg = $('#dlg'); if(dlg.open) dlg.close();
+  touch(); toast('Version du ' + fmtWhen(x.t) + ' restaurée');
+}
+async function shareText(name, text){
+  const file = (typeof File === 'function') ? new File([text], name, {type:'application/json'}) : null;
+  if(file && navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+    toast(`Choisis « Enregistrer dans Fichiers », puis « Remplacer » pour garder un seul fichier : ${name}`);
+    try{ await navigator.share({files:[file]}); return 'shared'; }catch(e){ if(e.name === 'AbortError') return 'cancel'; }
+  }
+  download(name, text); return 'download';
+}
+async function snapExport(){
+  if(!S) return; const list = await snapList(S.id);
+  list.push({t:nowIso(), reason:'Version actuelle', safe:false, data:JSON.stringify(S)});
+  const text = JSON.stringify({app:'budget-foyer-sauvegardes', version:1, spaceId:S.id, name:(S.members[0] || {}).name || '', exportedAt:nowIso(), snaps:list});
+  const r = await shareText('MaTirelire-sauvegardes.json', text);
+  if(r === 'shared') toast('Sauvegardes exportées'); else if(r === 'download') toast('Fichier des sauvegardes téléchargé');
+}
+async function snapImport(raw){
+  const id = String(raw.spaceId || ''), inc = Array.isArray(raw.snaps) ? raw.snaps.filter(x => x && typeof x.t === 'string' && typeof x.data === 'string' && !isNaN(Date.parse(x.t))) : [];
+  if(!id || !inc.length){ toast('Ce fichier de sauvegardes est vide ou illisible.'); return; }
+  const list = await snapList(id), have = new Set(list.map(x => x.t)); let n = 0;
+  inc.forEach(x => { if(!have.has(x.t)){ list.push({t:x.t, reason:String(x.reason || 'Importée'), safe:!!x.safe, data:x.data}); n++; } });
+  await idbSet(snapKey(id), snapPrune(list, 'large', Date.now()));
+  toast(n ? `${n} sauvegarde${n > 1 ? 's' : ''} importée${n > 1 ? 's' : ''}` : 'Ces sauvegardes étaient déjà présentes.');
+  if(S && S.id === id) openSnaps(); else toast(n ? 'Importées. Ouvre le foyer concerné pour les retrouver dans Réglages > Sauvegardes.' : 'Rien de nouveau à importer.');
+}
 /* ---------- Source mémorisée : le fichier de référence d'un espace (cloud ou autre), propre à cet appareil ---------- */
 const srcKey = id => `matirelire:src:${id}`, WHERE = {icloud:'iCloud Drive', gdrive:'Google Drive', dropbox:'Dropbox', device:'Cet appareil', other:'Autre'};
 function getSrc(id){ try{ const o = JSON.parse(localStorage.getItem(srcKey(id)) || 'null'); return o && o.name ? o : null; }catch{ return null; } }
@@ -2304,7 +2401,7 @@ async function openSpace(id){
   data.id = id; if(S && S.id !== id){ backupNow(); }
   resetSession(); S = data; U.fileHandle = handle; U.fileName = fname; U.pending = pending; U.notice = (backup && !pending && !getSrc(id)) ? 'backup' : null;
   try{ localStorage.setItem(ACT_KEY, id); }catch{}
-  backupNow(); render(); window.scrollTo(0, 0); return true;
+  snapOpen(); backupNow(); render(); window.scrollTo(0, 0); return true;
 }
 function spaceOpen(id){
   const e = readSpaces().find(x => x.id === id); if(!e) return;
@@ -2320,9 +2417,11 @@ async function adoptSpace(data, {handle, fileName, silent} = {}){
   const dup = readSpaces().find(e => e.id === data.id);
   if(dup && !silent && !(S && S.id === data.id && !U.dirty) && !confirm(`L’espace « ${dup.name} » existe déjà sur cet appareil. Remplacer sa copie par le contenu de ce fichier ?`)) return false;
   if(S && S.id !== data.id) backupNow();
+  { const exist = (S && S.id === data.id) ? JSON.stringify(S) : (() => { try{ return localStorage.getItem(spKey(data.id)); }catch{ return null; } })();
+    if(exist) await snapTake(data.id, exist, 'Avant chargement du fichier', {safe:true}); }   // sécurité : on garde ce qui va être remplacé
   resetSession(); S = data; U.fileHandle = handle || null; U.fileName = handle ? handle.name : (fileName || null);
   if(handle) await idbSet('handle:' + S.id, handle); else await idbDel('handle:' + S.id);
-  backupNow(); return true;
+  snapOpen(); backupNow(); return true;
 }
 async function migrateLegacy(){
   if(localStorage.getItem(SP_KEY) !== null) return;
@@ -2350,7 +2449,7 @@ function scheduleAutosave(){
 /* Appelé après chaque modification des données */
 function touch(rerender = true){
   U.dirty = true; if(S){ S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince && (!x.syncedAt || S.modifiedAt > x.syncedAt)) putSrc(S.id, {dirtySince:S.modifiedAt}); }
-  backupNow(); scheduleAutosave();
+  snapOnTouch(); backupNow(); scheduleAutosave();
   if(rerender) render(); else updateStatus();
 }
 async function loadHandle(h, silent){
@@ -2393,7 +2492,9 @@ async function pickReload(){
 async function loadFromInput(file){
   const wasReload = !!U.reload, keepTab = U.tab; U.reload = false;
   try{
-    const raw = JSON.parse(await file.text()), data = withIdentity(raw, normalize(raw));
+    const raw = JSON.parse(await file.text());
+    if(raw && raw.app === 'budget-foyer-sauvegardes'){ await snapImport(raw); return; }
+    const data = withIdentity(raw, normalize(raw));
     if(!data.modifiedAt && file.lastModified) data.modifiedAt = new Date(file.lastModified).toISOString();
     const local = (() => { try{ return JSON.parse(localStorage.getItem(spKey(data.id)) || 'null'); }catch{ return null; } })();
     const cur = S && S.id === data.id ? S : null, loc = cur || (local && { modifiedAt: local.modifiedAt || null });
@@ -2416,8 +2517,8 @@ async function shareFile(){
   const file = (typeof File === 'function') ? new File([text], name, {type:'application/json'}) : null;
   if(file && navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
     const x = getSrc(S.id), where = x && WHERE[x.where];
-    toast(`Choisis « Enregistrer dans Fichiers »${where && x.where !== 'other' ? `, puis ${where}` : ''}, et remplace ${name}.`);
-    try{ await navigator.share({files:[file], title:name}); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Enregistré dans Fichiers'); updateStatus(); return true; }
+    toast(`Choisis « Enregistrer dans Fichiers »${where && x.where !== 'other' ? `, puis ${where}` : ''}, puis « Remplacer » pour garder un seul fichier : ${name}`);
+    try{ await navigator.share({files:[file]}); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Enregistré dans Fichiers'); updateStatus(); return true; }
     catch(e){ if(e.name === 'AbortError') return false; }
   }
   download(name, text); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé'); updateStatus(); return true;
@@ -4009,7 +4110,7 @@ function listHTML(){
     lines.forEach(l => { shown++; if(l.kind === 'credit') sumC += monthlyAverage(l); else sumD += monthlyAverage(l); });
     const open = !U.collapsed[c.id];
     html += `<section class="catbox"><div class="cathead"><button class="tog" data-act="toggle-cat" data-id="${c.id}" aria-expanded="${open}"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)} <span class="muted" style="font-weight:500">(${lines.length})</span></button>
-      <span class="tot ${net<0?'debit':net>0?'credit':''}">${net ? money(net,0) + '/mois' : ''}</span>
+      <span class="tot ${net<0?'debit':net>0?'credit':''}">${net ? money(net) + '/mois' : ''}</span>
       <button class="btn small" data-act="add-line" data-cat="${c.id}" aria-label="Ajouter une ligne dans ${esc(c.name)}">＋</button></div>
       ${open ? (lines.length ? lines.map(lineRow).join('') : '<p class="empty">Aucune ligne dans cette catégorie.</p>') : ''}</section>`;
   });
@@ -4168,6 +4269,7 @@ function viewReglages(){
       <div class="toolbar"><button class="btn primary" data-act="save">${FSA && !U.fileHandle ? 'Choisir un fichier' : 'Enregistrer'}</button>
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
       ${sourceBlockHTML()}
+      <div class="field">Sauvegardes<div class="toolbar"><button type="button" class="btn" data-act="snaps">Sauvegardes · niveau ${esc(SNAP_LEVELS[snapLevel()].label.toLowerCase())}</button></div><small class="muted">Versions successives gardées dans ce navigateur, avec restauration. Exportables dans un seul fichier.</small></div>
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Filet de sécurité : garder aussi une copie dans ce navigateur (elle ne quitte jamais l’appareil)</label>
       <div class="field">Plusieurs espaces sur cet appareil ${H('espaces')}<div class="toolbar"><button class="btn primary" data-act="spaces">Changer d’espace</button></div><small class="muted">Rien n’est effacé : tu retrouves ce foyer dans la liste, avec tes autres espaces (foyers, enfants).</small></div>
       <div class="field">Accès à ce foyer ${H('verrou')}<div class="chips"><button type="button" class="chip" data-act="lock-toggle" aria-pressed="${!!S.settings.lockSpace}">${S.settings.lockSpace ? 'Code parent demandé à l’ouverture' : 'Aucun code à l’ouverture'}</button></div><small class="muted">Utile si un enfant utilise le même appareil : le code est demandé pour ouvrir ce foyer depuis la liste.</small></div>
@@ -4642,9 +4744,13 @@ document.addEventListener('click', async e => {
     case 'wiz-del-account': { const w = U.wizard; w.accounts = w.accounts.filter(a => a.id !== id); if(!w.accounts.some(a => a.id === w.provId) && w.accounts.length) w.provId = w.accounts[0].id; render(); break; }
     case 'wiz-finish': finishWizard(); break;
     case 'open': openFile(); break;
+    case 'snaps': openSnaps(); break;
+    case 'snap-restore': snapRestore(id); break;
+    case 'snap-export': snapExport(); break;
+    case 'snap-import': $('#file-in').click(); break;
     case 'save': saveFile(false); break;
     case 'save-as': saveFile(true); break;
-    case 'export': { const nm = (getSrc(S.id) || {}).name || defaultFileName(); download(nm, JSON.stringify(S, null, 2)); markSynced(nm); U.lastSaved = new Date(); toast('Copie téléchargée'); askWhere(); render(); break; }
+    case 'export': { const nm = (getSrc(S.id) || {}).name || defaultFileName(); const r = await shareText(nm, JSON.stringify(S, null, 2)); if(r === 'cancel') break; markSynced(nm); U.lastSaved = new Date(); toast(r === 'shared' ? 'Copie enregistrée' : 'Copie téléchargée'); askWhere(); render(); break; }
     case 'src-reload': pickReload(); break;
     case 'src-forget': if(confirm('Oublier la source de ce fichier ? Tes données ne sont pas touchées.')){ dropSrc(S.id); render(); } break;
     case 'src-where': { putSrc(S.id, {where:id === 'none' ? null : id, asked:true}); const dlg = $('#dlg'); if(dlg.open) dlg.close(); render(); break; }
@@ -4734,6 +4840,7 @@ document.addEventListener('change', e => {
   if(el.name === 'ne-from'){ neFundRefresh(); return; }
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
+  if(el.name === 'sn-level'){ snapLevelChanged(el.value); return; }
   if(el.name === 'py-cover' || el.name === 'py-rest'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.dataset && el.dataset.kp){ kidPanelChange(el); return; }
