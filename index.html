@@ -2094,7 +2094,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.15', APP_DATE = '10 octobre 2026', APP_BUILD = 'f4cafa';
+const APP_VERSION = '2.16', APP_DATE = '10 octobre 2026', APP_BUILD = '9a821c';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2212,6 +2212,8 @@ function money(n, d=2){
 const signed = (kind, n) => (kind === 'credit' ? '+' : '−') + money(n).replace('−','');
 const memberName = id => id === 'common' ? 'Commun' : ((S.members.find(m=>m.id===id)||{}).name || '—');
 const catById = id => S.categories.find(c=>c.id===id) || {name:'Sans catégorie', color:'#999'};
+/* Tri alphabétique des menus et des catégories : sans tenir compte des accents ni de la casse */
+const byName = (arr, f) => { const g = f || (x => x.name); return arr.slice().sort((a, b) => String(g(a)).localeCompare(String(g(b)), 'fr', {sensitivity:'base', numeric:true})); };
 const accById = id => S.accounts.find(a=>a.id===id);
 const accName = id => id === '_none' ? 'Sans compte' : ((accById(id)||{}).name || 'Sans compte');
 const methodLabel = id => (S.settings.methods.find(m=>m.id===id)||{}).label || '';
@@ -2312,6 +2314,16 @@ async function openSnaps(){
     `<div class="potacts"><button type="button" class="btn" data-act="snap-export">Exporter les sauvegardes</button><button type="button" class="btn" data-act="snap-import">Importer</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
   if(!dlg.open) dlg.showModal();
 }
+function iconRegen(){
+  const L = currentLook(true); ICON_KEY = ''; refreshIcons();
+  const dlg = $('#dlg'); U.editing = null;
+  dlg.innerHTML = dlgShell('Régénérer l’icône', `<div class="iconrow" style="justify-content:center"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 96)}</span></div>
+    <p class="hint">Voici l’icône prête, d’après ta mascotte et ton style actuels. iOS ne remplace pas une icône déjà posée : il faut remplacer le raccourci.</p>
+    <ol><li><b>Enregistre ton fichier</b> avant (Réglages > Enregistrer), par sécurité.</li><li>Sur l’écran d’accueil, appuie longuement sur l’ancienne icône, puis « Supprimer le raccourci ».</li><li>Ouvre MaTirelire <b>dans Safari</b> (pas depuis une icône).</li><li>Touche Partager, puis « Sur l’écran d’accueil ».</li><li>Rouvre l’appli : si besoin, recharge ton fichier avec le bandeau.</li></ol>
+    <p class="note">Tes données ne sont pas supprimées par l’icône, mais la copie du navigateur peut l’être : c’est pourquoi le fichier d’abord.</p>`,
+    `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Compris</button></div>`);
+  dlg.showModal();
+}
 async function snapLevelChanged(v){
   if(!SNAP_LEVELS[v]) return; setSnapLevel(v); const d = $('#sn-desc'); if(d) d.textContent = SNAP_LEVELS[v].desc;
   if(S){ const list = await snapList(S.id); if(list.length) await idbSet(snapKey(S.id), snapPrune(list, v, Date.now())); await openSnaps(); }
@@ -2351,6 +2363,8 @@ async function snapImport(raw){
   if(S && S.id === id) openSnaps(); else toast(n ? 'Importées. Ouvre le foyer concerné pour les retrouver dans Réglages > Sauvegardes.' : 'Rien de nouveau à importer.');
 }
 /* ---------- Source mémorisée : le fichier de référence d'un espace (cloud ou autre), propre à cet appareil ---------- */
+const OPEN_RELOAD_KEY = 'matirelire:openreload';
+const openReloadMode = () => { try{ return localStorage.getItem(OPEN_RELOAD_KEY) === 'none' ? 'none' : 'ask'; }catch{ return 'ask'; } };
 const srcKey = id => `matirelire:src:${id}`, WHERE = {icloud:'iCloud Drive', gdrive:'Google Drive', dropbox:'Dropbox', device:'Cet appareil', other:'Autre'};
 function getSrc(id){ try{ const o = JSON.parse(localStorage.getItem(srcKey(id)) || 'null'); return o && o.name ? o : null; }catch{ return null; } }
 function putSrc(id, patch){ try{ const cur = getSrc(id) || {name:null, where:null, asked:false, syncedAt:null, dirtySince:null}; localStorage.setItem(srcKey(id), JSON.stringify(Object.assign(cur, patch))); }catch{} }
@@ -2370,7 +2384,7 @@ function markSynced(name){
 function removeLocalCopy(id){ dropSrc(id); try{ localStorage.removeItem(spKey(id)); writeSpaces(readSpaces().filter(e => e.id !== id)); if(localStorage.getItem(ACT_KEY) === id) localStorage.removeItem(ACT_KEY); }catch{} }
 function resetSession(){
   clearTimeout(autosaveT);
-  Object.assign(U, {demo:false, tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
+  Object.assign(U, {reloadDone:false, demo:false, tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
 }
 async function flushFile(){
   if(!U.fileHandle || !S || !U.dirty) return;
@@ -2502,13 +2516,13 @@ async function loadFromInput(file){
       if(cur && U.dirty) backupNow();
       if((data.modifiedAt || '') === (loc.modifiedAt || '') && data.modifiedAt){
         if(!(S && S.id === data.id) && !(await openSpace(data.id))) return;
-        putSrc(S.id, {name:file.name}); markSynced(file.name); render(); toast('Ton espace est déjà à jour avec ce fichier.'); askWhere(); return;
+        U.reloadDone = true; putSrc(S.id, {name:file.name}); markSynced(file.name); render(); toast('Ton espace est déjà à jour avec ce fichier.'); askWhere(); return;
       }
       const ch = await syncChoice(data, cur || loc, file.name);
       if(ch === 'cancel') return;
-      if(ch === 'keep'){ if(!S || S.id !== data.id){ await openSpace(data.id); } putSrc(S.id, {name:file.name}); await shareFile(); askWhere(); render(); return; }
+      if(ch === 'keep'){ if(!S || S.id !== data.id){ await openSpace(data.id); } U.reloadDone = true; putSrc(S.id, {name:file.name}); await shareFile(); askWhere(); render(); return; }
     }
-    if(await adoptSpace(data, {fileName:file.name, silent:true})){ putSrc(S.id, {name:file.name, syncedAt:S.modifiedAt || nowIso(), dirtySince:null}); if(wasReload && S.kind !== 'kid') U.tab = keepTab; render(); toast((wasReload ? 'Fichier rechargé : ' : 'Fichier chargé : ') + file.name); askWhere(); }
+    if(await adoptSpace(data, {fileName:file.name, silent:true})){ U.reloadDone = true; putSrc(S.id, {name:file.name, syncedAt:S.modifiedAt || nowIso(), dirtySince:null}); if(wasReload && S.kind !== 'kid') U.tab = keepTab; render(); toast((wasReload ? 'Fichier rechargé : ' : 'Fichier chargé : ') + file.name); askWhere(); }
   }catch(e){ toast('Fichier refusé : ' + e.message); }
 }
 async function shareFile(){
@@ -2625,6 +2639,7 @@ function bannerHTML(){
   if(src){
     if(src.unsynced && src.since && Date.now() - Date.parse(src.since) > 86400000 && U.noticeSrc !== 'off')
       return `<div class="banner slim"><span>Modifications non enregistrées dans <b>${esc(src.name)}</b> depuis le ${esc(fmtWhen(src.since))}.</span><span class="bn-acts"><button class="btn primary small" data-act="save">${shareFileCan() ? 'Enregistrer dans Fichiers' : 'Exporter'}</button><button class="btn ghost small" data-act="dismiss-src" aria-label="Masquer">✕</button></span></div>`;
+    if(openReloadMode() === 'ask' && !U.fileHandle && !U.reloadDone) return `<div class="banner slim"><span>Recharger la dernière version de <b>${esc(src.name)}</b> ?</span><span class="bn-acts"><button class="btn primary small" data-act="src-reload">Recharger</button><button class="btn ghost small" data-act="reload-later">Plus tard</button></span></div>`;
     return '';
   }
   if(U.notice === 'backup') return `<div class="banner slim"><span>Cet espace n’est gardé que dans ce navigateur. Enregistre-le dans un fichier pour qu’il reste en sécurité.</span><span class="bn-acts"><button class="btn small" data-act="save">${FSA ? 'Choisir un fichier' : (shareFileCan() ? 'Enregistrer dans Fichiers' : 'Exporter')}</button><button class="btn ghost small" data-act="dismiss" aria-label="Masquer">✕</button></span></div>`;
@@ -2754,7 +2769,7 @@ function openPot(){
 }
 function openPotForm(kind, entryId){
   const tot = potTotal(S), dlg = $('#dlg'), e = entryId ? S.pot.find(x => x.id === entryId) : null; U.editing = null; U.potCtx = {kind, entryId:entryId || null};
-  const acc = S.accounts.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+  const acc = byName(S.accounts).map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
   let title, body, ok = 'Valider';
   if(kind === 'save'){
     title = 'Mettre de côté en épargne'; ok = 'Épargner';
@@ -3067,8 +3082,8 @@ function envFundSave(){
 /* Nouvelle enveloppe en trois questions */
 function openNewEnvelope(){
   const dlg = $('#dlg'); U.editing = null; U.spendCtx = null; U.newEnv = {pick:-1};
-  const accOpts = S.accounts.map(a => `<option value="${esc(a.id)}" ${a.id === S.settings.commonAccountId ? 'selected' : ''}>${esc(a.name)}</option>`).join('');
-  const catOpts = S.categories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  const accOpts = byName(S.accounts).map(a => `<option value="${esc(a.id)}" ${a.id === S.settings.commonAccountId ? 'selected' : ''}>${esc(a.name)}</option>`).join('');
+  const catOpts = byName(S.categories).map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
   dlg.innerHTML = dlgShell('Nouvelle enveloppe', `<p class="hint">Une enveloppe est une somme prévue pour le mois, que tu déclares au fil de tes dépenses.</p>
     <div class="field">1 · Que veux-tu suivre ?<div class="chips wrapchips" role="group" aria-label="Suggestions">${ENV_SUGGEST.map((s, i) => `<button type="button" class="chip" data-act="ne-pick" data-i="${i}" aria-pressed="false">${esc(s.name)}</button>`).join('')}</div>
       <input class="inp" id="ne-name" placeholder="Ou écris ton propre nom" autocomplete="off" enterkeyhint="done"></div>
@@ -3381,7 +3396,7 @@ function kidOpenGot(){
 }
 function kidOpenSpent(){
   const k = ensureKid(kidMember()), J = kidJars(k);
-  kidDlg('J’ai dépensé', `<p class="envmini">Dans le bocal « dépenser » : <b>${money(J.spend)}</b></p>${kAmount('kd-amount', 'Combien ?')}<div class="grid2"><label class="field">C’était pour<select class="inp" id="kd-cat">${KID_CATS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label><label class="field">Quoi ? <small class="muted">(facultatif)</small><input class="inp" id="kd-note" autocomplete="off" enterkeyhint="done"></label></div><div id="kd-wait" class="waithint hidden" role="note">Un achat plaisir de plus de ${BIG_SPEND} € ? Essaie la règle d’attente : note-le d’abord dans tes envies, et décide dans ${waitWord(k.rules.wait, k.level)}. <button type="button" class="btn small" data-act="kid-spend-wish">Mettre en envie</button></div>`, kBtns('kid-spent-save', 'Noter')); focusQuiet($('#kd-amount'));
+  kidDlg('J’ai dépensé', `<p class="envmini">Dans le bocal « dépenser » : <b>${money(J.spend)}</b></p>${kAmount('kd-amount', 'Combien ?')}<div class="grid2"><label class="field">C’était pour<select class="inp" id="kd-cat">${byName(KID_CATS.filter(c => c[0] !== 'autre'), c => c[1]).concat(KID_CATS.filter(c => c[0] === 'autre')).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label><label class="field">Quoi ? <small class="muted">(facultatif)</small><input class="inp" id="kd-note" autocomplete="off" enterkeyhint="done"></label></div><div id="kd-wait" class="waithint hidden" role="note">Un achat plaisir de plus de ${BIG_SPEND} € ? Essaie la règle d’attente : note-le d’abord dans tes envies, et décide dans ${waitWord(k.rules.wait, k.level)}. <button type="button" class="btn small" data-act="kid-spend-wish">Mettre en envie</button></div>`, kBtns('kid-spent-save', 'Noter')); focusQuiet($('#kd-amount'));
 }
 const BIG_SPEND = 15;
 function kidOpenWish(pre){
@@ -4078,12 +4093,12 @@ function viewConseils(){
 const activeFilters = () => (U.q.trim() ? 1 : 0) + (U.owner !== 'all' ? 1 : 0) + (U.kind !== 'all' ? 1 : 0) + ((U.cat && U.cat !== 'all') ? 1 : 0) + (U.todo ? 1 : 0);
 const lineOwners = l => linePartsOf(l).map(p => p.ownerId);
 function viewBudget(){
-  const owners = [['all','Tout le monde'],['common','Commun'],...S.members.map(m => [m.id, m.name])];
+  const owners = [['all','Tout le monde'],['common','Commun'],...byName(S.members).map(m => [m.id, m.name])];
   if(U.cat && U.cat !== 'all' && !S.categories.some(c => c.id === U.cat)) U.cat = 'all';
   const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope).length, nf = activeFilters();
   return `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
       <input class="inp grow" id="q" type="search" placeholder="Rechercher une ligne…" value="${esc(U.q)}" aria-label="Rechercher">
-      <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${S.categories.map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+      <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${byName(S.categories).map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="inp" id="flt-owner" style="width:auto" aria-label="Filtrer par propriétaire">${owners.map(([v,l]) => `<option value="${esc(v)}" ${U.owner===v?'selected':''}>${esc(l)}</option>`).join('')}</select>
       <select class="inp" id="flt-kind" style="width:auto" aria-label="Filtrer par type"><option value="all" ${U.kind==='all'?'selected':''}>Débits et crédits</option><option value="debit" ${U.kind==='debit'?'selected':''}>Débits</option><option value="credit" ${U.kind==='credit'?'selected':''}>Crédits</option></select>
       <button class="chip" data-act="todo" aria-pressed="${U.todo}">À compléter (${todoCount})</button>
@@ -4103,7 +4118,7 @@ function listHTML(){
     (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   ENV_CAND = new Set(envelopeCandidates(S).map(l => l.id));
-  S.categories.forEach(c => {
+  byName(S.categories).forEach(c => {
     const all = S.lines.filter(l => l.catId === c.id), lines = all.filter(match);
     if(filtering && !lines.length) return;
     const net = lines.reduce((a,l) => a + (l.kind === 'credit' ? 1 : -1) * monthlyAverage(l), 0);
@@ -4157,7 +4172,7 @@ function ageFieldsHTML(m){
 }
 function pocketSplitHTML(m){
   const adults = S.members.filter(x => x.contributes), payer = m.pocket.payer || 'split';
-  const accOpts = id => { const cur = (m.pocket.accounts || {})[id] || defaultAccountFor(S, id); return S.accounts.map(a => `<option value="${esc(a.id)}" ${cur === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join(''); };
+  const accOpts = id => { const cur = (m.pocket.accounts || {})[id] || defaultAccountFor(S, id); return byName(S.accounts).map(a => `<option value="${esc(a.id)}" ${cur === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join(''); };
   const accField = a => `<label class="field">Compte de ${esc(a.name)}<select class="inp" data-b="member:${m.id}:acc.${a.id}">${accOpts(a.id)}</select></label>`;
   if(payer === 'split'){
     if(adults.length < 2) return '';
@@ -4170,7 +4185,7 @@ function pocketSplitHTML(m){
 }
 function viewFoyer(){
   const d = S.settings.distribution, contrib = S.members.filter(m => m.contributes);
-  const payerOpts = m => [['split','Partagé entre les adultes participants'],['common','Budget commun'],...S.members.filter(x=>x.type==='adult').map(x=>[x.id, x.name])]
+  const payerOpts = m => [['split','Partagé entre les adultes participants'],['common','Budget commun'],...byName(S.members.filter(x=>x.type==='adult')).map(x=>[x.id, x.name])]
     .map(([v,l]) => `<option value="${esc(v)}" ${(m.pocket.payer||'split')===v?'selected':''}>${esc(l)}</option>`).join('');
   const members = S.members.map(m => {
     const sal = salaryLine(S, m.id);
@@ -4252,16 +4267,16 @@ function patchProv(id){
 /* ----- Réglages ----- */
 function viewReglages(){
   const L = currentLook();
-  const accOwner = a => [['','Commun (compte joint)'],...S.members.map(m => [m.id, m.name])].map(([v,l]) => `<option value="${esc(v)}" ${(a.ownerId||'')===v?'selected':''}>${esc(l)}</option>`).join('');
+  const accOwner = a => [['','Commun (compte joint)'],...byName(S.members).map(m => [m.id, m.name])].map(([v,l]) => `<option value="${esc(v)}" ${(a.ownerId||'')===v?'selected':''}>${esc(l)}</option>`).join('');
   const accounts = S.accounts.map(a => `<div class="rowitem">
       <label class="field">Nom du compte<input class="inp" data-b="acc:${a.id}:name" value="${esc(a.name)}"></label>
       <label class="field">Banque<input class="inp" data-b="acc:${a.id}:bank" value="${esc(a.bank)}"></label>
       <label class="field">Titulaire<select class="inp" data-b="acc:${a.id}:ownerId">${accOwner(a)}</select></label>
       <div class="acts"><button class="btn danger small" data-act="del-acc" data-id="${a.id}">Supprimer</button></div></div>`).join('');
-  const cats = S.categories.map((c,i) => `<div class="rowitem" style="grid-template-columns:1fr auto auto">
+  const cats = byName(S.categories).map((c,i) => `<div class="rowitem" style="grid-template-columns:1fr auto auto">
       <label class="field">Catégorie<input class="inp" data-b="cat:${c.id}:name" value="${esc(c.name)}"></label>
       <label class="field">Couleur<input class="inp" type="color" data-b="cat:${c.id}:color" value="${esc(/^#[0-9a-f]{6}$/i.test(c.color)?c.color:'#1E6B66')}"></label>
-      <div class="acts"><button class="btn small" data-act="cat-up" data-id="${c.id}" aria-label="Monter" ${i===0?'disabled':''}>↑</button><button class="btn small" data-act="cat-down" data-id="${c.id}" aria-label="Descendre" ${i===S.categories.length-1?'disabled':''}>↓</button><button class="btn danger small" data-act="del-cat" data-id="${c.id}">Supprimer</button></div></div>`).join('');
+      <div class="acts"><button class="btn danger small" data-act="del-cat" data-id="${c.id}">Supprimer</button></div></div>`).join('');
   const methods = S.settings.methods.map(m => `<div class="rowitem" style="grid-template-columns:1fr auto"><label class="field">Moyen de paiement<input class="inp" data-b="method:${m.id}:label" value="${esc(m.label)}"></label>
       <div class="acts"><button class="btn danger small" data-act="del-method" data-id="${m.id}">Supprimer</button></div></div>`).join('');
   return `<section class="card"><h2>Données ${H('donnees')}</h2><div class="form">
@@ -4269,6 +4284,7 @@ function viewReglages(){
       <div class="toolbar"><button class="btn primary" data-act="save">${FSA && !U.fileHandle ? 'Choisir un fichier' : 'Enregistrer'}</button>
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
       ${sourceBlockHTML()}
+      <div class="field">À l’ouverture<div class="seg" role="radiogroup" aria-label="À l’ouverture"><label><input type="radio" name="or-mode" value="ask" ${openReloadMode() === 'ask' ? 'checked' : ''}>Proposer de recharger</label><label><input type="radio" name="or-mode" value="none" ${openReloadMode() === 'none' ? 'checked' : ''}>Rien</label></div><small class="muted">${FSA ? 'Avec un fichier lié (Chrome, Edge), la dernière version du fichier est relue à chaque ouverture, après ton autorisation.' : 'Sur iPhone, une page web ne peut pas relire ton fichier toute seule : un bandeau te propose de le choisir, en deux appuis.'}</small></div>
       <div class="field">Sauvegardes<div class="toolbar"><button type="button" class="btn" data-act="snaps">Sauvegardes · niveau ${esc(SNAP_LEVELS[snapLevel()].label.toLowerCase())}</button></div><small class="muted">Versions successives gardées dans ce navigateur, avec restauration. Exportables dans un seul fichier.</small></div>
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Filet de sécurité : garder aussi une copie dans ce navigateur (elle ne quitte jamais l’appareil)</label>
       <div class="field">Plusieurs espaces sur cet appareil ${H('espaces')}<div class="toolbar"><button class="btn primary" data-act="spaces">Changer d’espace</button></div><small class="muted">Rien n’est effacé : tu retrouves ce foyer dans la liste, avec tes autres espaces (foyers, enfants).</small></div>
@@ -4285,10 +4301,11 @@ function viewReglages(){
       <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${(MASC[id] || MASC.pig).happy}</svg></span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
       <div class="field">Icône de l’écran d’accueil ${H('icone')}<div class="iconrow"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 72)}</span>
         <div class="chips wrapchips" role="group" aria-label="Icône">${[['follow', 'Suit la mascotte'], ['pig', 'Reste le cochon']].map(([id, l]) => `<button type="button" class="chip" data-act="set-icon" data-id="${id}" aria-pressed="${L.icon === id}">${l}</button>`).join('')}</div></div>
-        <small class="muted">Pour mettre à jour l’icône déjà installée, appuie sur « i ».</small></div>
+        <div class="toolbar"><button type="button" class="btn" data-act="icon-regen">Régénérer l’icône</button></div>
+        <small class="muted">L’icône suit ta mascotte et ton style. iOS ne la lit qu’à l’ajout à l’écran d’accueil : le bouton la recrée et t’explique comment remplacer l’ancienne.</small></div>
     </div></section>
     <section class="card"><h2>Comptes ${H('comptes')}</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun.</p>
-      <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${S.accounts.map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
+      <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${byName(S.accounts).map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
       <div class="rowlist">${accounts}</div><div style="margin-top:10px"><button class="btn" data-act="add-acc">Ajouter un compte</button></div></section>
     <section class="card"><h2>Compte provisions ${H('prov-reglage')}</h2><div class="form">
       <label class="check"><input type="checkbox" data-b="set:_:provisionBlock" ${provisionOn() ? 'checked' : ''}> Afficher le bloc « Compte provisions » dans la Synthèse</label>
@@ -4314,8 +4331,8 @@ function openLine(id, catId, prefill){
 function splitRowHTML(p, i){
   const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(label)}</option>`;
   return `<div class="splitrow" data-i="${i}">
-    <label class="field">Propriétaire<select class="inp sp-owner">${opt('common', 'Commun (foyer)', p.ownerId === 'common')}${S.members.map(m => opt(m.id, m.name, p.ownerId === m.id)).join('')}</select></label>
-    <label class="field">Compte<select class="inp sp-acc">${opt('', '— aucun —', !p.accountId)}${S.accounts.map(a => opt(a.id, a.name, p.accountId === a.id)).join('')}</select></label>
+    <label class="field">Propriétaire<select class="inp sp-owner">${opt('common', 'Commun (foyer)', p.ownerId === 'common')}${byName(S.members).map(m => opt(m.id, m.name, p.ownerId === m.id)).join('')}</select></label>
+    <label class="field">Compte<select class="inp sp-acc">${opt('', '— aucun —', !p.accountId)}${byName(S.accounts).map(a => opt(a.id, a.name, p.accountId === a.id)).join('')}</select></label>
     <label class="field">Part (%)<input class="inp sp-pct" type="number" min="0" max="100" step="0.01" inputmode="decimal" value="${p.pct ? Math.round(p.pct * 100) / 100 : ''}" placeholder="0"></label>
     <button type="button" class="btn small danger" data-act="split-del" data-i="${i}" aria-label="Retirer cette source">✕</button></div>`;
 }
@@ -4341,8 +4358,8 @@ function lineFormHTML(l, isNew){
     <label class="check" id="r-zero"><input type="checkbox" id="f-zero" ${l.zero ? 'checked' : ''}> <span>Montant nul à chaque échéance <small class="muted">(ex. frais de carte remboursés par la banque)</small></span></label>
     <div class="field" id="r-vartype">Type de dépense<div class="seg" role="radiogroup" aria-label="Type de dépense"><label><input type="radio" name="f-var" value="fixed" ${l.envelope ? '' : 'checked'}>Fixe</label><label><input type="radio" name="f-var" value="variable" ${l.envelope ? 'checked' : ''}>Variable</label></div><small class="muted" id="f-vartext"></small></div>
     <div class="grid2">
-      <label class="field">Catégorie<select class="inp" id="f-cat">${S.categories.map(c => opt(c.id, c.name, l.catId===c.id)).join('')}${opt('__new','＋ Nouvelle catégorie…',false)}</select></label>
-      <label class="field" id="r-owner">Propriétaire<select class="inp" id="f-owner">${opt('common','Commun (foyer)', l.ownerId==='common')}${S.members.map(m => opt(m.id, m.name, l.ownerId===m.id)).join('')}</select></label>
+      <label class="field">Catégorie<select class="inp" id="f-cat">${byName(S.categories).map(c => opt(c.id, c.name, l.catId===c.id)).join('')}${opt('__new','＋ Nouvelle catégorie…',false)}</select></label>
+      <label class="field" id="r-owner">Propriétaire<select class="inp" id="f-owner">${opt('common','Commun (foyer)', l.ownerId==='common')}${byName(S.members).map(m => opt(m.id, m.name, l.ownerId===m.id)).join('')}</select></label>
     </div>
     <label class="field" id="r-cycle">Cycle de paiement<select class="inp" id="f-cycle">${CYCLE_PRESETS.map(p => opt(p.id, p.label, pid===p.id)).join('')}${opt('custom','Personnalisé…', pid==='custom')}</select></label>
     <div class="grid2" id="r-custom"><label class="field">Tous les<input class="inp" id="f-every" type="number" min="1" step="1" value="${l.cycle.every}"></label>
@@ -4354,8 +4371,8 @@ function lineFormHTML(l, isNew){
     </div>
     <div class="field" id="r-months">Mois de paiement<div class="mchips" role="group" aria-label="Mois de paiement">${MONTHS_SHORT.map((m,i) => `<label class="mchip"><input type="checkbox" value="${i+1}" ${monthsOn.has(i+1)?'checked':''}><span>${m}</span></label>`).join('')}</div></div>
     <div class="grid2">
-      <label class="field">Moyen de paiement<select class="inp" id="f-method">${opt('','—', !l.method)}${S.settings.methods.map(m => opt(m.id, m.label, l.method===m.id)).join('')}</select></label>
-      <label class="field" id="r-account">Compte cible<select class="inp" id="f-account">${opt('','— aucun —', !l.accountId)}${S.accounts.map(a => opt(a.id, a.name + (a.bank ? ' (' + a.bank + ')' : ''), l.accountId===a.id)).join('')}</select></label>
+      <label class="field">Moyen de paiement<select class="inp" id="f-method">${opt('','—', !l.method)}${byName(S.settings.methods, m => m.label).map(m => opt(m.id, m.label, l.method===m.id)).join('')}</select></label>
+      <label class="field" id="r-account">Compte cible<select class="inp" id="f-account">${opt('','— aucun —', !l.accountId)}${byName(S.accounts).map(a => opt(a.id, a.name + (a.bank ? ' (' + a.bank + ')' : ''), l.accountId===a.id)).join('')}</select></label>
     </div>
     <label class="check" id="r-spliton"><input type="checkbox" id="f-splitOn" ${splitOn ? 'checked' : ''}> <span>Répartir entre plusieurs comptes <small class="muted">(ex. 50 % / 50 %)</small></span></label>
     <div id="r-split" class="split ${splitOn ? '' : 'hidden'}"><div id="f-splitrows">${splitOn ? l.split.map(splitRowHTML).join('') : ''}</div>
@@ -4744,6 +4761,8 @@ document.addEventListener('click', async e => {
     case 'wiz-del-account': { const w = U.wizard; w.accounts = w.accounts.filter(a => a.id !== id); if(!w.accounts.some(a => a.id === w.provId) && w.accounts.length) w.provId = w.accounts[0].id; render(); break; }
     case 'wiz-finish': finishWizard(); break;
     case 'open': openFile(); break;
+    case 'reload-later': U.reloadDone = true; render(); break;
+    case 'icon-regen': iconRegen(); break;
     case 'snaps': openSnaps(); break;
     case 'snap-restore': snapRestore(id); break;
     case 'snap-export': snapExport(); break;
@@ -4840,6 +4859,7 @@ document.addEventListener('change', e => {
   if(el.name === 'ne-from'){ neFundRefresh(); return; }
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
+  if(el.name === 'or-mode'){ try{ localStorage.setItem(OPEN_RELOAD_KEY, el.value); }catch{} U.reloadDone = false; render(); return; }
   if(el.name === 'sn-level'){ snapLevelChanged(el.value); return; }
   if(el.name === 'py-cover' || el.name === 'py-rest'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
