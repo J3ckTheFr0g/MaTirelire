@@ -339,6 +339,7 @@ details.method[open] summary{margin-bottom:6px}
 .ibtn.light:hover,.ibtn.light[aria-expanded=true]{opacity:1;color:var(--hero-ink)}
 .pop{position:absolute;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,48,46,.2);font-size:.88rem;line-height:1.42;--ax:50%}
 .pop::before{content:'';position:absolute;top:-7px;left:var(--ax);margin-left:-6px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg);border-top-left-radius:3px}
+.pop.fx{position:fixed}
 .pop.up::before{top:auto;bottom:-7px;transform:rotate(225deg)}
 .pop-in{padding:12px 14px;overflow:auto;overscroll-behavior:contain;border-radius:14px}
 .pop h4{margin:0 0 4px;font-size:.96rem;font-weight:800}
@@ -2094,7 +2095,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.17', APP_DATE = '10 octobre 2026', APP_BUILD = 'd230ae';
+const APP_VERSION = '2.18', APP_DATE = '10 octobre 2026', APP_BUILD = '5ec882';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2682,7 +2683,7 @@ function welcome(){
 }
 
 /* ----- Paiement (partiel ou final) et cagnotte ----- */
-const POT_LABEL = {reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage', enveloppe:'Enveloppe'};
+const POT_LABEL = {depense:'Dépense', reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage', enveloppe:'Enveloppe'};
 const accLabel = id => { const a = id && accById(id); return a ? a.name : (id || ''); };
 const fmtShort = iso => new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
 const potSigned = v => `${v < 0 ? '−' : '+'}${money(Math.abs(v))}`;
@@ -2776,7 +2777,7 @@ function openPot(){
   const list = (S.pot || []).slice().sort((a, b) => b.date.localeCompare(a.date) || 0);
   dlg.innerHTML = dlgShell(`Cagnotte ${H('pot')}`, `<div class="rest"><b class="${tot < -0.005 ? 'neg' : ''}">${tot < -0.005 ? '−' : ''}${money(Math.abs(tot))}</b><span>${tot < -0.005 ? 'manque dans les provisions' : 'écart disponible dans les provisions'}</span></div>
     ${list.length ? `<ul class="leaders spendlist">${list.map(potEntryRow).join('')}</ul>` : '<p class="hint">La cagnotte est vide. Elle reçoit les reliquats quand tu paies moins que prévu, et le manque quand tu paies plus sans compléter de ta poche.</p>'}`,
-    `<div class="potacts"><button type="button" class="btn" data-act="pot-save" ${tot > 0.005 ? '' : 'disabled'}>Épargner</button><button type="button" class="btn" data-act="pot-adjust">Ajuster</button><button type="button" class="btn" data-act="pot-fix">Fixer à…</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
+    `<div class="potacts"><button type="button" class="btn primary" data-act="pot-spend" ${tot > 0.005 ? '' : 'disabled'}>Dépenser</button><button type="button" class="btn" data-act="pot-save" ${tot > 0.005 ? '' : 'disabled'}>Épargner</button><button type="button" class="btn" data-act="pot-adjust">Ajuster</button><button type="button" class="btn" data-act="pot-fix">Fixer à…</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
   dlg.showModal();
 }
 function openPotForm(kind, entryId){
@@ -2789,6 +2790,12 @@ function openPotForm(kind, entryId){
       <label class="field">Montant à épargner (cagnotte : ${money(tot)})<input class="inp bigamt" id="pf-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${tot > 0.005 ? Math.round(tot * 100) / 100 : ''}" enterkeyhint="done"></label>
       <div class="grid2"><label class="field">Destination<select class="inp" id="pf-dest"><option value="">— à préciser —</option>${acc}</select></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${isoToday()}"></label></div>
       <label class="field">Note (facultatif)<input class="inp" id="pf-note" placeholder="Ex. Livret A" autocomplete="off" enterkeyhint="done"></label>`;
+  } else if(kind === 'spend'){
+    title = 'Dépenser la cagnotte'; ok = 'Dépenser';
+    body = `<p class="hint">Retire un montant de la cagnotte, donc de l’état du compte : c’est de l’argent que tu dépenses vraiment.</p>
+      <label class="field">Montant à dépenser (cagnotte : ${money(tot)})<input class="inp bigamt" id="pf-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+      <div class="grid2"><label class="field">Pour quoi ?<input class="inp" id="pf-label" placeholder="Ex. cadeau Lisa" autocomplete="off" enterkeyhint="done"></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${isoToday()}"></label></div>
+      <div class="preview" id="pf-info" aria-live="polite">Saisis le montant pour voir ce qu’il restera.</div>`;
   } else if(kind === 'adjust'){
     title = 'Ajuster la cagnotte';
     body = `<div class="field">Opération<div class="seg" role="radiogroup" aria-label="Opération"><label><input type="radio" name="pf-sign" value="1" checked>Ajouter</label><label><input type="radio" name="pf-sign" value="-1">Retirer</label></div></div>
@@ -2822,6 +2829,12 @@ function confirmPot(){
     const dest = $('#pf-dest').value || null, note = $('#pf-note').value.trim();
     potAdd(S, 'epargne', -amtAbs, date, 'Mise de côté', {dest, note}); $('#dlg').close(); touch();
     undo(`${money(amtAbs)} mis de côté${dest ? ` : à virer vers ${accLabel(dest)}` : ''}`); return;
+  }
+  if(c.kind === 'spend'){
+    if(!(amtAbs > 0)){ toast('Saisis le montant à dépenser.'); focusQuiet($('#pf-amount')); return; }
+    if(amtAbs > tot + 0.005 && !confirm(`La cagnotte ne contient que ${money(Math.max(0, tot))}. Elle passera à ${money(tot - amtAbs)} (« manque »). Continuer ?`)) return;
+    const why = $('#pf-label').value.trim() || 'Dépense';
+    potAdd(S, 'depense', -amtAbs, date, why); $('#dlg').close(); touch(); undo(`${money(amtAbs)} dépensés : ${why}`); return;
   }
   if(c.kind === 'adjust'){
     if(!(amtAbs > 0)){ toast('Saisis le montant.'); return; }
@@ -2896,7 +2909,7 @@ const HELP = {
   'kid-reves':{title:'Mes rêves', body:`<p>Un rêve, c’est quelque chose qui te ferait vraiment plaisir : un jeu, une sortie, des baskets…</p><p>Tu y mets de l’argent de ton épargne libre. La barre se remplit, et on t’indique à peu près quand tu y arriveras. Quand il est complet, un parent valide l’achat.</p>`},
   'kid-succes':{title:'Succès et niveaux', body:`<p>Chaque fois que tu épargnes, tu avances : <b>Graine</b>, <b>Pousse</b>, <b>Arbuste</b>, <b>Arbre</b>, <b>Forêt</b>.</p><p>Les succès se gagnent en épargnant, en réalisant tes rêves, en donnant ou en comptant tes pièces. Rien ne se perd si tu fais une pause.</p>`},
   pot:{title:'Cagnotte', body:`<p>La cagnotte est l’<b>écart</b> entre l’argent réellement mis de côté pour une dépense et ce que tu as payé.</p>
-    <ul><li>Tu paies <b>moins</b> que prévu : le reliquat va dans la cagnotte.</li><li>Tu paies <b>plus</b> : tu choisis de compléter <b>de ta poche</b> (la cagnotte ne bouge pas) ou <b>par la cagnotte</b>, qui baisse et indique un <b>manque</b> si elle passe sous zéro.</li><li>Tu peux <b>épargner</b> la cagnotte (elle sort des provisions, donc du compte joint), l’<b>ajuster</b> à la main, ou la <b>recaler</b> sur ton solde bancaire réel.</li></ul>
+    <ul><li>Tu paies <b>moins</b> que prévu : le reliquat va dans la cagnotte.</li><li>Tu paies <b>plus</b> : tu choisis de compléter <b>de ta poche</b> (la cagnotte ne bouge pas) ou <b>par la cagnotte</b>, qui baisse et indique un <b>manque</b> si elle passe sous zéro.</li><li>Tu peux la <b>dépenser</b> (cadeau, imprévu), l’<b>épargner</b> (elle sort des provisions, donc du compte joint), l’<b>ajuster</b> à la main, ou la <b>recaler</b> sur ton solde bancaire réel.</li></ul>
     <p class="note">Elle fait partie de l’état du compte provisions. Chaque ligne de l’historique se modifie ou se supprime.</p>`},
   rav:{title:'Reste à vivre du foyer', body:`<p>C’est ce qu’il reste au foyer une fois le budget commun et les dépenses personnelles payés : <b>revenus − dépenses</b>.</p>
     <p>Il suit le mois choisi dans la barre des mois. « Moyenne » lisse sur l’année les dépenses qui ne tombent pas tous les mois.</p>
@@ -2949,14 +2962,15 @@ function placePop(){
   const {el, btn} = POP, r = btn.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight, inner = $('.pop-in', el);
   const w = Math.min(330, vw - 24); el.style.width = w + 'px';
   const left = Math.min(Math.max(r.left + r.width / 2 - w / 2, 12), vw - 12 - w);
-  el.style.left = (left + window.scrollX) + 'px';
+  const fx = el.classList.contains('fx'), sx = fx ? 0 : window.scrollX, sy = fx ? 0 : window.scrollY;
+  el.style.left = (left + sx) + 'px';
   el.style.setProperty('--ax', Math.round(r.left + r.width / 2 - left) + 'px');
   inner.style.maxHeight = Math.max(180, Math.min(0.6 * vh, vh - 160)) + 'px';
   const navH = 78, h = el.offsetHeight, below = vh - navH - r.bottom - 10, above = r.top - 70 - 10;
   const up = h > below && above > below && above >= Math.min(h, 200);
   el.classList.toggle('up', up);
-  el.style.top = (up ? r.top + window.scrollY - h - 10 : r.bottom + window.scrollY + 10) + 'px';
-  if(!up){ const need = r.bottom + 10 + h - (vh - navH); if(need > 0) window.scrollBy({top:Math.min(need, Math.max(0, r.top - 70)), behavior:'smooth'}); }
+  el.style.top = (up ? r.top + sy - h - 10 : r.bottom + sy + 10) + 'px';
+  if(!up && !fx){ const need = r.bottom + 10 + h - (vh - navH); if(need > 0) window.scrollBy({top:Math.min(need, Math.max(0, r.top - 70)), behavior:'smooth'}); }
 }
 function openPop(btn, id){
   const h = HELP[id]; if(!h) return;
@@ -2965,7 +2979,8 @@ function openPop(btn, id){
   const el = document.createElement('div');
   el.className = 'pop'; el.id = 'pop'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', h.title);
   el.innerHTML = `<div class="pop-in"><h4>${esc(h.title)}</h4>${h.body}</div>`;
-  document.body.appendChild(el);
+  const host = btn.closest('dialog'); if(host) el.classList.add('fx');
+  (host || document.body).appendChild(el);
   btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-controls', 'pop');
   POP = {el, btn}; placePop();
 }
@@ -4727,6 +4742,7 @@ document.addEventListener('click', async e => {
     case 'pay-save': savePay(); break;
     case 'pay-del': { const c = U.payCtx, l = c && S.lines.find(x => x.id === c.lineId); if(l){ l.paid = (l.paid || []).filter(x => x.id !== id); touch(false); openPay(c.lineId); } break; }
     case 'pot-open': openPot(); break;
+    case 'pot-spend': openPotForm('spend'); break;
     case 'pot-save': openPotForm('save'); break;
     case 'pot-adjust': openPotForm('adjust'); break;
     case 'pot-fix': openPotForm('fix'); break;
@@ -4858,6 +4874,7 @@ document.addEventListener('input', e => {
   if(t.dataset && t.dataset.w && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio'){ onWizardField(t); return; }
   if(t.dataset && t.dataset.kw && t.tagName === 'INPUT' && t.type !== 'checkbox'){ kwField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
+  if(e.target.id === 'pf-amount' && $('#pf-info') && U.potCtx && U.potCtx.kind === 'spend'){ const a = Math.abs(num(e.target.value)), t = potTotal(S); $('#pf-info').innerHTML = !(a > 0) ? 'Saisis le montant pour voir ce qu’il restera.' : (a > t + 0.005 ? `Il y a seulement <b>${money(Math.max(0, t))}</b> : la cagnotte passera à <b class="debit">−${money(a - t)}</b> (manque).` : `Il restera <b>${money(t - a)}</b> dans la cagnotte.`); }
   if(e.target.id === 'ne-name'){ neRefresh(); return; }
   if(e.target.id === 'ne-fund' || e.target.id === 'ne-amount'){ neFundRefresh(); return; }
   if(e.target.id && e.target.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
