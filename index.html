@@ -2094,7 +2094,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.16', APP_DATE = '10 octobre 2026', APP_BUILD = '9a821c';
+const APP_VERSION = '2.17', APP_DATE = '10 octobre 2026', APP_BUILD = 'd230ae';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2314,14 +2314,26 @@ async function openSnaps(){
     `<div class="potacts"><button type="button" class="btn" data-act="snap-export">Exporter les sauvegardes</button><button type="button" class="btn" data-act="snap-import">Importer</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
   if(!dlg.open) dlg.showModal();
 }
+const isStandalone = () => { try{ return navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }catch{ return false; } };
+const appUrl = () => location.origin + location.pathname.replace(/index\.html$/, '');
+/* Ouvre la feuille de partage du système : selon iOS, « Sur l'écran d'accueil » y figure (Safari uniquement) */
+async function iconShare(){
+  try{ if(navigator.share){ await navigator.share({title:'MaTirelire', url:appUrl()}); return; } }catch(e){ if(e.name === 'AbortError') return; }
+  iconCopy();
+}
+async function iconCopy(){
+  try{ await navigator.clipboard.writeText(appUrl()); toast('Lien copié : colle-le dans Safari.'); }
+  catch{ toast('Copie impossible : ' + appUrl()); }
+}
 function iconRegen(){
   const L = currentLook(true); ICON_KEY = ''; refreshIcons();
   const dlg = $('#dlg'); U.editing = null;
   dlg.innerHTML = dlgShell('Régénérer l’icône', `<div class="iconrow" style="justify-content:center"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 96)}</span></div>
     <p class="hint">Voici l’icône prête, d’après ta mascotte et ton style actuels. iOS ne remplace pas une icône déjà posée : il faut remplacer le raccourci.</p>
     <ol><li><b>Enregistre ton fichier</b> avant (Réglages > Enregistrer), par sécurité.</li><li>Sur l’écran d’accueil, appuie longuement sur l’ancienne icône, puis « Supprimer le raccourci ».</li><li>Ouvre MaTirelire <b>dans Safari</b> (pas depuis une icône).</li><li>Touche Partager, puis « Sur l’écran d’accueil ».</li><li>Rouvre l’appli : si besoin, recharge ton fichier avec le bandeau.</li></ol>
-    <p class="note">Tes données ne sont pas supprimées par l’icône, mais la copie du navigateur peut l’être : c’est pourquoi le fichier d’abord.</p>`,
-    `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Compris</button></div>`);
+    <p class="note">Tes données ne sont pas supprimées par l’icône, mais la copie du navigateur peut l’être : c’est pourquoi le fichier d’abord.</p>
+    ${isStandalone() ? '<p class="note"><b>Tu es dans l’icône installée.</b> « Sur l’écran d’accueil » n’existe que dans Safari : copie le lien et ouvre-le dans Safari, puis reviens ici.</p>' : ''}`,
+    `<div class="potacts">${isStandalone() ? '<button type="button" class="btn" data-act="icon-copy">Copier le lien</button>' : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="icon-share">Ouvrir le partage</button></div>`);
   dlg.showModal();
 }
 async function snapLevelChanged(v){
@@ -4763,6 +4775,8 @@ document.addEventListener('click', async e => {
     case 'open': openFile(); break;
     case 'reload-later': U.reloadDone = true; render(); break;
     case 'icon-regen': iconRegen(); break;
+    case 'icon-share': iconShare(); break;
+    case 'icon-copy': iconCopy(); break;
     case 'snaps': openSnaps(); break;
     case 'snap-restore': snapRestore(id); break;
     case 'snap-export': snapExport(); break;
