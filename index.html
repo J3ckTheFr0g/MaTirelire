@@ -964,7 +964,7 @@ function normalize(d){
   const lineIds = new Set(S.lines.map(l => l.id));
   S.spends = arr(d.spends).map(x => ({id:String((x && x.id) || uid()), lineId:String((x && x.lineId) || ''), date:String((x && x.date) || ''), amount:Math.abs(+(x && x.amount)) || 0, note:String((x && x.note) || '')}))
     .filter(x => lineIds.has(x.lineId) && x.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
-  const POT_KINDS = ['reliquat', 'ecart', 'epargne', 'ajustement', 'recalage', 'enveloppe'];
+  const POT_KINDS = ['depense', 'reliquat', 'ecart', 'epargne', 'ajustement', 'recalage', 'enveloppe'];
   S.pot = arr(d.pot).map(x => ({id:String((x && x.id) || uid()), date:String((x && x.date) || ''), amount:+(x && x.amount) || 0, kind:POT_KINDS.includes(x && x.kind) ? x.kind : 'ajustement',
     label:String((x && x.label) || ''), note:String((x && x.note) || ''), dest:(x && x.dest) ? String(x.dest) : null, lineId:(x && x.lineId) ? String(x.lineId) : null}))
     .filter(x => Math.abs(x.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
@@ -2095,7 +2095,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.18', APP_DATE = '10 octobre 2026', APP_BUILD = '5ec882';
+const APP_VERSION = '2.19', APP_DATE = '10 octobre 2026', APP_BUILD = 'b7f395';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2772,6 +2772,8 @@ function potEntryRow(x){
   if(x.kind === 'enveloppe') return `<li><span class="spend-row fixed"><span>${fmtShort(x.date)} <small>${POT_LABEL[x.kind]}${x.label ? ' · ' + esc(x.label) : ''}<br>Géré depuis l’enveloppe</small></span><i class="dots"></i><b class="${x.amount < 0 ? 'debit' : 'credit'}">${potSigned(x.amount)}</b></span></li>`;
   return `<li><button type="button" class="spend-row" data-act="pot-edit" data-id="${esc(x.id)}" aria-label="Modifier cette ligne de la cagnotte"><span>${fmtShort(x.date)} <small>${POT_LABEL[x.kind] || ''}${x.label ? ' · ' + esc(x.label) : ''}${x.dest ? ' → ' + esc(accLabel(x.dest)) : ''}</small></span><i class="dots"></i><b class="${x.amount < 0 ? 'debit' : 'credit'}">${potSigned(x.amount)}</b></button></li>`;
 }
+/* Après une action : on revient sur la Cagnotte pour voir la ligne ajoutée (la ligne reste modifiable ou supprimable) */
+function potDone(msg){ touch(); openPot(); toast(msg); }
 function openPot(){
   const tot = potTotal(S), dlg = $('#dlg'); U.editing = null;
   const list = (S.pot || []).slice().sort((a, b) => b.date.localeCompare(a.date) || 0);
@@ -2827,28 +2829,28 @@ function confirmPot(){
     if(!(amtAbs > 0)){ toast('Saisis le montant à épargner.'); return; }
     if(amtAbs > tot + 0.005){ toast(`La cagnotte ne contient que ${money(Math.max(0, tot))}.`); return; }
     const dest = $('#pf-dest').value || null, note = $('#pf-note').value.trim();
-    potAdd(S, 'epargne', -amtAbs, date, 'Mise de côté', {dest, note}); $('#dlg').close(); touch();
-    undo(`${money(amtAbs)} mis de côté${dest ? ` : à virer vers ${accLabel(dest)}` : ''}`); return;
+    potAdd(S, 'epargne', -amtAbs, date, 'Mise de côté', {dest, note});
+    potDone(`${money(amtAbs)} mis de côté${dest ? ` : à virer vers ${accLabel(dest)}` : ''}`); return;
   }
   if(c.kind === 'spend'){
     if(!(amtAbs > 0)){ toast('Saisis le montant à dépenser.'); focusQuiet($('#pf-amount')); return; }
     if(amtAbs > tot + 0.005 && !confirm(`La cagnotte ne contient que ${money(Math.max(0, tot))}. Elle passera à ${money(tot - amtAbs)} (« manque »). Continuer ?`)) return;
     const why = $('#pf-label').value.trim() || 'Dépense';
-    potAdd(S, 'depense', -amtAbs, date, why); $('#dlg').close(); touch(); undo(`${money(amtAbs)} dépensés : ${why}`); return;
+    potAdd(S, 'depense', -amtAbs, date, why); potDone(`${money(amtAbs)} dépensés : ${why}`); return;
   }
   if(c.kind === 'adjust'){
     if(!(amtAbs > 0)){ toast('Saisis le montant.'); return; }
     const sign = +$('input[name=pf-sign]:checked').value;
-    potAdd(S, 'ajustement', sign * amtAbs, date, $('#pf-label').value.trim() || 'Ajustement manuel'); $('#dlg').close(); touch(); undo(`Cagnotte ${sign > 0 ? '+' : '−'}${money(amtAbs)}`); return;
+    potAdd(S, 'ajustement', sign * amtAbs, date, $('#pf-label').value.trim() || 'Ajustement manuel'); potDone(`Cagnotte ${sign > 0 ? '+' : '−'}${money(amtAbs)}`); return;
   }
   if(c.kind === 'fix'){
     const delta = amtRaw - tot;
     if(Math.abs(delta) < 0.005){ $('#dlg').close(); toast('La cagnotte est déjà à ce montant.'); return; }
-    potAdd(S, 'ajustement', delta, date, `Cagnotte fixée à ${money(amtRaw)}`); $('#dlg').close(); touch(); undo(`Cagnotte fixée à ${money(amtRaw)}`); return;
+    potAdd(S, 'ajustement', delta, date, `Cagnotte fixée à ${money(amtRaw)}`); potDone(`Cagnotte fixée à ${money(amtRaw)}`); return;
   }
   const e = S.pot.find(x => x.id === c.entryId); if(!e) return;
   if(Math.abs(amtRaw) < 0.005){ toast('Le montant ne peut pas être nul : supprime la ligne si besoin.'); return; }
-  e.amount = amtRaw; e.date = date; e.label = $('#pf-label').value.trim(); e.note = $('#pf-note').value.trim(); $('#dlg').close(); touch(); undo('Ligne de la cagnotte modifiée');
+  e.amount = amtRaw; e.date = date; e.label = $('#pf-label').value.trim(); e.note = $('#pf-note').value.trim(); potDone('Ligne de la cagnotte modifiée');
 }
 /* Recalage sur le solde réel */
 function openRecalage(){
@@ -4749,7 +4751,7 @@ document.addEventListener('click', async e => {
     case 'pot-edit': openPotForm('edit', id); break;
     case 'pot-back': openPot(); break;
     case 'pot-confirm': confirmPot(); break;
-    case 'pot-del': { const c = U.potCtx, snap = JSON.parse(JSON.stringify(S.pot || [])); if(c && c.entryId){ S.pot = S.pot.filter(x => x.id !== c.entryId); $('#dlg').close(); touch(); toastUndo('Ligne supprimée de la cagnotte', () => { S.pot = snap; touch(); }); } break; }
+    case 'pot-del': { const c = U.potCtx, snap = JSON.parse(JSON.stringify(S.pot || [])); if(c && c.entryId){ S.pot = S.pot.filter(x => x.id !== c.entryId); potDone('Ligne supprimée de la cagnotte'); } break; }
     case 'rc-open': openRecalage(); break;
     case 'rc-save': saveRecalage(); break;
     case 'today': U.month = new Date().getMonth() + 1; render(); break;
