@@ -340,6 +340,17 @@ details.method[open] summary{margin-bottom:6px}
 .pop{position:absolute;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,48,46,.2);font-size:.88rem;line-height:1.42;--ax:50%}
 .pop::before{content:'';position:absolute;top:-7px;left:var(--ax);margin-left:-6px;width:12px;height:12px;background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg);border-top-left-radius:3px}
 .pop.fx{position:fixed}
+.difflist{margin:2px 0 10px;padding-left:18px;font-size:.92rem;display:grid;gap:3px}
+.cfitem{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;display:grid;gap:8px;min-width:0}
+.cfitem legend{font-weight:700;padding:0 4px;overflow-wrap:anywhere}
+.cfitem label{display:flex;gap:8px;align-items:flex-start;overflow-wrap:anywhere}
+.cfitem input{margin-top:3px;flex:none}
+.histlist{list-style:none;margin:6px 0;padding:0;display:grid}
+.histlist li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem}
+.histlist li:first-child{border-top:0}
+.histlist time{color:var(--muted);font-size:.82rem}
+.histlist b{font-size:.82rem;justify-self:end}
+.histlist span{grid-column:1 / -1;overflow-wrap:anywhere}
 .pop.up::before{top:auto;bottom:-7px;transform:rotate(225deg)}
 .pop-in{padding:12px 14px;overflow:auto;overscroll-behavior:contain;border-radius:14px}
 .pop h4{margin:0 0 4px;font-size:.96rem;font-weight:800}
@@ -390,7 +401,7 @@ details.method[open] summary{margin-bottom:6px}
 .env-bar i{display:block;height:100%;border-radius:6px}
 .env-bar i.ok{background:var(--brand)} .env-bar i.warn{background:var(--amber)} .env-bar i.bad{background:var(--debit)}
 .env-sub{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;color:var(--muted)}
-.env-plus{width:44px;height:44px;padding:0;font-size:1.4rem;font-weight:700;border-radius:50%;border-color:var(--brand);color:var(--brand)}
+.env-plus{min-width:44px;height:44px;padding:0 16px;font-size:.95rem;font-weight:700;border-radius:22px;border-color:var(--brand);color:var(--brand)}
 .env-plus:hover{background:var(--brand);color:var(--on-brand)}
 .envtotal{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px;margin-top:2px;font-weight:700;font-size:.92rem}
 .envguide{background:var(--surface2);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:grid;gap:8px}
@@ -900,6 +911,8 @@ function normalize(d){
   S.kind = d.kind === 'kid' ? 'kid' : 'household';
   if(typeof d.id === 'string' && d.id.trim()) S.id = d.id.trim();   // identité de l'espace (plusieurs espaces par appareil)
   S.modifiedAt = (typeof d.modifiedAt === 'string' && !isNaN(Date.parse(d.modifiedAt))) ? new Date(Date.parse(d.modifiedAt)).toISOString() : null;   // sert à savoir, entre un fichier et une copie, lequel est le plus récent
+  S.modifiedBy = typeof d.modifiedBy === 'string' ? d.modifiedBy.slice(0, 30) : '';
+  S.log = arr(d.log).filter(e => e && typeof e.text === 'string' && !isNaN(Date.parse(e.t))).map(e => ({id:String(e.id || uid()), t:new Date(Date.parse(e.t)).toISOString(), who:String(e.who || '').slice(0, 30), kind:['add', 'mod', 'del'].includes(e.kind) ? e.kind : 'mod', coll:String(e.coll || 'other'), ref:String(e.ref || ''), text:String(e.text).slice(0, 240)})).slice(-500);
   const st = d.settings || {};
   S.settings = Object.assign(defaultSettings(), st);
   S.settings.distribution = Object.assign(defaultSettings().distribution, st.distribution || {});
@@ -2106,7 +2119,121 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+/* ---------- Historique des actions et comparaison de versions (moteur) ---------- */
+const LOG_COLLS = ['lines', 'spends', 'pot', 'accounts', 'categories', 'members'];
+const LOG_META = ['log', 'modifiedAt', 'modifiedBy'];
+const LOG_POT = {depense:'Dépense', reliquat:'Reliquat', ecart:'Écart', epargne:'Épargne', ajustement:'Ajustement', recalage:'Recalage', enveloppe:'Enveloppe'};
+const eurTxt = v => { const r = Math.round((+v || 0) * 100) / 100; return r.toLocaleString('fr-FR', {minimumFractionDigits:Number.isInteger(r) ? 0 : 2, maximumFractionDigits:2}) + ' €'; };
+const signedTxt = v => (v < 0 ? '−' : '+') + eurTxt(Math.abs(v));
+function canon(v){ return JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x); }
+const sameJson = (a, b) => canon(a) === canon(b);
+/* Contenu comparable d'un espace : tout sauf l'historique et les marques de modification */
+function stateKey(S){ const o = {}; Object.keys(S || {}).forEach(k => { if(!LOG_META.includes(k)) o[k] = S[k]; }); return JSON.stringify(o); }
+function itemName(S, coll, it){
+  if(coll === 'spends'){ const l = S && (S.lines || []).find(x => x.id === it.lineId); return `${l ? l.name : 'Dépense'} ${eurTxt(it.amount)}`; }
+  if(coll === 'pot') return `${LOG_POT[it.kind] || 'Cagnotte'}${it.label ? ' · ' + it.label : ''} ${signedTxt(it.amount)}`;
+  return it.name || '—';
+}
+function itemText(S, coll, kind, it, before){
+  const nm = itemName(S, coll, it);
+  if(coll === 'lines'){
+    if(kind === 'add') return `Ligne ajoutée : ${it.name}${it.amount > 0 ? ' (' + eurTxt(it.amount) + ')' : ''}`;
+    if(kind === 'del') return `Ligne supprimée : ${it.name}`;
+    const p = [], b = before || {}, n = x => (x || []).length;
+    if(b.name !== it.name) p.push(`renommée (avant : « ${b.name} »)`);
+    if(b.amount !== it.amount) p.push(`montant ${eurTxt(b.amount)} → ${eurTxt(it.amount)}`);
+    if((b.goal ?? null) !== (it.goal ?? null)) p.push(it.goal == null ? 'objectif retiré' : `objectif ${eurTxt(it.goal)}`);
+    if(b.active !== it.active) p.push(it.active ? 'réactivée' : 'désactivée');
+    if(b.catId !== it.catId) p.push('catégorie changée');
+    if(!sameJson(b.cycle, it.cycle)) p.push('fréquence changée');
+    if(!!b.envelope !== !!it.envelope) p.push(it.envelope ? 'devient une enveloppe' : 'n’est plus une enveloppe');
+    const solde = n(b.paid) > 0 && n(it.paid) === 0 && b.lastDate !== it.lastDate;
+    if(n(it.paid) > n(b.paid)) p.push(`paiement partiel ${eurTxt((it.paid[n(it.paid) - 1] || {}).amount)}`);
+    else if(solde) p.push('soldée');
+    else if(n(it.paid) < n(b.paid)) p.push('paiement partiel annulé');
+    if(b.lastDate !== it.lastDate && !solde) p.push(`date de départ ${it.lastDate || 'retirée'}`);
+    if(n(it.topups) !== n(b.topups)) p.push('complété de la poche');
+    if(n(it.funds) !== n(b.funds)) p.push('réserve modifiée');
+    if(n(it.closures) !== n(b.closures)) p.push(n(it.closures) > n(b.closures) ? 'mois clôturé' : 'clôture annulée');
+    return `${it.name} : ${p.length ? p.join(', ') : 'modifiée'}`;
+  }
+  const fem = coll === 'spends' || coll === 'pot' || coll === 'categories', g = fem ? 'e' : '';
+  const w = (kind === 'add' ? 'ajouté' : kind === 'del' ? 'supprimé' : 'modifié') + g;
+  if(coll === 'spends') return `Dépense ${w} : ${nm}`;
+  if(coll === 'pot') return `Cagnotte, ligne ${w} : ${nm}`;
+  if(coll === 'members'){ if(kind === 'mod' && before && !sameJson(before.kid, it.kid)) return `Tirelire de ${it.name} mise à jour`; return `Foyer : ${it.name} ${kind === 'add' ? 'ajouté(e)' : kind === 'del' ? 'retiré(e)' : 'modifié(e)'}`; }
+  return `${coll === 'accounts' ? 'Compte' : 'Catégorie'} ${w} : ${nm}`;
+}
+/* Liste des changements entre deux états */
+function describeDiff(A, B){
+  const out = [];
+  LOG_COLLS.forEach(coll => {
+    const am = new Map(((A || {})[coll] || []).map(x => [x.id, x])), bm = new Map(((B || {})[coll] || []).map(x => [x.id, x]));
+    bm.forEach((it, id) => { const o = am.get(id);
+      if(!o) out.push({coll, kind:'add', ref:coll + ':' + id, id, text:itemText(B, coll, 'add', it)});
+      else if(!sameJson(o, it)) out.push({coll, kind:'mod', ref:coll + ':' + id, id, text:itemText(B, coll, 'mod', it, o), addText:itemText(B, coll, 'add', it)}); });
+    am.forEach((it, id) => { if(!bm.has(id)) out.push({coll, kind:'del', ref:coll + ':' + id, id, text:itemText(A, coll, 'del', it)}); });
+  });
+  const rest = S => { const o = {}; Object.keys(S || {}).forEach(k => { if(!LOG_COLLS.includes(k) && !LOG_META.includes(k)) o[k] = S[k]; }); return o; };
+  if(!sameJson(rest(A), rest(B))) out.push({coll:'other', kind:'mod', ref:'other', text:'Réglages ou données annexes modifiés'});
+  return out;
+}
+/* Ajoute des entrées à l'historique ; une série de retouches du même élément par la même personne tient en une ligne */
+function logAppend(S, entries, who, at){
+  S.log = Array.isArray(S.log) ? S.log : [];
+  entries.forEach(e => {
+    const last = S.log[S.log.length - 1];
+    if(last && last.ref === e.ref && (last.who || '') === (who || '') && e.kind !== 'del' && last.kind !== 'del' && Date.parse(at) - Date.parse(last.t) < 600000){
+      last.t = at; last.text = (last.kind === 'add' && e.addText) ? e.addText : e.text; return;
+    }
+    S.log.push({id:uid(), t:at, who:who || '', kind:e.kind, coll:e.coll, ref:e.ref, text:e.text});
+  });
+  if(S.log.length > 500) S.log = S.log.slice(-500);
+}
+/* Fusion à trois voies (base = dernière version commune, si connue). Retourne l'espace fusionné et les désaccords. */
+function mergeStates(base, mine, theirs, choices){
+  choices = choices || {};
+  const conflicts = [], result = JSON.parse(JSON.stringify(mine));
+  const pick = c => choices[c.key] || c.def;
+  LOG_COLLS.forEach(coll => {
+    const bm = new Map(((base || {})[coll] || []).map(x => [x.id, x])), mm = new Map((mine[coll] || []).map(x => [x.id, x])), tm = new Map((theirs[coll] || []).map(x => [x.id, x])), out = [];
+    const conflict = (id, m, t, b) => {
+      const c = {key:coll + ':' + id, coll, id, name:itemName(m ? mine : theirs, coll, m || t), mine:m, theirs:t,
+        mineText:m ? itemText(mine, coll, 'mod', m, b || t) : 'supprimé chez toi', theirsText:t ? itemText(theirs, coll, 'mod', t, b || m) : 'supprimé dans le fichier', def:(m && t) ? 'mine' : (m ? 'mine' : 'theirs')};
+      conflicts.push(c); return pick(c) === 'theirs' ? t : m;
+    };
+    mm.forEach((m, id) => {
+      const t = tm.get(id), b = bm.get(id);
+      if(t){
+        if(sameJson(m, t)) out.push(m);
+        else if(base && b && sameJson(m, b)) out.push(t);
+        else if(base && b && sameJson(t, b)) out.push(m);
+        else out.push(conflict(id, m, t, b));
+      } else if(base && b){ if(!sameJson(m, b)){ const r = conflict(id, m, null, b); if(r) out.push(r); } }
+      else out.push(m);
+    });
+    tm.forEach((t, id) => {
+      if(mm.has(id)) return; const b = bm.get(id);
+      if(base && b){ if(!sameJson(t, b)){ const r = conflict(id, null, t, b); if(r) out.push(r); } }
+      else out.push(t);
+    });
+    result[coll] = out;
+  });
+  const newer = (theirs.modifiedAt || '') > (mine.modifiedAt || '') ? theirs : mine;
+  new Set([...Object.keys(mine), ...Object.keys(theirs)]).forEach(k => {
+    if(LOG_COLLS.includes(k) || LOG_META.includes(k)) return;
+    const m = mine[k], t = theirs[k], b = base ? base[k] : undefined;
+    if(sameJson(m, t)) return;
+    const v = (base && sameJson(m, b)) ? t : (base && sameJson(t, b)) ? m : newer[k];
+    if(v === undefined) delete result[k]; else result[k] = v;
+  });
+  const seen = new Set(), log = [];
+  (mine.log || []).concat(theirs.log || []).forEach(e => { if(e && !seen.has(e.id)){ seen.add(e.id); log.push(e); } });
+  result.log = log.sort((a, b) => String(a.t).localeCompare(String(b.t))).slice(-500);
+  return {merged:result, conflicts};
+}
+
+if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
 
 </script>
 <script>
@@ -2124,7 +2251,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.20', APP_DATE = '11 octobre 2026', APP_BUILD = '14224c';
+const APP_VERSION = '2.22', APP_DATE = '11 octobre 2026', APP_BUILD = '693155';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2426,11 +2553,11 @@ function markSynced(name){
 function removeLocalCopy(id){ dropSrc(id); try{ localStorage.removeItem(spKey(id)); writeSpaces(readSpaces().filter(e => e.id !== id)); if(localStorage.getItem(ACT_KEY) === id) localStorage.removeItem(ACT_KEY); }catch{} }
 function resetSession(){
   clearTimeout(autosaveT);
-  Object.assign(U, {reloadDone:false, demo:false, tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null});
+  Object.assign(U, {reloadDone:false, demo:false, tab:'synthese', kid:null, kidWizard:null, wizard:null, fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null, kidGoal:null, passageShown:false, updateAvail:null, noticeSrc:null, reload:false, syncCtx:null, prev:null, prevId:null, base:null, baseMod:null, conflict:null, hist:null});
 }
 async function flushFile(){
   if(!U.fileHandle || !S || !U.dirty) return;
-  try{ if((await U.fileHandle.queryPermission({mode:'readwrite'})) === 'granted') await writeHandle(U.fileHandle, JSON.stringify(S, null, 2)); }catch{}
+  try{ if((await U.fileHandle.queryPermission({mode:'readwrite'})) === 'granted') await guardedWrite(U.fileHandle, false); }catch{}
 }
 /* Quitter l'espace actuel sans rien effacer : retour à la liste des espaces */
 async function leaveSpace(){
@@ -2457,7 +2584,8 @@ async function openSpace(id){
   data.id = id; if(S && S.id !== id){ backupNow(); }
   resetSession(); S = data; U.fileHandle = handle; U.fileName = fname; U.pending = pending; U.notice = (backup && !pending && !getSrc(id)) ? 'backup' : null;
   try{ localStorage.setItem(ACT_KEY, id); }catch{}
-  snapOpen(); backupNow(); render(); window.scrollTo(0, 0); return true;
+  snapOpen(); backupNow(); U.baseMod = S.modifiedAt; if(handle) rememberBase(JSON.stringify(S, null, 2), S.modifiedAt); else loadBase();
+  render(); window.scrollTo(0, 0); return true;
 }
 function spaceOpen(id){
   const e = readSpaces().find(x => x.id === id); if(!e) return;
@@ -2477,7 +2605,7 @@ async function adoptSpace(data, {handle, fileName, silent} = {}){
     if(exist) await snapTake(data.id, exist, 'Avant chargement du fichier', {safe:true}); }   // sécurité : on garde ce qui va être remplacé
   resetSession(); S = data; U.fileHandle = handle || null; U.fileName = handle ? handle.name : (fileName || null);
   if(handle) await idbSet('handle:' + S.id, handle); else await idbDel('handle:' + S.id);
-  snapOpen(); backupNow(); return true;
+  snapOpen(); backupNow(); U.prev = stateKey(S); U.prevId = S.id; rememberBase(JSON.stringify(S, null, 2), S.modifiedAt); return true;
 }
 async function migrateLegacy(){
   if(localStorage.getItem(SP_KEY) !== null) return;
@@ -2496,14 +2624,83 @@ function scheduleAutosave(){
     try{
       const p = await U.fileHandle.queryPermission({mode:'readwrite'});
       if(p !== 'granted'){ U.needPerm = true; updateStatus(); return; }
-      await writeHandle(U.fileHandle, JSON.stringify(S, null, 2));
+      const g = await guardedWrite(U.fileHandle, false); if(g !== 'ok'){ updateStatus(); return; }
       U.dirty = false; U.lastSaved = new Date(); U.needPerm = false;
     }catch(e){ toast('Écriture dans le fichier impossible : ' + e.message); }
     updateStatus();
   }, 700);
 }
+/* ---------- Qui es-tu ? Un surnom gardé sur cet appareil seulement : il signe les actions dans l'historique ---------- */
+const WHO_KEY = 'matirelire:who', WHO_ASKED = 'matirelire:whoasked';
+const getWho = () => { try{ return (localStorage.getItem(WHO_KEY) || '').trim(); }catch{ return ''; } };
+function setWho(n){ try{ n = String(n || '').trim().slice(0, 30); if(n) localStorage.setItem(WHO_KEY, n); else localStorage.removeItem(WHO_KEY); }catch{} }
+function askWho(force){
+  if(!S || S.kind === 'kid') return; const dlg = $('#dlg'); if(dlg.open) return;
+  if(!force){ try{ if(getWho() || localStorage.getItem(WHO_ASKED)) return; }catch{} }
+  try{ localStorage.setItem(WHO_ASKED, '1'); }catch{}
+  const names = byName(S.members.filter(m => m.type === 'adult' && m.name)).map(m => m.name), cur = getWho();
+  U.editing = null;
+  dlg.innerHTML = dlgShell('Qui es-tu ?', `<p class="hint">Ton prénom ou surnom reste sur cet appareil. Il signe tes actions dans l’historique, et indique qui a enregistré le fichier en dernier. Ce n’est pas un mot de passe.</p>
+    ${names.length ? `<div class="chips wrapchips" role="group" aria-label="Membres du foyer">${names.map(n => `<button type="button" class="chip" data-act="who-pick" data-id="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+    <label class="field">Mon prénom ou surnom<input class="inp" id="who-in" maxlength="30" value="${esc(cur)}" placeholder="Ex. Nicolas" autocomplete="off" enterkeyhint="done"></label>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Plus tard</button><button type="button" class="btn primary" data-act="who-save">Valider</button></div>`);
+  dlg.showModal(); focusQuiet($('#who-in'));
+}
+let whoChecked = false;
+/* Historique : chaque modification est comparée à l'état précédent et résumée en une ligne signée */
+function logChanges(){
+  if(!S) return; const cur = stateKey(S);
+  if(U.prevId !== S.id || U.prev == null){ U.prev = cur; U.prevId = S.id; return; }
+  if(cur === U.prev) return;
+  let before; try{ before = JSON.parse(U.prev); }catch{ U.prev = cur; return; }
+  const d = describeDiff(before, S); if(d.length) logAppend(S, d, getWho(), nowIso());
+  U.prev = cur;
+}
+/* ---------- Dernière version commune (base de la fusion) ---------- */
+async function rememberBase(text, mod){
+  if(!S) return; U.base = text; U.baseMod = mod || null;
+  try{ await idbSet('base:' + S.id, {text, mod:mod || null}); }catch{}
+}
+async function loadBase(){ if(!S) return; try{ const b = await idbGet('base:' + S.id); if(b && b.text && !U.base){ U.base = b.text; U.baseMod = b.mod || U.baseMod; } }catch{} }
+const baseObj = () => { try{ return U.base ? normalize(JSON.parse(U.base)) : null; }catch{ return null; } };
+/* Le fichier a-t-il été enregistré par quelqu'un d'autre depuis notre dernière lecture ou écriture ? */
+async function remoteCheck(){
+  if(!U.fileHandle || !S) return null;
+  try{
+    const txt = await (await U.fileHandle.getFile()).text(); if(!txt.trim()) return null;
+    const theirs = normalize(JSON.parse(txt)); if(theirs.id !== S.id) return null;
+    if((theirs.modifiedAt || '') > (U.baseMod || S.modifiedAt || '') && stateKey(theirs) !== stateKey(S)) return {txt, theirs};
+  }catch{}
+  return null;
+}
+/* Écrit dans le fichier lié sans jamais écraser en silence. Retourne 'ok', 'loaded' ou 'cancel'. */
+async function guardedWrite(h, interactive){
+  const rc = await remoteCheck();
+  if(rc){
+    if(!interactive){ U.conflict = rc; updateStatus(); return 'cancel'; }
+    const r = await resolveConflict(rc); if(r !== 'ok') return r;
+  }
+  const text = JSON.stringify(S, null, 2), mod = S.modifiedAt;
+  await writeHandle(h, text); U.conflict = null; await rememberBase(text, mod); return 'ok';
+}
+async function resolveConflict(rc){
+  const ch = await syncChoice(rc.theirs, S, U.fileName || 'fichier');
+  if(ch === 'cancel') return 'cancel';
+  if(ch === 'keep'){ try{ await snapTake(S.id, rc.txt, 'Fichier avant écrasement', {safe:true}); }catch{} return 'ok'; }
+  if(ch === 'load'){ await adoptSpace(rc.theirs, {handle:U.fileHandle, silent:true}); U.dirty = false; return 'loaded'; }
+  try{ await snapTake(S.id, rc.txt, 'Fichier avant fusion', {safe:true}); }catch{}
+  const merged = buildMerge(S, rc.theirs, baseObj());
+  await adoptSpace(merged, {handle:U.fileHandle, silent:true}); U.dirty = true; return 'ok';
+}
+function buildMerge(mine, theirs, base){
+  const res = mergeStates(base, mine, theirs, U.mergeChoices), m = normalize(res.merged), at = nowIso();
+  m.modifiedAt = at; m.modifiedBy = getWho();
+  logAppend(m, [{coll:'other', kind:'mod', ref:'merge:' + at, text:`Fusion avec la version ${theirs.modifiedBy ? 'de ' + theirs.modifiedBy + ' ' : ''}du ${fmtWhen(theirs.modifiedAt || at)}`}], getWho(), at);
+  return m;
+}
 /* Appelé après chaque modification des données */
 function touch(rerender = true){
+  logChanges(); if(S) S.modifiedBy = getWho();
   U.dirty = true; if(S){ S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince && (!x.syncedAt || S.modifiedAt > x.syncedAt)) putSrc(S.id, {dirtySince:S.modifiedAt}); }
   snapOnTouch(); backupNow(); scheduleAutosave();
   if(rerender) render(); else updateStatus();
@@ -2520,19 +2717,51 @@ async function openFile(){
     }catch(e){ if(e.name !== 'AbortError') toast('Ouverture impossible : ' + e.message); }
   } else $('#file-in').click();
 }
-/* Comparaison fichier / copie locale : choix éclairé, jamais d'écrasement silencieux */
+/* Fenêtre de l'historique */
+const HIST_COLLS = [['', 'Tout'], ['lines', 'Lignes'], ['spends', 'Dépenses'], ['pot', 'Cagnotte'], ['accounts', 'Comptes'], ['categories', 'Catégories'], ['members', 'Foyer'], ['other', 'Autres']];
+function openHistory(){
+  if(!S) return; const dlg = $('#dlg'); U.editing = null; U.hist = U.hist || {who:'', coll:'', n:60};
+  const log = (S.log || []).slice().reverse(), whos = [...new Set(log.map(e => e.who || ''))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const rows = log.filter(e => (!U.hist.who || (e.who || '') === (U.hist.who === '—' ? '' : U.hist.who)) && (!U.hist.coll || e.coll === U.hist.coll)), shown = rows.slice(0, U.hist.n);
+  dlg.innerHTML = dlgShell('Historique', `<p class="hint">Les actions faites depuis cet outil, avec le nom choisi sur chaque appareil. Les 500 dernières sont gardées dans le fichier.</p>
+    <div class="grid2"><label class="field">Qui<select class="inp" name="hs-who"><option value="">Tout le monde</option>${whos.map(w => `<option value="${esc(w || '—')}" ${U.hist.who === (w || '—') ? 'selected' : ''}>${esc(w || '— (sans nom)')}</option>`).join('')}</select></label>
+    <label class="field">Quoi<select class="inp" name="hs-coll">${HIST_COLLS.map(([v, l]) => `<option value="${v}" ${U.hist.coll === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+    ${shown.length ? `<ul class="histlist">${shown.map(e => `<li><time datetime="${esc(e.t)}">${esc(fmtWhen(e.t))}</time><b>${esc(e.who || '—')}</b><span class="${e.kind === 'del' ? 'debit' : ''}">${esc(e.text)}</span></li>`).join('')}</ul>${rows.length > shown.length ? `<button type="button" class="btn" data-act="hist-more">Voir plus (${rows.length - shown.length})</button>` : ''}` : '<p class="hint">Aucune action enregistrée pour ce filtre.</p>'}`,
+    `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
+  dlg.showModal();
+}
+/* Comparaison fichier / copie locale : choix éclairé, jamais d'écrasement silencieux.
+   Réponses : 'keep' (ma version), 'load' (celle du fichier), 'merge' (fusion), 'cancel'. */
 function syncChoice(data, local, fileLabel){
   return new Promise(res => {
-    U.syncCtx = res; const dlg = $('#dlg'); U.editing = null; const fileNewer = (data.modifiedAt || '') > (local.modifiedAt || ''), same = (data.modifiedAt || '') === (local.modifiedAt || '');
-    dlg.innerHTML = dlgShell('Fichier et copie différents', `<p class="hint">Cet espace existe déjà sur cet appareil.</p>
-      <ul class="leaders"><li><span>Fichier <small>${esc(fileLabel || '')}</small></span><i class="dots"></i><b>${data.modifiedAt ? esc(fmtWhen(data.modifiedAt)) : 'date inconnue'}</b></li><li><span>Copie de cet appareil</span><i class="dots"></i><b>${local.modifiedAt ? esc(fmtWhen(local.modifiedAt)) : 'date inconnue'}</b></li></ul>
-      <p class="note">${same ? 'Les deux ont la même date : ils sont probablement identiques.' : (fileNewer ? '<b>Le fichier est plus récent.</b> Il contient sans doute des modifications faites ailleurs.' : '<b>Ta copie est plus récente</b> que le fichier : le fichier n’a pas reçu tes dernières modifications.')}</p>`,
-      `<span></span><div class="r"><button type="button" class="btn" data-act="sync-cancel">Annuler</button><button type="button" class="btn ${fileNewer ? '' : 'primary'}" data-act="sync-keep">Garder ma copie</button><button type="button" class="btn ${fileNewer || same ? 'primary' : ''}" data-act="sync-load">Charger le fichier</button></div>`);
+    U.syncCtx = res; U.mergeChoices = {}; const dlg = $('#dlg'); U.editing = null;
+    const base = baseObj(), mine = local.lines ? local : null;
+    const fileNewer = (data.modifiedAt || '') > (local.modifiedAt || ''), same = (data.modifiedAt || '') === (local.modifiedAt || '');
+    const list = (title, d) => { if(!d.length) return ''; const shown = d.slice(0, 8); return `<h3 class="who">${title} (${d.length})</h3><ul class="difflist">${shown.map(x => `<li>${esc(x.text)}</li>`).join('')}${d.length > shown.length ? `<li class="muted">… et ${d.length - shown.length} autre${d.length - shown.length > 1 ? 's' : ''}</li>` : ''}</ul>`; };
+    let diffs = '', cfs = [];
+    if(mine){
+      if(base){ diffs = list('Nouveau dans le fichier', describeDiff(base, data)) + list('Nouveau chez toi', describeDiff(base, mine)); }
+      else diffs = list('Différences (le fichier par rapport à ta copie)', describeDiff(mine, data));
+      cfs = mergeStates(base, mine, data, {}).conflicts; U.cfList = cfs;
+    }
+    const conf = cfs.length ? `<h3 class="who">Modifié des deux côtés (${cfs.length})</h3><p class="hint">Choisis la version à garder pour la fusion.</p>${cfs.map((c, i) => `<fieldset class="cfitem"><legend>${esc(c.name)}</legend>
+        <label><input type="radio" name="cf-${i}" value="mine" ${c.def === 'mine' ? 'checked' : ''}><span><b>Chez toi</b> : ${esc(c.mineText)}</span></label>
+        <label><input type="radio" name="cf-${i}" value="theirs" ${c.def === 'theirs' ? 'checked' : ''}><span><b>Fichier</b> : ${esc(c.theirsText)}</span></label></fieldset>`).join('')}` : '';
+    const whoT = data.modifiedBy ? `par <b>${esc(data.modifiedBy)}</b> ` : '', whoM = local.modifiedBy ? ` par ${esc(local.modifiedBy)}` : '';
+    dlg.innerHTML = dlgShell('Fichier et copie différents', `<ul class="leaders"><li><span>Fichier <small>${esc(fileLabel || '')}</small></span><i class="dots"></i><b>${data.modifiedAt ? esc(fmtWhen(data.modifiedAt)) : 'date inconnue'}</b></li><li><span>Copie de cet appareil${whoM}</span><i class="dots"></i><b>${local.modifiedAt ? esc(fmtWhen(local.modifiedAt)) : 'date inconnue'}</b></li></ul>
+      <p class="note">${same ? 'Les deux ont la même date : ils sont probablement identiques.' : (fileNewer ? `<b>Le fichier est plus récent</b>${data.modifiedBy ? ' (enregistré ' + whoT.trim() + ')' : ''} : il contient des modifications faites ailleurs.` : '<b>Ta copie est plus récente</b> que le fichier : le fichier n’a pas reçu tes dernières modifications.')}</p>
+      ${diffs}${conf}
+      ${mine ? '<p class="hint">« Fusionner » garde tout ce qui est nouveau des deux côtés. « Ma version » remplace celle du fichier, « Fichier » remplace ta copie : l’autre est conservée dans les sauvegardes.</p>' : ''}`,
+      `<div class="potacts"><button type="button" class="btn" data-act="sync-keep">Ma version</button><button type="button" class="btn" data-act="sync-load">Fichier</button>${mine ? '<button type="button" class="btn primary" data-act="sync-merge">Fusionner</button>' : ''}</div><div class="r"><button type="button" class="btn" data-act="sync-cancel">Annuler</button></div>`);
     dlg.addEventListener('close', function f(){ dlg.removeEventListener('close', f); if(U.syncCtx){ const r = U.syncCtx; U.syncCtx = null; r('cancel'); } });
     dlg.showModal();
   });
 }
-function syncAnswer(act){ const r = U.syncCtx; U.syncCtx = null; const dlg = $('#dlg'); if(dlg.open) dlg.close(); if(r) r(act === 'sync-load' ? 'load' : (act === 'sync-keep' ? 'keep' : 'cancel')); }
+function syncAnswer(act){
+  const r = U.syncCtx; U.syncCtx = null; const dlg = $('#dlg');
+  if(act === 'sync-merge'){ U.mergeChoices = {}; (U.cfList || []).forEach((c, i) => { const v = ($(`input[name=cf-${i}]:checked`) || {}).value; if(v) U.mergeChoices[c.key] = v; }); }
+  if(dlg.open) dlg.close(); if(r) r(act === 'sync-load' ? 'load' : act === 'sync-keep' ? 'keep' : act === 'sync-merge' ? 'merge' : 'cancel');
+}
 function askWhere(){
   if(!S || U.fileHandle) return; const x = getSrc(S.id); if(!x || x.asked || x.where) return; putSrc(S.id, {asked:true});
   const dlg = $('#dlg'); U.editing = null;
@@ -2553,7 +2782,8 @@ async function loadFromInput(file){
     const data = withIdentity(raw, normalize(raw));
     if(!data.modifiedAt && file.lastModified) data.modifiedAt = new Date(file.lastModified).toISOString();
     const local = (() => { try{ return JSON.parse(localStorage.getItem(spKey(data.id)) || 'null'); }catch{ return null; } })();
-    const cur = S && S.id === data.id ? S : null, loc = cur || (local && { modifiedAt: local.modifiedAt || null });
+    const cur = S && S.id === data.id ? S : null, locFull = cur || (() => { try{ return local ? normalize(local) : null; }catch{ return null; } })(), loc = locFull;
+    if(!cur && loc){ U.base = null; try{ const b = await idbGet('base:' + data.id); if(b && b.text) U.base = b.text; }catch{} }
     if(loc){
       if(cur && U.dirty) backupNow();
       if((data.modifiedAt || '') === (loc.modifiedAt || '') && data.modifiedAt){
@@ -2562,6 +2792,12 @@ async function loadFromInput(file){
       }
       const ch = await syncChoice(data, cur || loc, file.name);
       if(ch === 'cancel') return;
+      if(ch === 'merge'){
+        if(!S || S.id !== data.id){ if(!(await openSpace(data.id))) return; }
+        const merged = buildMerge(S, data, baseObj());
+        if(await adoptSpace(merged, {fileName:file.name, silent:true})){ U.reloadDone = true; putSrc(S.id, {name:file.name}); U.dirty = true; backupNow(); await shareFile(); askWhere(); render(); toast('Versions fusionnées.'); }
+        return;
+      }
       if(ch === 'keep'){ if(!S || S.id !== data.id){ await openSpace(data.id); } U.reloadDone = true; putSrc(S.id, {name:file.name}); await shareFile(); askWhere(); render(); return; }
     }
     if(await adoptSpace(data, {fileName:file.name, silent:true})){ U.reloadDone = true; putSrc(S.id, {name:file.name, syncedAt:S.modifiedAt || nowIso(), dirtySince:null}); if(wasReload && S.kind !== 'kid') U.tab = keepTab; render(); toast((wasReload ? 'Fichier rechargé : ' : 'Fichier chargé : ') + file.name); askWhere(); }
@@ -2574,10 +2810,10 @@ async function shareFile(){
   if(file && navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
     const x = getSrc(S.id), where = x && WHERE[x.where];
     toast(`Choisis « Enregistrer dans Fichiers »${where && x.where !== 'other' ? `, puis ${where}` : ''}, puis « Remplacer » pour garder un seul fichier : ${name}`);
-    try{ await navigator.share({files:[file]}); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Enregistré dans Fichiers'); updateStatus(); return true; }
+    try{ await navigator.share({files:[file]}); markSynced(name); rememberBase(text, S.modifiedAt); U.dirty = false; U.lastSaved = new Date(); toast('Enregistré dans Fichiers'); updateStatus(); return true; }
     catch(e){ if(e.name === 'AbortError') return false; }
   }
-  download(name, text); markSynced(name); U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé'); updateStatus(); return true;
+  download(name, text); markSynced(name); rememberBase(text, S.modifiedAt); U.dirty = false; U.lastSaved = new Date(); toast('Fichier téléchargé'); updateStatus(); return true;
 }
 async function saveFile(saveAs = false){
   if(!S) return;
@@ -2591,7 +2827,9 @@ async function saveFile(saveAs = false){
       } else if((await h.queryPermission({mode:'readwrite'})) !== 'granted'){
         if((await h.requestPermission({mode:'readwrite'})) !== 'granted') return;
       }
-      await writeHandle(h, text);
+      const g = await guardedWrite(h, true);
+      if(g === 'cancel'){ updateStatus(); return; }
+      if(g === 'loaded'){ render(); toast('Version du fichier chargée.'); return; }
       U.dirty = false; U.lastSaved = new Date(); U.needPerm = false; U.pending = null; toast('Enregistré dans ' + h.name);
     }catch(e){ if(e.name !== 'AbortError') toast('Enregistrement impossible : ' + e.message); }
   } else {
@@ -2628,13 +2866,14 @@ function toast(msg){
 function statusHTML(){
   const hm = d => d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}), src = srcInfo();
   let txt, cls = '';
-  if(U.needPerm || U.pending){ txt = 'Fichier à reconnecter'; cls = 'warn'; }
+  if(U.conflict){ txt = 'Fichier modifié ailleurs'; cls = 'warn'; }
+  else if(U.needPerm || U.pending){ txt = 'Fichier à reconnecter'; cls = 'warn'; }
   else if(U.fileHandle){ txt = U.dirty ? 'Enregistrement…' : `${U.fileName}${U.lastSaved ? ' – ' + hm(U.lastSaved) : ''}`; }
   else if(src) txt = src.unsynced ? `À enregistrer dans ${src.name}` : `Source : ${src.name}${src.syncedAt ? ' · ' + fmtWhen(src.syncedAt) : ''}`;
   else txt = U.dirty ? 'Non enregistré' : (U.lastSaved ? `Exporté à ${hm(U.lastSaved)}` : 'Sans fichier');
   if(src && src.unsynced) cls = 'warn'; else if(!U.fileHandle && !U.pending && !src && U.dirty) cls = 'warn';
   const todo = src ? src.unsynced : (U.dirty && !U.fileHandle);
-  const btn = (U.needPerm || U.pending)
+  const btn = U.conflict ? '<button class="btn primary small" data-act="conflict">Comparer</button>' : (U.needPerm || U.pending)
     ? '<button class="btn primary small" data-act="reconnect">Reconnecter</button>'
     : `<button class="btn ${todo ? 'primary' : ''} small" data-act="save">Enregistrer</button>`;
   return `<div class="stat"><span class="status ${cls}" title="${esc(txt)}">${esc(txt)}</span></div>${btn}`;
@@ -2646,6 +2885,8 @@ const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
 const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
+  if(S && (U.prevId !== S.id || U.prev == null)){ U.prev = stateKey(S); U.prevId = S.id; }
+  if(S && !whoChecked){ whoChecked = true; setTimeout(() => askWho(false), 800); }
   closePop();
   if(S && S.kind === 'kid' && S.members[0] && (!U.kid || !S.members.some(m => m.id === U.kid.id))) U.kid = {id:S.members[0].id, tab:'home'};
   if(S && !U.wizard) kidTick();   // versements automatiques et bascules de niveau, avant le calcul du look
@@ -3062,7 +3303,7 @@ function envelopeCardHTML(){
         <span class="env-top"><b>${esc(x.name)}</b><span class="env-amt">${amt}</span></span>
         <span class="env-bar" role="img" aria-label="${w} % dépensé"><i class="${envBarClass(x)}" style="width:${w}%"></i></span>
         <span class="env-sub">${sub}</span>${res}</button>
-      <button type="button" class="btn env-plus" data-act="env-add" data-id="${esc(x.id)}" aria-label="Déclarer une dépense : ${esc(x.name)}">+</button></div>`;
+      <button type="button" class="btn env-plus" data-act="env-add" data-id="${esc(x.id)}" aria-label="Payer : ${esc(x.name)}">Payer</button></div>`;
   }).join('');
   const total = E.items.length > 1 ? `<div class="envtotal"><span>Total : ${money(E.spent)} sur ${money(E.avail)}</span>${E.over > 0.005 ? `<span class="debit">Dépassement +${money(E.over)}</span>` : ''}</div>` : '';
   const empty = !E.items.length && !showGuide ? `<p class="hint">Aucune enveloppe pour l’instant. Une enveloppe est une somme prévue pour le mois (courses, essence…), que tu déclares au fil des achats.</p>` : '';
@@ -3082,11 +3323,11 @@ function openSpend(lineId, spendId){
   U.spendCtx = {lineId, spendId:spendId || null};
   const mini = it ? `<p class="envmini">${money(it.spent)} dépensés sur ${money(it.planned)} · ${it.over > 0.005 ? `<span class="debit">dépassement +${money(it.over)}</span>` : `reste ${money(it.left)}`}</p>` : '';
   const dlg = $('#dlg'); U.editing = null;
-  dlg.innerHTML = dlgShell(`${sp ? 'Modifier la dépense' : 'Dépense'} · ${esc(l.name)}`, `${mini}
+  dlg.innerHTML = dlgShell(`${sp ? 'Modifier la dépense' : 'Payer'} · ${esc(l.name)}`, `${mini}
     <label class="field">Montant<input class="inp bigamt" id="sp-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="${sp ? sp.amount : ''}" enterkeyhint="done"></label>
     <div class="grid2"><label class="field">Date<input class="inp" id="sp-date" type="date" value="${esc(sp ? sp.date : dflt)}"></label>
       <label class="field">Note (facultatif)<input class="inp" id="sp-note" value="${esc(sp ? sp.note : '')}" placeholder="Ex. Carrefour" autocomplete="off" enterkeyhint="done"></label></div>`,
-    `${sp ? '<button type="button" class="btn danger" data-act="spend-del">Supprimer</button>' : '<span></span>'}<div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="spend-save">${sp ? 'Enregistrer' : 'Ajouter'}</button></div>`);
+    `${sp ? '<button type="button" class="btn danger" data-act="spend-del">Supprimer</button>' : '<span></span>'}<div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="spend-save">${sp ? 'Enregistrer' : 'Payer'}</button></div>`);
   dlg.showModal(); focusQuiet($('#sp-amount'));
 }
 function saveSpend(){
@@ -3098,7 +3339,7 @@ function saveSpend(){
   if(c.spendId){ const sp = S.spends.find(x => x.id === c.spendId); if(sp){ sp.amount = amount; sp.date = date; sp.note = note; } $('#dlg').close(); touch(); toast('Dépense modifiée'); return; }
   const sp = addSpend(S, c.lineId, amount, date, note); $('#dlg').close(); touch();
   const {y, m} = envMonthYear(), it = envelopeStats(S, y, m).items.find(x => x.id === c.lineId);
-  toastUndo(`${money(amount)} ajoutés à ${l ? l.name : 'l’enveloppe'}${it && it.over > 0.005 ? ' · enveloppe dépassée' : ''}`, () => { S.spends = S.spends.filter(x => x.id !== sp.id); touch(); });
+  toastUndo(`${money(amount)} payés : ${l ? l.name : 'enveloppe'}${it && it.over > 0.005 ? ' · enveloppe dépassée' : ''}`, () => { S.spends = S.spends.filter(x => x.id !== sp.id); touch(); });
 }
 /* Historique d'une enveloppe */
 function openEnvelope(lineId){
@@ -3112,7 +3353,7 @@ function openEnvelope(lineId){
     ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Ajouter » pour noter un achat.</p>'}
     ${(() => { const cl = (l.closures || []).filter(c => envClosuresOf(S, l, c.ym).some(z => z.id === c.id)).sort((a, b) => b.ym.localeCompare(a.ym)); return cl.length ? `<h3 class="who">Restes clôturés</h3><ul class="leaders spendlist">${cl.map(c => `<li><span class="spend-row fixed"><span>${MONTHS[+c.ym.slice(5) - 1]} ${c.ym.slice(0, 4)} <small>${c.to === 'pot' ? 'versé à la cagnotte' : 'reporté dans la réserve'}</small></span><i class="dots"></i><b>${money(c.amount)}</b><button type="button" class="btn small ghost" data-act="env-unclose" data-id="${esc(c.id)}" data-line="${esc(lineId)}" aria-label="Annuler la clôture de ${MONTHS[+c.ym.slice(5) - 1]}">Annuler</button></span></li>`).join('')}</ul>` : ''; })()}
     ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.label ? esc(f.label) : f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
-    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Ajouter à la réserve</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
+    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Mettre de côté</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
   dlg.showModal();
 }
 /* Choix de l'origine d'une somme : cagnotte ou non */
@@ -3138,10 +3379,10 @@ function envCloseSave(){
 }
 function openEnvFund(lineId){
   const l = S.lines.find(x => x.id === lineId); if(!l) return; const dlg = $('#dlg'); U.editing = null; U.fundCtx = {lineId};
-  dlg.innerHTML = dlgShell(`Réserve · ${esc(l.name)}`, `<p class="hint">La réserve couvre les dépenses <b>après</b> la mensualité prévue, et se reporte d’un mois sur l’autre jusqu’à épuisement.</p>
-    <label class="field">Somme à ajouter<input class="inp" id="ef-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
+  dlg.innerHTML = dlgShell(`Mettre de côté · ${esc(l.name)}`, `<p class="hint">La réserve couvre les dépenses <b>après</b> la mensualité prévue, et se reporte d’un mois sur l’autre jusqu’à épuisement.</p>
+    <label class="field">Somme à mettre de côté<input class="inp" id="ef-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" enterkeyhint="done"></label>
     <div class="field">Origine ${fundSourceHTML('ef-from', potTotal(S))}<small class="muted" id="ef-note"></small></div>`,
-    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="env-fund-save">Ajouter à la réserve</button></div>`);
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="env-fund-save">Mettre de côté</button></div>`);
   dlg.showModal();
 }
 function envFundCheck(amount, from){
@@ -3151,7 +3392,7 @@ function envFundCheck(amount, from){
 function envFundSave(){
   const c = U.fundCtx, l = c && S.lines.find(x => x.id === c.lineId), a = Math.abs(num($('#ef-amount').value)), from = ($('input[name=ef-from]:checked') || {}).value || 'free';
   if(!l) return; if(!(a > 0)){ toast('Indique la somme à ajouter.'); focusQuiet($('#ef-amount')); return; } if(!envFundCheck(a, from)) return;
-  envelopeAddFund(S, l.id, a, from, isoToday()); $('#dlg').close(); touch(); toast(from === 'pot' ? `${money(a)} pris dans la cagnotte et mis dans « ${l.name} ».` : `${money(a)} ajoutés à la réserve de « ${l.name} ».`);
+  envelopeAddFund(S, l.id, a, from, isoToday()); $('#dlg').close(); touch(); toast(from === 'pot' ? `${money(a)} pris dans la cagnotte et mis dans « ${l.name} ».` : `${money(a)} mis de côté dans « ${l.name} ».`);
 }
 /* Nouvelle enveloppe en trois questions */
 function openNewEnvelope(){
@@ -3191,7 +3432,7 @@ function neCreate(){
   }
   if(fund > 0) envelopeAddFund(S, line.id, fund, from, isoToday());
   $('#dlg').close(); touch();
-  toast(ex ? `« ${line.name} » est maintenant une enveloppe.` : (amount > 0 || fund > 0 ? (amount > 0 ? `Enveloppe « ${name} » créée${fund > 0 ? ` avec ${money(fund)} de départ` : ''}. Déclare une dépense avec le +.` : `Enveloppe « ${name} » créée : somme fixe de ${money(fund)}, sans mensualité. Déclare une dépense avec le +.`) : `Enveloppe « ${name} » créée : mensualité à définir. Déclare une dépense avec le +.`));
+  toast(ex ? `« ${line.name} » est maintenant une enveloppe.` : (amount > 0 || fund > 0 ? (amount > 0 ? `Enveloppe « ${name} » créée${fund > 0 ? ` avec ${money(fund)} de départ` : ''}. Appuie sur « Payer » à chaque dépense.` : `Enveloppe « ${name} » créée : somme fixe de ${money(fund)}, sans mensualité. Appuie sur « Payer » à chaque dépense.`) : `Enveloppe « ${name} » créée : mensualité à définir. Appuie sur « Payer » à chaque dépense.`));
 }
 function neFundRefresh(){
   const f = Math.abs(num(($('#ne-fund') || {value:0}).value)), m = Math.abs(num(($('#ne-amount') || {value:0}).value)), box = $('#ne-from'), note = $('#ne-fundnote'); if(!box) return;
@@ -3262,7 +3503,7 @@ async function pinSubmit(){
 /* Entrée et sortie de l'espace enfant */
 function kidTick(){
   let n = 0; S.members.forEach(m => { if(m.kid && m.kid.on){ n += kidRunAllowance(m); if(kidSyncLevel(m.kid)) n++; n += kidRunInterest(m.kid) + kidRunWishes(m.kid) + kidRunChallenges(m.kid) + kidRunSubs(m.kid); } });
-  if(n){ U.dirty = true; S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince) putSrc(S.id, {dirtySince:S.modifiedAt}); backupNow(); scheduleAutosave(); } return n;
+  if(n){ U.prev = stateKey(S); U.prevId = S.id; U.dirty = true; S.modifiedAt = nowIso(); const x = getSrc(S.id); if(x && !x.dirtySince) putSrc(S.id, {dirtySince:S.modifiedAt}); backupNow(); scheduleAutosave(); } return n;
 }
 function openAgeAsk(m, next){
   U.editing = null; U.ageCtx = {id:m.id, next}; const dlg = $('#dlg');
@@ -4358,6 +4599,7 @@ function viewReglages(){
       <div class="toolbar"><button class="btn primary" data-act="save">${FSA && !U.fileHandle ? 'Choisir un fichier' : 'Enregistrer'}</button>
         ${FSA ? '<button class="btn" data-act="save-as">Enregistrer sous…</button>' : ''}<button class="btn" data-act="open">Ouvrir un fichier</button><button class="btn" data-act="export">Exporter une copie</button></div>
       ${sourceBlockHTML()}
+      <div class="field">Qui es-tu sur cet appareil ?<div class="toolbar"><b>${esc(getWho() || 'Non renseigné')}</b><button type="button" class="btn small" data-act="who-edit">${getWho() ? 'Changer' : 'Renseigner'}</button><button type="button" class="btn small" data-act="history">Historique (${(S.log || []).length})</button></div><small class="muted">Ton nom reste sur cet appareil. Il signe tes actions et indique qui a enregistré le fichier en dernier.</small></div>
       <div class="field">À l’ouverture<div class="seg" role="radiogroup" aria-label="À l’ouverture"><label><input type="radio" name="or-mode" value="ask" ${openReloadMode() === 'ask' ? 'checked' : ''}>Proposer de recharger</label><label><input type="radio" name="or-mode" value="none" ${openReloadMode() === 'none' ? 'checked' : ''}>Rien</label></div><small class="muted">${FSA ? 'Avec un fichier lié (Chrome, Edge), la dernière version du fichier est relue à chaque ouverture, après ton autorisation.' : 'Sur iPhone, une page web ne peut pas relire ton fichier toute seule : un bandeau te propose de le choisir, en deux appuis.'}</small></div>
       <div class="field">Sauvegardes<div class="toolbar"><button type="button" class="btn" data-act="snaps">Sauvegardes · niveau ${esc(SNAP_LEVELS[snapLevel()].label.toLowerCase())}</button></div><small class="muted">Versions successives gardées dans ce navigateur, avec restauration. Exportables dans un seul fichier.</small></div>
       <label class="check"><input type="checkbox" data-b="set:_:backup" ${S.settings.backup?'checked':''}> Filet de sécurité : garder aussi une copie dans ce navigateur (elle ne quitte jamais l’appareil)</label>
@@ -4509,7 +4751,7 @@ function refreshLineForm(){
     $('#f-splitsum', dlg).textContent = Math.abs(tot - 100) < 0.01 ? 'Total : 100 %' : `Total : ${Math.round(tot * 100) / 100} % (ramené à 100 %)`;
     if(l.amount > 0 && tot > 0) split = '<br>' + l.split.map(p => `${esc(p.accountId ? accName(p.accountId) : memberName(p.ownerId))} : <b>${money(l.amount * p.pct / tot)}</b>`).join(' · ') + ' à chaque échéance.';
   } else if(on) $('#f-splitsum', dlg).textContent = '';
-  $('#f-preview', dlg).innerHTML = (variable ? (l.amount > 0 ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à déclarer au fil des dépenses (bouton + dans la Synthèse).` : ((l.funds || []).length ? 'Enveloppe à <b>somme fixe</b> : aucune mensualité, la réserve sert jusqu’à épuisement. Fixe une mensualité pour la rendre mensuelle.' : 'Enveloppe : <b>mensualité à définir</b> (0 € pour l’instant). Tu peux la fixer plus tard.')) : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l)))) + split;
+  $('#f-preview', dlg).innerHTML = (variable ? (l.amount > 0 ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à payer au fil des dépenses (bouton « Payer » dans la Synthèse).` : ((l.funds || []).length ? 'Enveloppe à <b>somme fixe</b> : aucune mensualité, la réserve sert jusqu’à épuisement. Fixe une mensualité pour la rendre mensuelle.' : 'Enveloppe : <b>mensualité à définir</b> (0 € pour l’instant). Tu peux la fixer plus tard.')) : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l)))) + split;
 }
 function previewText(sum){
   switch(sum.mode){
@@ -4785,7 +5027,7 @@ document.addEventListener('click', async e => {
     case 'ne-pick': neFromSuggest(+t.dataset.i); break;
     case 'ne-create': neCreate(); break;
     case 'env-guide-create': { const ids = $$('.envguide [data-g]:checked').map(i => i.dataset.g); if(!ids.length){ toast('Coche au moins une ligne à suivre.'); break; }
-      S.lines.forEach(l => { if(ids.includes(l.id)){ l.envelope = true; l.day = null; l.zero = false; } }); touch(); toast(`${ids.length} enveloppe${ids.length > 1 ? 's créées' : ' créée'}. Déclare une dépense avec le +.`); break; }
+      S.lines.forEach(l => { if(ids.includes(l.id)){ l.envelope = true; l.day = null; l.zero = false; } }); touch(); toast(`${ids.length} enveloppe${ids.length > 1 ? 's créées' : ' créée'}. Appuie sur « Payer » à chaque dépense.`); break; }
     case 'env-guide-hide': S.settings.envGuideHidden = true; touch(); break;
     case 'env-convert': { const l = S.lines.find(x => x.id === id); if(l){ l.envelope = true; l.day = null; l.zero = false; touch(); toast(`« ${l.name} » suivie en enveloppe.`); } break; }
     case 'paid': openPay(id); break;
@@ -4857,7 +5099,13 @@ document.addEventListener('click', async e => {
     case 'demo-quit': quitDemo(); break;
     case 'demo-create': quitDemo(() => startWizard()); break;
     case 'dismiss-src': U.noticeSrc = 'off'; render(); break;
-    case 'sync-load': case 'sync-keep': case 'sync-cancel': syncAnswer(a); break;
+    case 'sync-load': case 'sync-keep': case 'sync-merge': case 'sync-cancel': syncAnswer(a); break;
+    case 'conflict': saveFile(false); break;
+    case 'who-edit': askWho(true); break;
+    case 'who-pick': { const i = $('#who-in'); if(i){ i.value = id; } break; }
+    case 'who-save': { setWho(($('#who-in') || {}).value); $('#dlg').close(); render(); toast(getWho() ? `Bonjour ${getWho()} !` : 'Identité retirée.'); break; }
+    case 'history': openHistory(); break;
+    case 'hist-more': U.hist.n += 60; openHistory(); break;
     case 'reconnect': reconnect(); break;
     case 'dismiss': U.notice = null; render(); break;
     case 'add-member': {
@@ -4941,6 +5189,7 @@ document.addEventListener('change', e => {
   if(el.id && el.id.startsWith('sim-') && $('#sim-out')){ $('#sim-out').innerHTML = simOut(); return; }
   if(el.id === 'file-in'){ if(el.files[0]) loadFromInput(el.files[0]); el.value = ''; return; }
   if(el.name === 'or-mode'){ try{ localStorage.setItem(OPEN_RELOAD_KEY, el.value); }catch{} U.reloadDone = false; render(); return; }
+  if(el.name === 'hs-who' || el.name === 'hs-coll'){ U.hist = U.hist || {who:'', coll:'', n:60}; U.hist[el.name === 'hs-who' ? 'who' : 'coll'] = el.value; U.hist.n = 60; openHistory(); return; }
   if(el.name === 'sn-level'){ snapLevelChanged(el.value); return; }
   if(el.name === 'py-cover' || el.name === 'py-rest'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
