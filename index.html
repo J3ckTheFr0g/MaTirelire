@@ -942,7 +942,8 @@ function normalize(d){
       reserved: x.reserved != null && x.reserved !== '' ? +x.reserved : null,
       lastDate: x.lastDate || null, note: String(x.note||''), auto: x.auto || null, forMember: x.forMember || null,
       envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero,
-      funds: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.funds)) ? x.funds.map(f => ({id:String((f && f.id) || uid()), date:String((f && f.date) || ''), amount:Math.round((+(f && f.amount) || 0) * 100) / 100, from:(f && f.from) === 'pot' ? 'pot' : 'free', potId:(f && f.potId) ? String(f.potId) : null})).filter(f => Math.abs(f.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) : [],
+      funds: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.funds)) ? x.funds.map(f => ({id:String((f && f.id) || uid()), date:String((f && f.date) || ''), amount:Math.round((+(f && f.amount) || 0) * 100) / 100, from:(f && f.from) === 'pot' ? 'pot' : 'free', potId:(f && f.potId) ? String(f.potId) : null, label:String((f && f.label) || '')})).filter(f => Math.abs(f.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) : [],
+      closures: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.closures)) ? x.closures.map(c => ({id:String((c && c.id) || uid()), ym:String((c && c.ym) || ''), amount:Math.round((+(c && c.amount) || 0) * 100) / 100, to:(c && c.to) === 'pot' ? 'pot' : 'reserve', date:String((c && c.date) || ''), refId:(c && c.refId) ? String(c.refId) : ''})).filter(c => c.amount > 0.0049 && /^\d{4}-\d{2}$/.test(c.ym)) : [],
       paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], topups: Array.isArray(x.topups) ? x.topups.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
@@ -980,7 +981,7 @@ function newLine(S, o={}){
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], paid:[], topups:[]
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], closures:[], paid:[], topups:[]
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -1701,6 +1702,34 @@ function envelopeReturnToPot(S, lineId, now){
   if(!(a > 0.004)) return 0; const date = isoOf(d), p = potAdd(S, 'enveloppe', a, date, 'Retour de l’enveloppe : ' + l.name, {lineId:l.id});
   l.funds = (l.funds || []).concat([{id:uid(), date, amount:-a, from:'pot', potId:p ? p.id : null}]); return a;
 }
+/* Clôture du mois d'une enveloppe : le reste non dépensé (mensualité − dépenses) part dans la réserve du mois suivant ou dans la cagnotte.
+   Une clôture compte tant que sa trace existe (somme de la réserve ou ligne de la cagnotte) : supprimer la trace libère le reste. */
+const pad2 = n => String(n).padStart(2, '0');
+function envClosuresOf(S, l, ym){
+  return (l.closures || []).filter(c => c.ym === ym && (c.to === 'pot' ? (S.pot || []).some(p => p.id === c.refId) : (l.funds || []).some(f => f.id === c.refId)));
+}
+function envelopeClosable(S, l, y, m){
+  const ym = `${y}-${pad2(m)}`, planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m), done = envClosuresOf(S, l, ym).reduce((a, c) => a + c.amount, 0);
+  return {ym, planned, spent, done:Math.round(done * 100) / 100, amount:Math.max(0, Math.round((planned - spent - done) * 100) / 100)};
+}
+function envelopeClose(S, lineId, y, m, to, amount, now){
+  const l = S.lines.find(x => x.id === lineId); if(!l || !l.envelope) return null;
+  const d = now || new Date(), C = envelopeClosable(S, l, y, m);
+  if(y * 12 + m > d.getFullYear() * 12 + d.getMonth() + 1) return null;
+  const a = Math.min(C.amount, Math.round((+amount || 0) * 100) / 100); if(!(a > 0.004)) return null;
+  const isCur = y === d.getFullYear() && m === d.getMonth() + 1, label = `Reste enveloppe ${l.name} · ${MONTHS[m - 1]}`;
+  let ref, date;
+  if(to === 'pot'){ date = isCur ? isoOf(d) : `${y}-${pad2(m)}-${pad2(dimOf(y, m))}`; const p = potAdd(S, 'reliquat', a, date, label); ref = p && p.id; }
+  else { const ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1; date = `${ny}-${pad2(nm)}-01`; const f = {id:uid(), date, amount:a, from:'free', potId:null, label:`Reste d${/^[aéo]/.test(MONTHS[m - 1]) ? '’' : 'e '}${MONTHS[m - 1]}`}; l.funds = (l.funds || []).concat([f]); ref = f.id; }
+  if(!ref) return null;
+  const c = {id:uid(), ym:C.ym, amount:a, to:to === 'pot' ? 'pot' : 'reserve', date, refId:ref};
+  l.closures = (l.closures || []).concat([c]); return c;
+}
+function envelopeUnclose(S, lineId, closureId){
+  const l = S.lines.find(x => x.id === lineId), c = l && (l.closures || []).find(x => x.id === closureId); if(!c) return false;
+  if(c.to === 'pot') S.pot = (S.pot || []).filter(p => p.id !== c.refId); else l.funds = (l.funds || []).filter(f => f.id !== c.refId);
+  l.closures = l.closures.filter(x => x.id !== closureId); return true;
+}
 /* Lignes qui ressemblent à des dépenses variables : carte ou espèces sans jour fixe, ou nom évocateur */
 function envelopeCandidates(S){
   const prov = new Set(provisionCandidates(S).map(l => l.id));
@@ -2077,7 +2106,7 @@ function computeAdvice(S, now){
   return out;
 }
 
-if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+if(typeof module !== 'undefined') module.exports = {computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
 
 </script>
 <script>
@@ -2095,7 +2124,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.19', APP_DATE = '10 octobre 2026', APP_BUILD = 'b7f395';
+const APP_VERSION = '2.20', APP_DATE = '11 octobre 2026', APP_BUILD = '14224c';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3081,8 +3110,9 @@ function openEnvelope(lineId){
   dlg.innerHTML = dlgShell(`${esc(l.name)} · ${MONTHS[m - 1]}`, `<dl class="legend"><div><dt>Mensualité</dt><dd>${it.fixed ? 'aucune (somme fixe)' : (it.tbd ? 'à définir' : money(it.planned))}</dd></div>${it.fundBefore > 0.005 || it.fundAfter > 0.005 ? `<div><dt>Réserve en début de mois ${H('env-reserve')}</dt><dd>${money(it.fundBefore)}</dd></div>` : ''}<div><dt>Dépensé</dt><dd>${money(it.spent)}</dd></div>
       ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}${it.fundAfter > 0.005 ? `<div><dt>Réserve restante</dt><dd>${money(it.fundAfter)}</dd></div>` : ''}</dl>
     ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Ajouter » pour noter un achat.</p>'}
-    ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
-    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Ajouter à la réserve</button>${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
+    ${(() => { const cl = (l.closures || []).filter(c => envClosuresOf(S, l, c.ym).some(z => z.id === c.id)).sort((a, b) => b.ym.localeCompare(a.ym)); return cl.length ? `<h3 class="who">Restes clôturés</h3><ul class="leaders spendlist">${cl.map(c => `<li><span class="spend-row fixed"><span>${MONTHS[+c.ym.slice(5) - 1]} ${c.ym.slice(0, 4)} <small>${c.to === 'pot' ? 'versé à la cagnotte' : 'reporté dans la réserve'}</small></span><i class="dots"></i><b>${money(c.amount)}</b><button type="button" class="btn small ghost" data-act="env-unclose" data-id="${esc(c.id)}" data-line="${esc(lineId)}" aria-label="Annuler la clôture de ${MONTHS[+c.ym.slice(5) - 1]}">Annuler</button></span></li>`).join('')}</ul>` : ''; })()}
+    ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.label ? esc(f.label) : f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
+    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Ajouter à la réserve</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
   dlg.showModal();
 }
 /* Choix de l'origine d'une somme : cagnotte ou non */
@@ -3091,6 +3121,21 @@ function fundSourceHTML(name, pot){
   return `<div class="seg" role="radiogroup" aria-label="Origine de la somme"><label><input type="radio" name="${name}" value="pot" ${empty ? '' : 'checked'}>Prendre dans la cagnotte <small>(${empty ? 'vide' : money(pot)})</small></label><label><input type="radio" name="${name}" value="free" ${empty ? 'checked' : ''}>Ne pas toucher à la cagnotte</label></div>`;
 }
 function envelopeReturnToPotPreview(lineId){ const l = S.lines.find(x => x.id === lineId); if(!l || !l.envelope) return 0; const d = new Date(); return envelopeFund(S, l, d.getFullYear(), d.getMonth() + 1).potLeft; }
+function openEnvClose(lineId){
+  const l = S.lines.find(x => x.id === lineId); if(!l) return; const {y, m} = envMonthYear(), C = envelopeClosable(S, l, y, m), dlg = $('#dlg'), isCur = y === new Date().getFullYear() && m === new Date().getMonth() + 1;
+  U.editing = null; U.closeCtx = {lineId, y, m};
+  dlg.innerHTML = dlgShell(`Clôturer ${MONTHS[m - 1]} · ${esc(l.name)}`, `<p class="hint">Prévu ${money(C.planned)}, dépensé ${money(C.spent)}${C.done > 0.004 ? `, déjà clôturé ${money(C.done)}` : ''} : il reste <b>${money(C.amount)}</b> non dépensés.${isCur ? ' Le mois n’est pas terminé : si tu dépenses encore, l’enveloppe affichera un dépassement.' : ''}</p>
+    <label class="field">Montant à placer<input class="inp bigamt" id="ec-amount" type="number" step="0.01" min="0" max="${C.amount}" inputmode="decimal" value="${C.amount}" enterkeyhint="done"></label>
+    <div class="field">Où le placer ?<div class="seg" role="radiogroup" aria-label="Destination"><label><input type="radio" name="ec-to" value="reserve" checked>Réserve du mois suivant</label><label><input type="radio" name="ec-to" value="pot">Cagnotte</label></div><small class="muted">La réserve couvrira un dépassement futur de cette enveloppe. La cagnotte rejoint le compte provisions et se dépense librement. Dans les deux cas, tu peux annuler depuis l’enveloppe.</small></div>`,
+    `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Annuler</button><button type="button" class="btn primary" data-act="env-close-save">Clôturer</button></div>`);
+  dlg.showModal(); focusQuiet($('#ec-amount'));
+}
+function envCloseSave(){
+  const c = U.closeCtx; if(!c) return; const l = S.lines.find(x => x.id === c.lineId), a = Math.abs(num($('#ec-amount').value)), to = ($('input[name=ec-to]:checked') || {}).value || 'reserve';
+  if(!l) return; if(!(a > 0)){ toast('Indique le montant à placer.'); focusQuiet($('#ec-amount')); return; }
+  const r = envelopeClose(S, c.lineId, c.y, c.m, to, a); if(!r){ toast('Rien à clôturer.'); return; }
+  touch(); openEnvelope(c.lineId); toast(to === 'pot' ? `${money(r.amount)} versés à la cagnotte.` : `${money(r.amount)} reportés dans la réserve de « ${l.name} ».`);
+}
 function openEnvFund(lineId){
   const l = S.lines.find(x => x.id === lineId); if(!l) return; const dlg = $('#dlg'); U.editing = null; U.fundCtx = {lineId};
   dlg.innerHTML = dlgShell(`Réserve · ${esc(l.name)}`, `<p class="hint">La réserve couvre les dépenses <b>après</b> la mensualité prévue, et se reporte d’un mois sur l’autre jusqu’à épuisement.</p>
@@ -4436,7 +4481,7 @@ function readLineForm(){
     method:g('f-method').value || null, accountId:(parts && parts.length) ? parts[0].accountId : (g('f-account').value || null), ownerId:(parts && parts.length) ? parts[0].ownerId : g('f-owner').value,
     split:parts && parts.length > 1 ? parts : null, zero, envelope:variable,
     active:g('f-active').checked, smooth: variable ? null : (sm === 'yes' ? true : sm === 'no' ? false : null),
-    goal:(!variable && g('f-goal').value !== '') ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null, paid:cur.paid || [], topups:cur.topups || [], funds:variable ? (cur.funds || []) : [],
+    goal:(!variable && g('f-goal').value !== '') ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null, paid:cur.paid || [], topups:cur.topups || [], funds:variable ? (cur.funds || []) : [], closures:variable ? (cur.closures || []) : [],
     lastDate:variable ? null : (g('f-last').value || null), note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null,
   };
 }
@@ -4731,6 +4776,9 @@ document.addEventListener('click', async e => {
     case 'spend-save': saveSpend(); break;
     case 'spend-del': { const c = U.spendCtx; if(c && c.spendId){ const sp = S.spends.find(x => x.id === c.spendId); S.spends = S.spends.filter(x => x.id !== c.spendId); $('#dlg').close(); touch(); toastUndo('Dépense supprimée', () => { if(sp){ S.spends.push(sp); touch(); } }); } break; }
     case 'env-fund': openEnvFund(id); break;
+    case 'env-close': openEnvClose(id); break;
+    case 'env-close-save': envCloseSave(); break;
+    case 'env-unclose': { const ln = t.dataset.line; if(envelopeUnclose(S, ln, id)){ touch(); openEnvelope(ln); toast('Clôture annulée.'); } break; }
     case 'env-fund-save': envFundSave(); break;
     case 'env-return': { const l = S.lines.find(x => x.id === id), got = l ? envelopeReturnToPot(S, id) : 0; if(got > 0){ touch(); openEnvelope(id); toast(`${money(got)} remis dans la cagnotte.`); } break; }
     case 'env-edit-line': $('#dlg').close(); openLine(id); break;
