@@ -293,6 +293,13 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 @media(prefers-reduced-motion:no-preference){.chev{transition:transform .15s ease}}
 .catlines{background:var(--surface2);border-radius:10px;padding:8px 12px;margin:2px 0 8px;gap:5px}
 .catlines li{font-size:.9rem}
+.golink{cursor:pointer;border-radius:6px}.golink:hover span{text-decoration:underline;text-underline-offset:3px}.golink:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.catlines li.mv span{font-style:italic}
+.accbtn{appearance:none;background:none;border:0;padding:0;font:inherit;color:inherit;font-weight:700;text-align:left;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.accrow.open .chev{transform:translateY(-1px) rotate(45deg)}
+.accdetail td{background:transparent;padding-top:0}
+@keyframes flash{0%,60%{background:var(--surface2);box-shadow:0 0 0 3px var(--brand)}100%{box-shadow:0 0 0 0 transparent}}
+.flash{animation:flash 1.8s ease-out;border-radius:10px}
 .catlines li > span{min-width:0;overflow-wrap:anywhere}
 
 .provtable th{white-space:normal;vertical-align:bottom;line-height:1.2}
@@ -856,7 +863,7 @@ function commonFraction(l, S){
 function computeMonth(S, m){
   const val = l => !l.active ? 0 : (m === 0 ? annualTotal(l)/12 : amountInMonth(l, m));
   const R = {m, common:{debit:0, credit:0, net:0}, cats:{}, accounts:{}, members:{}, unfunded:0, transfers:{}};
-  S.members.forEach(mb => { R.members[mb.id] = {id:mb.id, income:0, personal:0, share:0, rest:0, byAccount:{}}; });
+  S.members.forEach(mb => { R.members[mb.id] = {id:mb.id, income:0, personal:0, share:0, rest:0, byAccount:{}, incomeAcc:{}}; });
   for(const l of S.lines){
     const v0 = val(l); if(!v0) continue;
     for(const part of linePartsOf(l)){
@@ -865,12 +872,13 @@ function computeMonth(S, m){
       const c = R.cats[l.catId] || (R.cats[l.catId] = {common:0, personal:0, credit:0});
       if(l.kind === 'credit') c.credit += v; else if(owner === 'common') c.common += v; else c.personal += v;
       const aid = part.accountId || '_none';
-      const a = R.accounts[aid] || (R.accounts[aid] = {debit:0, credit:0});
+      const a = R.accounts[aid] || (R.accounts[aid] = {debit:0, credit:0, commonDebit:0});
       a[l.kind] += v;
+      if(l.kind === 'debit' && owner === 'common') a.commonDebit = (a.commonDebit || 0) + v;
       if(owner === 'common') R.common[l.kind] += v;
       else {
         const M = R.members[owner];
-        if(l.kind === 'credit') M.income += v;
+        if(l.kind === 'credit'){ M.income += v; M.incomeAcc[aid] = (M.incomeAcc[aid]||0) + v; }
         else { M.personal += v; M.byAccount[aid] = (M.byAccount[aid]||0) + v; }
       }
     }
@@ -2251,7 +2259,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.22', APP_DATE = '11 octobre 2026', APP_BUILD = '693155';
+const APP_VERSION = '2.28', APP_DATE = '15 octobre 2026', APP_BUILD = '449558';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2495,7 +2503,10 @@ function iconRegen(){
 }
 async function snapLevelChanged(v){
   if(!SNAP_LEVELS[v]) return; setSnapLevel(v); const d = $('#sn-desc'); if(d) d.textContent = SNAP_LEVELS[v].desc;
-  if(S){ const list = await snapList(S.id); if(list.length) await idbSet(snapKey(S.id), snapPrune(list, v, Date.now())); await openSnaps(); }
+  const sb = $('.dlg-b'), top = sb ? sb.scrollTop : 0;
+  if(S){ const list = await snapList(S.id); if(list.length) await idbSet(snapKey(S.id), snapPrune(list, v, Date.now())); await openSnaps(); const nb = $('.dlg-b'); if(nb) nb.scrollTop = top; }
+  const btn = $('[data-act=snaps]'); if(btn) btn.textContent = `Sauvegardes · niveau ${SNAP_LEVELS[v].label.toLowerCase()}`;   // l'écran Réglages derrière la fenêtre reste à jour
+  toast(`Niveau de sauvegarde enregistré : ${SNAP_LEVELS[v].label.toLowerCase()}`);
 }
 async function snapRestore(t){
   if(!S) return; const list = await snapList(S.id), x = list.find(y => y.t === t); if(!x) return;
@@ -3156,7 +3167,7 @@ const HELP = {
   'wiz-membres':{title:'Les membres du foyer', body:`<p>Chaque personne du foyer : <b>adulte</b>, <b>adolescent</b> ou <b>enfant</b>.</p><p>Un adulte a un salaire et peut <b>participer au budget commun</b> : c’est lui qui alimente le compte de provision. Un enfant ou un adolescent peut recevoir de l’argent de poche.</p><p class="note">Il faut au moins un adulte. Les prénoms servent partout : virements, reste à vivre, répartition.</p>`},
   'wiz-comptes':{title:'Les comptes du foyer', body:`<p>Déclare les comptes bancaires que vous utilisez : un compte joint, un compte par personne, un livret pour l’argent de poche…</p><p>Le <b>compte de provision</b> reçoit les virements de chacun pour le budget commun et règle les dépenses. Les lignes du budget sont ensuite rattachées à ces comptes, ce qui alimente les virements à programmer.</p><p class="note">Un compte par adulte est proposé. Tu peux tout renommer, ajouter ou retirer.</p>`},
   env:{title:'Enveloppes', body:`<p>Une enveloppe est une <b>somme prévue pour le mois</b> pour une dépense qui varie : courses, essence, pain, vêtements…</p>
-    <p>Au fil des achats, tu appuies sur <b>+</b> et tu déclares le montant. La barre montre ce qui est dépensé, ce qu’il reste et le montant par jour restant.</p>
+    <p>Au fil des achats, tu appuies sur <b>Payer</b> et tu saisis le montant. La barre montre ce qui est dépensé, ce qu’il reste et le montant par jour restant.</p>
     <p>Si tu dépasses, le <b>dépassement</b> s’affiche à part : il ne change pas ton reste à vivre prévu, mais il baisse l’état du compte provisions.</p><p><b>0 € de mensualité</b>, deux cas : sans somme de départ, l’enveloppe est « à définir » (tu ne sais pas encore combien provisionner) ; avec une somme de départ, c’est une <b>enveloppe à somme fixe</b> : pas de mensualité, pas de rythme par jour, la réserve sert jusqu’à épuisement.</p><p>Une <b>somme de départ</b> crée une réserve : elle couvre les dépenses <b>après</b> la mensualité (ou toutes les dépenses si la mensualité est à 0) et se reporte d’un mois sur l’autre. Elle peut venir de la cagnotte ou non.</p><p class="note">Appuie sur une enveloppe pour voir, modifier ou supprimer ses dépenses.</p>`},
   'env-reserve':{title:'Réserve des enveloppes', body:`<p>Une réserve est une somme mise de côté dans une enveloppe : elle sert <b>après</b> la mensualité prévue, et ce qui reste se reporte au mois suivant.</p><ul><li><b>Prise dans la cagnotte</b> : la cagnotte baisse, mais l’argent est toujours sur le compte. C’est pourquoi l’état du compte ne change pas : la somme est comptée comme « réserve des enveloppes ».</li><li><b>Hors cagnotte</b> : la somme est déjà disponible ailleurs (espèces, solde existant). Elle couvre des dépenses sans baisser l’état du compte.</li></ul><p class="note">Tu peux remettre dans la cagnotte ce qui reste de la réserve issue de la cagnotte.</p>`},
   'env-guide':{title:'Suivre mes dépenses variables', body:`<p>MaTirelire repère les lignes qui ressemblent à des dépenses variables : payées par carte ou en espèces sans jour fixe, ou nommées courses, carburant, pain, vêtements, restaurants…</p><p>Coche celles à suivre : elles deviennent des enveloppes, avec le même montant prévu. Tu pourras toujours les modifier dans Budget.</p>`},
@@ -3314,7 +3325,7 @@ function dlgShell(title, body, foot){
   return `<div class="dlg-h"><h2>${title}</h2><button class="btn ghost small" data-act="close-dlg" aria-label="Fermer">✕</button></div><div class="dlg-b form">${body}</div><div class="dlg-f">${foot}</div>`;
 }
 function focusQuiet(el){ if(el) try{ el.focus({preventScroll:true}); }catch{ el.focus(); } }
-/* Déclarer (ou modifier) une dépense */
+/* Payer (ou modifier une dépense) */
 function openSpend(lineId, spendId){
   const l = S.lines.find(x => x.id === lineId); if(!l) return;
   const sp = spendId ? (S.spends || []).find(x => x.id === spendId) : null, {y, m} = envMonthYear();
@@ -3350,10 +3361,10 @@ function openEnvelope(lineId){
   const dlg = $('#dlg'); U.editing = null; U.spendCtx = null;
   dlg.innerHTML = dlgShell(`${esc(l.name)} · ${MONTHS[m - 1]}`, `<dl class="legend"><div><dt>Mensualité</dt><dd>${it.fixed ? 'aucune (somme fixe)' : (it.tbd ? 'à définir' : money(it.planned))}</dd></div>${it.fundBefore > 0.005 || it.fundAfter > 0.005 ? `<div><dt>Réserve en début de mois ${H('env-reserve')}</dt><dd>${money(it.fundBefore)}</dd></div>` : ''}<div><dt>Dépensé</dt><dd>${money(it.spent)}</dd></div>
       ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}${it.fundAfter > 0.005 ? `<div><dt>Réserve restante</dt><dd>${money(it.fundAfter)}</dd></div>` : ''}</dl>
-    ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Ajouter » pour noter un achat.</p>'}
+    ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Payer » pour noter un achat.</p>'}
     ${(() => { const cl = (l.closures || []).filter(c => envClosuresOf(S, l, c.ym).some(z => z.id === c.id)).sort((a, b) => b.ym.localeCompare(a.ym)); return cl.length ? `<h3 class="who">Restes clôturés</h3><ul class="leaders spendlist">${cl.map(c => `<li><span class="spend-row fixed"><span>${MONTHS[+c.ym.slice(5) - 1]} ${c.ym.slice(0, 4)} <small>${c.to === 'pot' ? 'versé à la cagnotte' : 'reporté dans la réserve'}</small></span><i class="dots"></i><b>${money(c.amount)}</b><button type="button" class="btn small ghost" data-act="env-unclose" data-id="${esc(c.id)}" data-line="${esc(lineId)}" aria-label="Annuler la clôture de ${MONTHS[+c.ym.slice(5) - 1]}">Annuler</button></span></li>`).join('')}</ul>` : ''; })()}
     ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.label ? esc(f.label) : f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
-    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Mettre de côté</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Ajouter</button></div>`);
+    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Mettre de côté</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Payer</button></div>`);
   dlg.showModal();
 }
 /* Choix de l'origine d'une somme : cagnotte ou non */
@@ -4235,7 +4246,7 @@ function catBarsHTML(R){
   return rows.map(({c,v}) => {
     const open = U.openCat === c.id;
     const lines = open ? `<ul class="leaders catlines">${catLinesFor(R, c.id).map(x =>
-      `<li><span>${esc(x.l.name)}</span><i class="dots"></i><b>${money(x.v)}</b></li>`).join('')}</ul>` : '';
+      `<li class="golink" data-act="goto-line" data-id="${esc(x.l.id)}" role="button" tabindex="0" aria-label="Ouvrir la ligne ${esc(x.l.name)}"><span>${esc(x.l.name)}</span><i class="dots"></i><b>${money(x.v)}</b></li>`).join('')}</ul>` : '';
     return `<div class="catitem ${open ? 'open' : ''}"><button class="catrow" data-act="cat-open" data-id="${esc(c.id)}" aria-expanded="${open}">
       <span class="cn"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<i class="chev" aria-hidden="true"></i></span><b>${money(v.common+v.personal)}</b>
       <span class="bar"><i style="width:${(v.common/max*100).toFixed(1)}%;background:var(--brand)"></i><i style="width:${(v.personal/max*100).toFixed(1)}%;background:var(--slate)"></i></span></button>${lines}</div>`;
@@ -4253,12 +4264,77 @@ function yearTableHTML(contrib){
   return `<div class="tw"><table><thead><tr><th>Mois</th><th>Budget commun</th>${contrib.map(c=>`<th>${esc(c.name)} verse</th>`).join('')}<th>Reste à vivre</th></tr></thead><tbody>${rows}</tbody>
     <tfoot><tr><td>Année</td><td>${money(tot.net)}</td>${contrib.map(c=>`<td>${money(tot.shares[c.id])}</td>`).join('')}<td>${money(tot.rest)}</td></tr></tfoot></table></div>`;
 }
-function accountsTableHTML(R){
-  const ids = Object.keys(R.accounts); if(!ids.length) return '<p class="hint">Aucune ligne rattachée à un compte.</p>';
-  ids.sort((a,b) => accName(a).localeCompare(accName(b), 'fr'));
-  return `<div class="tw"><table><thead><tr><th>Compte</th><th>Débits</th><th>Crédits</th><th>Solde</th></tr></thead><tbody>${ids.map(id => {
-    const a = R.accounts[id]; return `<tr><td>${esc(accName(id))}</td><td class="debit">${money(a.debit)}</td><td class="credit">${money(a.credit)}</td><td>${money(a.credit - a.debit)}</td></tr>`; }).join('')}</tbody></table></div>`;
+function accountDetailHTML(R, id, row){
+  const cat = {debit:{}, credit:{}};
+  for(const l of S.lines){
+    const v0 = !l.active ? 0 : (R.m === 0 ? annualTotal(l) / 12 : amountInMonth(l, R.m)); if(!v0) continue;
+    for(const part of linePartsOf(l)){ if((part.accountId || '_none') !== id) continue; const v = v0 * part.f; if(!v) continue; cat[l.kind][l.catId] = (cat[l.kind][l.catId] || 0) + v; }
+  }
+  const catName = cid => (S.categories.find(c => c.id === cid) || {name:'Sans catégorie'}).name;
+  const block = (title, kind, cls) => {
+    const items = Object.entries(cat[kind]).filter(x => x[1] > 0.005).sort((x, y) => y[1] - x[1]).map(([cid, v]) => `<li><span>${esc(catName(cid))}</span><i class="dots"></i><b>${money(v)}</b></li>`);
+    const mv = row.mv.filter(m => m.side === kind && m.amount > 0.005).map(m => `<li class="mv"><span>${esc(m.label)}</span><i class="dots"></i><b>${money(m.amount)}</b></li>`);
+    return items.length || mv.length ? `<h3 class="who">${title}</h3><ul class="leaders catlines">${items.join('')}${mv.join('')}</ul>` : '';
+  };
+  return block('Débits', 'debit') + block('Crédits', 'credit') || '<p class="hint">Aucun détail.</p>';
 }
+function accountsTableHTML(R){
+  const P = S.settings.commonAccountId, rows = {};
+  const mkRow = (d, c) => ({debit:d, credit:c, recv:0, reimb:0, give:0, rest:0, tin:0, tout:0, mv:[]});
+  const mv = (id, side, label, amount) => { if(rows[id]) rows[id].mv.push({side, label, amount}); };
+  Object.keys(R.accounts).forEach(id => { const a = R.accounts[id]; rows[id] = mkRow(a.debit, a.credit); });
+  if(P){
+    /* le compte de provision reçoit les parts des membres et rembourse les comptes qui ont avancé des dépenses communes */
+    const p = rows[P] || (rows[P] = mkRow(0, 0));
+    for(const mid in R.transfers) R.transfers[mid].forEach(t => { if(t.common){ p.recv += t.amount; mv(P, 'credit', `Part de ${memberName(mid)}`, t.amount); } });
+    p.credit += p.recv;
+    for(const id in R.accounts){ if(id === P || id === '_none') continue; const c = R.accounts[id].commonDebit || 0; if(c > 0.005){ rows[id].reimb = c; p.give += c; mv(P, 'debit', `Remboursement : ${accName(id)}`, c); mv(id, 'credit', `Remboursé par ${accName(P)}`, c); } }
+    p.debit += p.give; Object.keys(rows).forEach(id => { rows[id].credit += rows[id].reimb; });
+  }
+  /* virements de chaque membre : ils partent du compte où arrive son revenu et arrivent sur les comptes de dépenses */
+  for(const mid in R.transfers){
+    const M = R.members[mid]; let src = null, best = 0;
+    for(const aid in (M && M.incomeAcc) || {}) if(aid !== '_none' && M.incomeAcc[aid] > best){ best = M.incomeAcc[aid]; src = aid; }
+    if(!src) continue;
+    for(const t of R.transfers[mid]){
+      if(t.accountId === src || t.accountId === '_none') continue;
+      const to = rows[t.accountId] || (rows[t.accountId] = mkRow(0, 0)), from = rows[src];
+      from.debit += t.amount; from.tout += t.amount; mv(src, 'debit', t.common ? `Part commune vers ${accName(t.accountId)}` : `Virement vers ${accName(t.accountId)}`, t.amount);
+      if(!t.common){ to.credit += t.amount; to.tin += t.amount; mv(t.accountId, 'credit', `Virement depuis ${accName(src)}`, t.amount); }
+    }
+    /* reste à vivre : s'il n'y a qu'un autre compte de dépenses personnelles, le reste du compte de revenus y est viré */
+    const others = [...new Set(R.transfers[mid].filter(t => !t.common && t.accountId !== src && t.accountId !== '_none').map(t => t.accountId))];
+    if(others.length === 1 && M.rest > 0.005){
+      const to = rows[others[0]], from = rows[src];
+      from.debit += M.rest; from.tout += M.rest; mv(src, 'debit', `Reste à vivre vers ${accName(others[0])}`, M.rest);
+      to.credit += M.rest; to.tin += M.rest; to.rest += M.rest; mv(others[0], 'credit', `Reste à vivre depuis ${accName(src)}`, M.rest);
+    }
+  }
+  const ids = Object.keys(rows); if(!ids.length) return '<p class="hint">Aucune ligne rattachée à un compte.</p>';
+  ids.sort((a,b) => accName(a).localeCompare(accName(b), 'fr'));
+  const sub = t => `<small class="hint" style="display:block">${t}</small>`;
+  const table = `<div class="tw"><table><thead><tr><th>Compte</th><th>Débits</th><th>Crédits</th><th>Solde</th></tr></thead><tbody>${ids.map(id => {
+    const a = rows[id], isP = id === P, open = U.openAcc === id;
+    const dTxt = (isP && a.give > 0.005 ? sub(`dont ${money(a.give)} remboursés aux autres comptes`) : '') + (a.tout > 0.005 ? sub(`dont ${money(a.tout)} virés vers d’autres comptes`) : '');
+    const cTxt = (isP && a.recv > 0.005 ? sub(`dont ${money(a.recv)} virés par les membres`) : '') + (!isP && a.reimb > 0.005 ? sub(`remboursés par ${esc(accName(P))}`) : '') + (a.tin > 0.005 ? sub(`dont ${money(a.tin)} virés depuis le compte de revenus`) + (a.rest > 0.005 ? sub(`reste à vivre : ${money(a.rest)}`) : '') : '');
+    return `<tr class="accrow ${open ? 'open' : ''}"><td><button type="button" class="accbtn" data-act="acc-open" data-id="${esc(id)}" aria-expanded="${open}">${esc(accName(id))}<i class="chev" aria-hidden="true"></i></button>${isP ? sub('compte de provision') : ''}</td><td class="debit">${money(a.debit)}${dTxt}</td><td class="credit">${money(a.credit)}${cTxt}</td><td>${money(a.credit - a.debit)}</td></tr>` +
+      (open ? `<tr class="accdetail"><td colspan="4">${accountDetailHTML(R, id, a)}</td></tr>` : ''); }).join('')}</tbody></table></div>`;
+  const note = P && (rows[P].recv > 0.005 || rows[P].give > 0.005) ? `<p class="hint">Les membres virent leur part sur ${esc(accName(P))}, qui paie ses prélèvements puis rembourse les comptes ayant avancé des dépenses communes. Chaque membre alimente ses comptes personnels depuis le compte où arrive son revenu ; ce qui reste est viré sur son compte de reste à vivre.</p>` : '';
+  return table + note;
+}
+function gotoLine(id){
+  const l = S.lines.find(x => x.id === id); if(!l) return;
+  const inProv = provLines().some(x => x.id === id);
+  U.back = U.tab; U.tab = inProv ? 'provisions' : 'budget';
+  if(!inProv){ U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; }
+  render(); window.scrollTo(0, 0);
+  setTimeout(() => {
+    const el = document.querySelector(`[data-line="${CSS.escape(id)}"], .line[data-id="${CSS.escape(id)}"]`);
+    if(el){ el.scrollIntoView({block:'center'}); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800); }
+    setTimeout(() => openLine(id), 350);
+  }, 60);
+}
+function backBarHTML(){ return U.back ? `<div class="banner"><span>Tu viens de la synthèse.</span><button class="btn small" data-act="back-synth">← Retour à la synthèse</button></div>` : ''; }
 
 /* ----- Idées à budgéter (achats qui reviennent tous les N ans) ----- */
 const cyc = (every, unit) => ({every, unit, times:1});
@@ -4411,7 +4487,7 @@ function viewBudget(){
   const owners = [['all','Tout le monde'],['common','Commun'],...byName(S.members).map(m => [m.id, m.name])];
   if(U.cat && U.cat !== 'all' && !S.categories.some(c => c.id === U.cat)) U.cat = 'all';
   const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope).length, nf = activeFilters();
-  return `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
+  return backBarHTML() + `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
       <input class="inp grow" id="q" type="search" placeholder="Rechercher une ligne…" value="${esc(U.q)}" aria-label="Rechercher">
       <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${byName(S.categories).map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="inp" id="flt-owner" style="width:auto" aria-label="Filtrer par propriétaire">${owners.map(([v,l]) => `<option value="${esc(v)}" ${U.owner===v?'selected':''}>${esc(l)}</option>`).join('')}</select>
@@ -4554,7 +4630,7 @@ function provTotals(clk){
 }
 function viewProvisions(){
   const lines = provLines(), clk = provisionClock(S), tot = provTotals(clk);
-  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
+  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr data-line="${esc(l.id)}"><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
     <td data-cell="mens:${l.id}">${money(p.mens)}</td>
     <td data-cell="goal:${l.id}">${money(p.goal)}</td>
     <td data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
@@ -4562,7 +4638,7 @@ function viewProvisions(){
     <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
     <td data-cell="next:${l.id}">${nextText(p)}</td>
     <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="${p.paid > 0 ? 'Compléter' : 'Marquer comme payé'} : ${esc(l.name)}">${p.paid > 0 ? 'Compléter' : 'Payé'}</button></td></tr>`; }).join('');
-  return `<section class="card"><h2>Provisions ${H('provisions')}</h2>
+  return backBarHTML() + `<section class="card"><h2>Provisions ${H('provisions')}</h2>
     <p class="hint" style="margin-bottom:10px">La somme en cours se calcule toute seule. Appuie sur « Payé » quand une dépense est réglée.</p>
     ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
       <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}</td><td colspan="3"></td></tr></tfoot></table></div>`
@@ -4906,12 +4982,15 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, id = t.dataset.id;
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
-    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese'){ if(reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleChanged = Date.now(); } U.tab = t.dataset.tab; render(); window.scrollTo(0,0); break;
+    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese'){ if(reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleChanged = Date.now(); } U.tab = t.dataset.tab; U.back = null; render(); window.scrollTo(0,0); break;
     case 'add-idea': {
       const idea = IDEAS.find(x => x.id === id); if(!idea) break;
       openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
       break; }
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
+    case 'acc-open': U.openAcc = (U.openAcc === id) ? null : id; render(); break;
+    case 'goto-line': gotoLine(id); break;
+    case 'back-synth': U.tab = 'synthese'; U.back = null; render(); window.scrollTo(0, 0); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
     case 'help': openPop(t, id); break;
     case 'update-check': checkUpdate(); break;
@@ -5156,6 +5235,7 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('keydown', e => {
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.line[data-act="edit-line"]')){ e.preventDefault(); openLine(e.target.dataset.id); }
+  if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.golink')){ e.preventDefault(); gotoLine(e.target.dataset.id); }
   if((e.key === 'Enter' || e.key === ' ') && e.target.matches('.advice.click')){ e.preventDefault(); e.target.click(); }
   if(e.key === 'Enter' && (e.target.id === 'sp-amount' || e.target.id === 'sp-note')){ e.preventDefault(); saveSpend(); }
   if(e.key === 'Enter' && (e.target.id === 'ne-name' || e.target.id === 'ne-amount')){ e.preventDefault(); neCreate(); }
