@@ -293,6 +293,9 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 @media(prefers-reduced-motion:no-preference){.chev{transition:transform .15s ease}}
 .catlines{background:var(--surface2);border-radius:10px;padding:8px 12px;margin:2px 0 8px;gap:5px}
 .catlines li{font-size:.9rem}
+.bankcard{display:grid;gap:14px;max-width:320px;margin:8px 0 10px;padding:14px 16px;border-radius:16px;color:#fff;background:linear-gradient(135deg,var(--brand),#2c3e50);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.bankcard .bc-top{display:flex;justify-content:space-between;align-items:center}.bankcard .bc-name{font-weight:700;letter-spacing:.04em;text-transform:uppercase}.bankcard .bc-st{font-size:.8rem;opacity:.9}
+.bankcard.frozen{background:linear-gradient(135deg,#7b8794,#4b5563);filter:saturate(.6)}
 .golink{cursor:pointer;border-radius:6px}.golink:hover span{text-decoration:underline;text-underline-offset:3px}.golink:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .catlines li.mv span{font-style:italic}
 .accbtn{appearance:none;background:none;border:0;padding:0;font:inherit;color:inherit;font-weight:700;text-align:left;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
@@ -304,6 +307,20 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 
 .provtable th{white-space:normal;vertical-align:bottom;line-height:1.2}
 .provtable th,.provtable td{padding:7px 8px}
+.provdate{width:140px}
+@media(max-width:760px){
+  .tw:has(.provtable){overflow-x:visible}
+  .provtable,.provtable tbody,.provtable tfoot,.provtable tr,.provtable td{display:block;width:100%}
+  .provtable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .provtable tbody tr,.provtable tfoot tr{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px;background:var(--surface)}
+  .provtable td{padding:0;border:0;min-width:0;overflow-wrap:anywhere}
+  .provtable td[data-label]:not(:first-child)::before{content:attr(data-label);display:block;font-size:.72rem;color:var(--muted);font-weight:600;margin-bottom:1px}
+  .provtable tbody td:first-child{grid-column:1;grid-row:1;font-weight:700}
+  .provtable tbody td.provact{grid-column:2;grid-row:1;justify-self:end;width:auto}
+  .provtable tfoot td:first-child{grid-column:1 / -1;font-weight:700}
+  .provtable tfoot td.provpad{display:none}
+  .provdate{width:100%;min-width:0}
+}
 
 /* Compte provisions : trajectoire, objectif, aide */
 .spark{width:100%;height:auto;display:block;margin-top:4px}
@@ -1181,7 +1198,8 @@ const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0
 const KID_AGE_MIN = 6, KID_AGE_MAX = 17;
 const kidLevelFromAge = a => a <= 9 ? 'petit' : (a <= 13 ? 'junior' : 'ado');
 function kidDefaults(){ return {on:false, level:'junior', who:null, birth:null, passage:null, adultSeen:false, skin:null, freq:'month', day:1, amount:null, split:{spend:50, save:40, give:10}, ledger:[], goals:[], mascot:null, paidUntil:null, countCoins:0,
-  rules:{boost:{on:false, pct:25, cap:10}, interest:{on:false, pct:2, cap:5}, wait:24, reward:''}, lessons:{}, acc:{head:null, face:null, neck:null}, env:{}, subs:[], income:0, interestUntil:null, wishes:[], challenges:[], moves:[], countLog:[], news:[]}; }
+  rules:{boost:{on:false, pct:25, cap:10}, interest:{on:false, pct:2, cap:5}, wait:24, reward:''}, lessons:{}, acc:{head:null, face:null, neck:null}, env:{}, subs:[], income:0, interestUntil:null, wishes:[], challenges:[], moves:[], countLog:[], news:[],
+  bank:{on:false, limitPay:null, limitMonth:null, frozen:false, since:null}}; }
 function normKid(k){
   const d = kidDefaults(); if(!k || typeof k !== 'object') return d;
   const isoRe = /^\d{4}-\d{2}-\d{2}$/, out = {on:!!k.on, level:KID_LEVELS_AGE.includes(k.level) ? k.level : d.level, freq:k.freq === 'week' ? 'week' : 'month'};
@@ -1191,6 +1209,8 @@ function normKid(k){
   out.amount = (k.amount === null || k.amount === undefined || k.amount === '') ? null : Math.max(0, round2(k.amount));
   const rl = k.rules && typeof k.rules === 'object' ? k.rules : {}, bo = rl.boost || {}, it = rl.interest || {}, clamp = (v, lo, hi, d2) => { v = +v; return isFinite(v) ? Math.min(Math.max(v, lo), hi) : d2; };
   out.rules = {boost:{on:!!bo.on, pct:clamp(bo.pct, 5, 100, 25), cap:round2(clamp(bo.cap, 0, 1000, 10))}, interest:{on:!!it.on, pct:clamp(it.pct, 0.5, 10, 2), cap:round2(clamp(it.cap, 0, 1000, 5))}, wait:[0, 24, 48].includes(+rl.wait) ? +rl.wait : 24, reward:String(rl.reward || '').slice(0, 80)};
+  const bk = k.bank && typeof k.bank === 'object' ? k.bank : {}, lim = v => (v === null || v === undefined || v === '' || !(+v > 0)) ? null : round2(Math.min(+v, 10000));
+  out.bank = {on:!!bk.on, limitPay:lim(bk.limitPay), limitMonth:lim(bk.limitMonth), frozen:!!bk.frozen, since:isoRe.test(bk.since) ? bk.since : null};
   out.interestUntil = /^\d{4}-(0[1-9]|1[0-2])$/.test(k.interestUntil) ? k.interestUntil : null;
   out.lessons = {}; Object.entries(k.lessons && typeof k.lessons === 'object' ? k.lessons : {}).forEach(([id, r]) => { const l = KID_LESSONS.find(x => x.id === id); if(l && r && isoRe.test(r.date)) out.lessons[id] = {date:r.date, best:Math.min(Math.max(parseInt(r.best) || 0, 0), l.quiz.length), total:l.quiz.length}; });
   out.env = {}; KID_ENV_CATS.forEach(c => { const v = round2(k.env && k.env[c]); if(v > 0) out.env[c] = v; });
@@ -1208,7 +1228,7 @@ function normKid(k){
   const sp = k.split && typeof k.split === 'object' ? k.split : {}, raw = KID_JARS.map(j => Math.max(0, +sp[j] || 0)), tot = raw.reduce((a, b) => a + b, 0);
   out.split = tot > 0 ? {spend:raw[0] * 100 / tot, save:raw[1] * 100 / tot, give:raw[2] * 100 / tot} : d.split;
   out.ledger = (Array.isArray(k.ledger) ? k.ledger : []).map(e => ({id:String((e && e.id) || uid()), date:String((e && e.date) || ''), amount:round2(e && e.amount), kind:KID_KINDS.includes(e && e.kind) ? e.kind : 'gift', jar:KID_JARS.includes(e && e.jar) ? e.jar : 'spend',
-    note:String((e && e.note) || ''), ref:(e && e.ref) ? String(e.ref) : null, goalId:(e && e.goalId) ? String(e.goalId) : null, cat:(e && e.cat) ? String(e.cat) : null})).filter(e => Math.abs(e.amount) > 0.0049 && isoRe.test(e.date));
+    note:String((e && e.note) || ''), ref:(e && e.ref) ? String(e.ref) : null, goalId:(e && e.goalId) ? String(e.goalId) : null, cat:(e && e.cat) ? String(e.cat) : null, via:(e && e.via === 'card') ? 'card' : null})).filter(e => Math.abs(e.amount) > 0.0049 && isoRe.test(e.date));
   out.goals = (Array.isArray(k.goals) ? k.goals : []).map(g => ({id:String((g && g.id) || uid()), name:String((g && g.name) || '').trim(), icon:String((g && g.icon) || '⭐'), price:Math.abs(round2(g && g.price)), saved:Math.max(0, round2(g && g.saved)), boosted:Math.max(0, round2(g && g.boosted)),
     created:isoRe.test(g && g.created) ? g.created : isoOf(new Date()), status:KID_GOAL_STATUS.includes(g && g.status) ? g.status : 'active', boughtDate:isoRe.test(g && g.boughtDate) ? g.boughtDate : null, tpl:(g && g.tpl) ? String(g.tpl) : null})).filter(g => g.name && g.price > 0);
   out.mascot = MASCOT_IDS.includes(k.mascot) ? k.mascot : null; out.paidUntil = isoRe.test(k.paidUntil) ? k.paidUntil : null; out.countCoins = Math.max(0, parseInt(k.countCoins) || 0);
@@ -1280,6 +1300,19 @@ function kidSpend(kid, amount, date, cat, note){
   const a = round2(amount), bal = kidJars(kid).spend; if(!(a > 0)) return {ok:false, reason:'amount'};
   if(a > bal + 0.005) return {ok:false, reason:'jar', left:bal};
   kid.ledger.push({id:uid(), date, amount:-a, kind:'spend', jar:'spend', note:String(note || ''), ref:null, goalId:null, cat:cat || null}); return {ok:true};
+}
+/* Compte bancaire virtuel (dès 10 ans) : le bocal « dépenser » sert de solde, la carte enregistre des paiements refusés si besoin */
+function kidBankAllowed(kid, now){ const a = kidAge(kid, now); return a === null ? kid.level !== 'petit' : a >= 10; }
+function kidCardMonthSpent(kid, key){ return round2(-kid.ledger.filter(e => e.via === 'card' && e.date.startsWith(key)).reduce((a, e) => a + e.amount, 0)); }
+function kidCardPay(kid, amount, date, cat, shop){
+  const a = round2(amount), b = kid.bank || {}; if(!(a > 0)) return {ok:false, reason:'amount'};
+  if(!b.on) return {ok:false, reason:'off'}; if(b.frozen) return {ok:false, reason:'frozen'};
+  if(b.limitPay && a > b.limitPay + 0.005) return {ok:false, reason:'limitPay', limit:b.limitPay};
+  const spent = kidCardMonthSpent(kid, date.slice(0, 7));
+  if(b.limitMonth && spent + a > b.limitMonth + 0.005) return {ok:false, reason:'limitMonth', left:Math.max(0, round2(b.limitMonth - spent))};
+  const bal = kidJars(kid).spend; if(a > bal + 0.005) return {ok:false, reason:'jar', left:bal};
+  kid.ledger.push({id:uid(), date, amount:-a, kind:'spend', jar:'spend', note:String(shop || '').trim(), ref:null, goalId:null, cat:cat || null, via:'card'});
+  return {ok:true, balance:round2(bal - a)};
 }
 function kidGive(kid, amount, date, note){
   const a = round2(amount), bal = kidJars(kid).give; if(!(a > 0)) return {ok:false, reason:'amount'};
@@ -1397,6 +1430,7 @@ function mergeKid(base, inc){
     else if((KID_RANK_ORDER[g.status] > KID_RANK_ORDER[cur.status]) || (g.status === cur.status && g.saved > cur.saved)) Object.assign(cur, JSON.parse(JSON.stringify(g)));
   });
   out.countCoins = Math.max(out.countCoins || 0, inc.countCoins || 0);
+  if(!(out.bank && out.bank.on) && inc.bank && inc.bank.on) out.bank = {...inc.bank};
   /* phase 2 : envies, défis, coups de pouce, comptages et nouvelles se fusionnent aussi, sans doublon */
   const RANK_W = {wait:0, dream:1, dropped:1}, RANK_C = {run:0, won:1, lost:1};
   (inc.wishes || []).forEach(w => { const cur = out.wishes.find(x => x.id === w.id); if(!cur) out.wishes.push(JSON.parse(JSON.stringify(w))); else if(RANK_W[w.status] > RANK_W[cur.status]) Object.assign(cur, JSON.parse(JSON.stringify(w))); });
@@ -1842,7 +1876,7 @@ function provisionLine(l, now, clock){
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), s = dateOf(st);
   out.k = clock.countFrom(s, today0);
   const grossExact = mens * out.k;
-  out.gross = Math.floor(grossExact + 1e-6);
+  out.gross = grossExact >= goal - 0.005 ? goal : Math.floor(grossExact + 1e-6);   // arrondi à l'euro inférieur sauf si la ligne est entièrement provisionnée
   out.exact = grossExact - paid;               // ce qui reste sur le compte pour cette ligne, centimes compris
   out.accrued = out.gross - paid;              // idem, arrondi à l'euro inférieur avant déduction (comme l'Excel)
   out.rest = Math.max(0, goal - out.gross);    // reste à provisionner
@@ -2241,7 +2275,7 @@ function mergeStates(base, mine, theirs, choices){
   return {merged:result, conflicts};
 }
 
-if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember};
+if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember, kidBankAllowed, kidCardPay, kidCardMonthSpent};
 
 </script>
 <script>
@@ -2259,7 +2293,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.28', APP_DATE = '15 octobre 2026', APP_BUILD = '449558';
+const APP_VERSION = '2.30', APP_DATE = '18 octobre 2026', APP_BUILD = '81e1e1';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3187,6 +3221,7 @@ const HELP = {
   'kid-envies':{title:'Envies à mûrir', body:`<p>Une envie soudaine ? <b>Note-la</b> au lieu d’acheter tout de suite. On attend un peu (24 h, parfois 48 h), puis tu te demandes : « Est-ce que je la veux toujours ? »</p><ul><li><b>Oui</b> : elle devient un rêve et tu peux l’épargner.</li><li><b>Plus envie</b> : bravo, tu as gardé ton argent pour mieux choisir.</li></ul><p class="note">Les grands achats plaisir gagnent à mûrir : c’est une astuce de grands épargnants.</p>`},
   'kid-defis':{title:'Défis', body:`<p>Un défi est un petit challenge de quelques jours. Il <b>se mesure tout seul</b> à partir de ce que tu notes dans l’appli.</p><ul><li>Un seul défi à la fois.</li><li>Si tu ne le réussis pas, ce n’est pas grave : on peut réessayer quand on veut.</li><li>Un parent peut convenir d’une petite récompense pour les défis réussis.</li></ul>`},
   'kid-boost':{title:'Boost et intérêts', body:`<p>Si un parent l’a prévu, il peut <b>compléter</b> les sommes que tu mets dans tes rêves, et ton épargne peut <b>rapporter des intérêts</b> chaque mois : c’est la graine qui pousse.</p><p class="note">Plus tu épargnes tôt, plus tu gagnes. Ce n’est pas de la magie : c’est un coup de pouce de tes parents.</p>`},
+  'kid-compte':{title:'Compte et carte', body:`<p>Ton compte, c’est ton bocal « dépenser » : ton argent de poche y arrive, et chaque <b>paiement par carte</b> le fait baisser tout de suite.</p><ul><li>Une carte ne permet <b>pas de dépenser plus que ce qu’il y a sur le compte</b> : sinon le paiement est refusé.</li><li>Un parent peut fixer un <b>plafond</b> par paiement et par mois, ou bloquer la carte.</li><li>Avant de payer, vérifie ton solde. Après, retrouve ton paiement dans ton historique (💳).</li></ul><p class="note">C’est un compte pédagogique : il n’est pas relié à une vraie banque. Les paiements par carte que tu fais pour de vrai se notent ici avec « Payer par carte ».</p>`},
   'kid-bilan':{title:'Bilan du mois', body:`<p>Un résumé du mois de l’enfant : ce qui est arrivé, ce qu’il a dépensé, épargné ou donné, ses rêves, ses défis et sa patience.</p><p>Les <b>pistes de discussion</b> sont des idées de questions à lui poser, pas des jugements. Le bilan peut être copié pour être gardé.</p>`},
   'kid-tirelire':{title:'Ma tirelire', body:`<p>Ton argent est rangé dans trois bocaux :</p><ul><li><b>Dépenser</b> : pour tes envies du moment.</li><li><b>Épargner</b> : pour tes rêves. Plus il grossit, plus tu avances.</li><li><b>Donner</b> : pour faire plaisir à quelqu’un ou aider.</li></ul><p class="note">Tu peux recompter tes pièces quand tu veux avec « Compter mes pièces ».</p>`},
   'kid-reves':{title:'Mes rêves', body:`<p>Un rêve, c’est quelque chose qui te ferait vraiment plaisir : un jeu, une sortie, des baskets…</p><p>Tu y mets de l’argent de ton épargne libre. La barre se remplit, et on t’indique à peu près quand tu y arriveras. Quand il est complet, un parent valide l’achat.</p>`},
@@ -3593,17 +3628,26 @@ function kidCardsHTML(m, k, lv){
     : `<section class="kcard passage"><p class="kc-v small">Tu as 18 ans !</p><p class="khint">Demande à un parent : l’espace parent propose de te faire passer adulte dans le foyer.</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-adult-later">Plus tard</button></div></section>`;
   return out;
 }
+function kidBankHTML(m, k){
+  if(!k.bank.on || !kidBankAllowed(k)) return '';
+  const J = kidJars(k), spent = kidCardMonthSpent(k, isoOf(new Date()).slice(0, 7)), lim = k.bank.limitMonth, left = lim ? Math.max(0, round2(lim - spent)) : null;
+  return `<section class="kcard kbank"><p class="kc-k">Mon compte ${H('kid-compte')}</p><p class="kc-v">${money(J.spend)}</p>
+    <div class="bankcard ${k.bank.frozen ? 'frozen' : ''}" role="img" aria-label="Carte bancaire virtuelle de ${esc(m.name)}, ${k.bank.frozen ? 'bloquée' : 'active'}"><span class="bc-top"><b>MaTirelire</b><span aria-hidden="true">💳</span></span><span class="bc-name">${esc(m.name)}</span><span class="bc-st">${k.bank.frozen ? 'Carte bloquée' : 'Carte active'}</span></div>
+    <p class="khint">Payé par carte ce mois : <b>${money(spent)}</b>${lim ? ` sur ${money(lim)} (il reste ${money(left)})` : ''}${k.bank.limitPay ? ` · maximum ${money(k.bank.limitPay)} par paiement` : ''}</p>
+    ${lim ? `<div class="kbar" role="img" aria-label="Plafond du mois utilisé à ${Math.min(100, Math.round(spent / lim * 100))} pour cent"><i class="k-spend" style="width:${Math.min(100, Math.round(spent / lim * 100))}%"></i></div>` : ''}
+    <div class="kactions one"><button type="button" class="btn kbtn primary" data-act="kid-card">Payer par carte</button></div></section>`;
+}
 function kidHomeHTML(m, k, lv, T){
   const J = kidJars(k), tot = kidTotal(k), R = kidRank(k), free = kidFree(k), goals = k.goals.filter(g => g.status !== 'bought').slice(0, 2);
   const seg = j => tot > 0 && J[j] > 0 ? `<i class="k-${j}" style="width:${Math.max(3, Math.round(J[j] / tot * 100))}%"></i>` : '';
   const sum = kidMonth(k, new Date().getFullYear(), new Date().getMonth() + 1);
   const recent = k.ledger.slice().sort((a, b) => b.date.localeCompare(a.date)).filter((e, i, arr) => !e.ref || arr.findIndex(x => x.ref === e.ref) === i).slice(0, 6);
-  const label = e => e.kind === 'allowance' ? 'Argent de poche' : e.kind === 'gift' ? (e.note || 'Reçu') : e.kind === 'spend' ? (e.note || (KID_CATS.find(c => c[0] === e.cat) || ['', 'Dépense'])[1]) : e.kind === 'give' ? (e.note || 'Don') : e.kind === 'goalbuy' ? `Rêve réalisé : ${e.note}` : e.note;
+  const label = e => e.kind === 'allowance' ? 'Argent de poche' : e.kind === 'gift' ? (e.note || 'Reçu') : e.kind === 'spend' ? ((e.via === 'card' ? '💳 ' : '') + (e.note || (KID_CATS.find(c => c[0] === e.cat) || ['', 'Dépense'])[1])) : e.kind === 'give' ? (e.note || 'Don') : e.kind === 'goalbuy' ? `Rêve réalisé : ${e.note}` : e.note;
   const amt = e => e.ref ? k.ledger.filter(x => x.ref === e.ref).reduce((a, x) => a + x.amount, 0) : e.amount;
-  return `${kidCardsHTML(m, k, lv)}${lv === 'ado' ? '' : kidSceneHTML(k, lv)}<section class="kcard ktotal"><p class="kc-k">${T.total} ${H('kid-tirelire')}</p><p class="kc-v">${money(tot)}</p>
+  return `${kidCardsHTML(m, k, lv)}${lv === 'ado' ? '' : kidSceneHTML(k, lv)}${kidBankHTML(m, k)}<section class="kcard ktotal"><p class="kc-k">${T.total} ${H('kid-tirelire')}</p><p class="kc-v">${money(tot)}</p>
       <div class="kbar" role="img" aria-label="${KID_JARS.map(j => `${T.jars[j]} ${money(J[j])}`).join(', ')}">${KID_JARS.map(seg).join('')}</div>
       <div class="klegend">${KID_JARS.map(j => `<span><i class="kdot k-${j}"></i>${T.jars[j]} <b>${money(J[j])}</b></span>`).join('')}</div></section>
-    <div class="kactions"><button type="button" class="btn kbtn" data-act="kid-got">＋ ${T.got}</button><button type="button" class="btn kbtn" data-act="kid-spent">－ ${T.spent}</button>
+    <div class="kactions"><button type="button" class="btn kbtn" data-act="kid-got">＋ ${T.got}</button><button type="button" class="btn kbtn" data-act="kid-spent">－ ${T.spent}${k.bank.on && kidBankAllowed(k) ? ' (espèces)' : ''}</button>
       <button type="button" class="btn kbtn" data-act="kid-give">♡ ${T.give}</button><button type="button" class="btn kbtn" data-act="kid-count">${T.count}</button></div>
     ${lv === 'ado' ? kidBudgetCard(m, k) : ''}
     <h2 class="kh">${T.dreams} ${H('kid-reves')}</h2>
@@ -3719,6 +3763,15 @@ const kAmount = (id, label, v) => `<label class="field">${label}<input class="in
 function kidOpenGot(){
   kidDlg('J’ai reçu de l’argent', `${kAmount('kd-amount', 'Combien ?')}<label class="field">D’où vient-il ? <small class="muted">(facultatif)</small><input class="inp" id="kd-note" placeholder="Ex. anniversaire, mamie" autocomplete="off" enterkeyhint="done"></label>
     <div class="field">Je le range<div class="seg" role="radiogroup" aria-label="Rangement"><label><input type="radio" name="kd-mode" value="split" checked>Comme d’habitude</label><label><input type="radio" name="kd-mode" value="spend">Tout à dépenser</label></div></div>`, kBtns('kid-got-save', 'Ranger')); focusQuiet($('#kd-amount'));
+}
+function kidCardRefusal(r){
+  return {frozen:'Ta carte est bloquée. Parles-en à un parent.', jar:`Solde insuffisant : il te reste ${money(r.left || 0)}. Une carte ne permet pas de dépenser de l’argent qu’on n’a pas.`,
+    limitPay:`Ta carte est limitée à ${money(r.limit || 0)} par paiement.`, limitMonth:`Plafond du mois atteint : il te reste ${money(r.left || 0)} à payer par carte ce mois-ci.`, off:'Ta carte n’est pas activée.', amount:'Saisis le montant du paiement.'}[r.reason] || 'Paiement impossible.';
+}
+function kidOpenCard(){
+  const k = ensureKid(kidMember()), J = kidJars(k), b = k.bank;
+  kidDlg('Payer par carte', `<p class="envmini">Solde de ton compte : <b>${money(J.spend)}</b></p>${kAmount('kd-amount', 'Montant du paiement')}<div class="grid2"><label class="field">Où ? <small class="muted">(le commerce)</small><input class="inp" id="kd-note" autocomplete="off" enterkeyhint="done" placeholder="Ex. boulangerie"></label><label class="field">C’était pour<select class="inp" id="kd-cat">${byName(KID_CATS.filter(c => c[0] !== 'autre'), c => c[1]).concat(KID_CATS.filter(c => c[0] === 'autre')).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label></div>
+    <p class="khint">${b.limitPay ? `Maximum ${money(b.limitPay)} par paiement. ` : ''}Un paiement par carte retire tout de suite l’argent de ton compte : si le solde ne suffit pas, il est refusé.</p><p id="kd-refuse" class="note danger" role="alert" hidden></p>`, kBtns('kid-card-save', 'Payer'));
 }
 function kidOpenSpent(){
   const k = ensureKid(kidMember()), J = kidJars(k);
@@ -3849,6 +3902,7 @@ function kidParentPanel(){
     <label class="field">Couleurs suggérées pour<select class="inp" data-kp="who"><option value="" ${k.who ? '' : 'selected'}>Non précisé</option><option value="f" ${k.who === 'f' ? 'selected' : ''}>Une fille</option><option value="m" ${k.who === 'm' ? 'selected' : ''}>Un garçon</option><option value="x" ${k.who === 'x' ? 'selected' : ''}>Je ne veux pas dire</option></select><small class="muted">Sert uniquement à proposer une couleur de départ. L’enfant choisit la sienne dans « Moi ».</small></label>
     <label class="field">Âge de l’enfant<select class="inp" data-kp="age">${k.birth ? '' : '<option value="" selected>À renseigner</option>'}${Array.from({length:KID_AGE_MAX - KID_AGE_MIN + 1}, (_, i) => KID_AGE_MIN + i).map(a => `<option value="${a}" ${kidAge(k) === a ? 'selected' : ''}>${a} ans</option>`).join('')}</select><small class="muted">${esc(KW_GROUPS[k.level])}. Le niveau suit l’âge tout seul, chaque année.${kidAge(k) >= 18 ? ' Il a 18 ans : tu peux passer à l’âge adulte.' : ''}</small></label>
     <label class="field">Mois de naissance <small class="muted">(facultatif)</small><select class="inp" data-kp="month" ${k.birth ? '' : 'disabled'}><option value="" ${k.birth ? '' : 'selected'}>Je ne sais pas</option>${MONTHS.map((n, i) => `<option value="${i + 1}" ${k.birth && +k.birth.slice(5, 7) === i + 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+    <h3 class="who">Compte bancaire ${H('kid-compte')}</h3>${kidBankPanelHTML(k)}
     <h3 class="who">Encouragements ${H('kid-boost')}</h3>
     <div class="grid2"><label class="field">Boost du parent<select class="inp" data-kp="boost-pct"><option value="0" ${k.rules.boost.on ? '' : 'selected'}>Désactivé</option>${[10, 25, 50, 100].map(v => `<option value="${v}" ${k.rules.boost.on && k.rules.boost.pct === v ? 'selected' : ''}>+${v} %</option>`).join('')}</select></label>
       <label class="field">Plafond du boost<select class="inp" data-kp="boost-cap">${[5, 10, 20, 50].map(v => `<option value="${v}" ${k.rules.boost.cap === v ? 'selected' : ''}>${v} €/mois</option>`).join('')}</select></label></div>
@@ -3861,6 +3915,14 @@ function kidParentPanel(){
     <div class="toolbar"><button type="button" class="btn small primary" data-act="kid-report" data-id="${esc(m.id)}">Bilan du mois</button></div>
     ${tools}`,
     solo ? `<span></span><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>` : `<span></span><div class="r"><button type="button" class="btn" data-act="close-dlg">Rester ici</button><button type="button" class="btn primary" data-act="kid-exit">Quitter l’espace enfant</button></div>`);
+}
+function kidBankPanelHTML(k){
+  if(!kidBankAllowed(k)) return `<p class="hint">Le compte bancaire avec carte est proposé à partir de 10 ans${kidAge(k) === null ? ' : renseigne l’âge de l’enfant ci-dessous' : ` (il a ${kidAge(k)} ans)`}.</p>`;
+  const b = k.bank, opt = (list, cur, unit) => `<option value="" ${cur ? '' : 'selected'}>Aucun</option>` + list.map(v => `<option value="${v}" ${cur === v ? 'selected' : ''}>${v} ${unit}</option>`).join('');
+  return `<label class="field">Compte avec carte virtuelle<select class="inp" data-kp="bank"><option value="0" ${b.on ? '' : 'selected'}>Désactivé</option><option value="1" ${b.on ? 'selected' : ''}>Activé</option></select><small class="muted">Le bocal « dépenser » devient son compte : l’argent de poche y arrive et chaque paiement par carte le diminue.</small></label>
+    ${b.on ? `<div class="grid2"><label class="field">Plafond par paiement<select class="inp" data-kp="bank-pay">${opt([10, 20, 50, 100], b.limitPay, '€')}</select></label><label class="field">Plafond par mois<select class="inp" data-kp="bank-month">${opt([20, 50, 100, 200], b.limitMonth, '€')}</select></label></div>
+    <label class="field">Carte<select class="inp" data-kp="bank-frozen"><option value="0" ${b.frozen ? '' : 'selected'}>Active</option><option value="1" ${b.frozen ? 'selected' : ''}>Bloquée</option></select></label>
+    <p class="envmini">Payé par carte ce mois : <b>${money(kidCardMonthSpent(k, isoOf(new Date()).slice(0, 7)))}</b></p>` : ''}`;
 }
 const kidCostNote = k => {
   const f = v => String(round2(v)).replace('.', ',') + ' €', b = k.rules.boost, it = k.rules.interest, now = new Date();
@@ -3893,6 +3955,10 @@ function kidPanelChange(el){
   const m = kidMember(); if(!m) return; const k = ensureKid(m), key = el.dataset.kp, v = el.value;
   if(key === 'amount'){ m.pocket.amount = Math.abs(num(v)); syncPocket(S, m.id); touch(false); const e = $('.envmini b', $('#dlg')); if(e) e.textContent = money(kidAllowanceAmount(m)); return; }
   if(key === 'kamount'){ k.amount = Math.abs(num(v)); touch(false); const e = $('.envmini b', $('#dlg')); if(e) e.textContent = money(kidAllowanceAmount(m)); return; }
+  if(key === 'bank'){ k.bank.on = v === '1'; if(k.bank.on && !k.bank.since) k.bank.since = isoToday(); touch(); kidParentPanel(); return; }
+  if(key === 'bank-pay'){ k.bank.limitPay = +v > 0 ? +v : null; touch(false); return; }
+  if(key === 'bank-month'){ k.bank.limitMonth = +v > 0 ? +v : null; touch(false); return; }
+  if(key === 'bank-frozen'){ k.bank.frozen = v === '1'; touch(false); return; }
   if(key === 'boost-pct'){ k.rules.boost.on = +v > 0; if(+v > 0) k.rules.boost.pct = +v; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
   if(key === 'boost-cap'){ k.rules.boost.cap = +v; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
   if(key === 'int-pct'){ k.rules.interest.on = +v > 0; if(+v > 0) k.rules.interest.pct = +v; else k.interestUntil = null; touch(false); $('#kp-cost').textContent = kidCostNote(k); return; }
@@ -4325,7 +4391,7 @@ function accountsTableHTML(R){
 function gotoLine(id){
   const l = S.lines.find(x => x.id === id); if(!l) return;
   const inProv = provLines().some(x => x.id === id);
-  U.back = U.tab; U.tab = inProv ? 'provisions' : 'budget';
+  U.back = U.tab; U.tab = inProv ? 'provisions' : 'budget'; if(inProv) U.pq = '';
   if(!inProv){ U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; }
   render(); window.scrollTo(0, 0);
   setTimeout(() => {
@@ -4628,21 +4694,31 @@ function provTotals(clk){
   clk = clk || provisionClock(S);
   return provLines().reduce((a, l) => { const p = provInfo(l, undefined, clk); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; a.over += p.over; a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, over:0, mens:0});
 }
+function provMatch(l){
+  const q = (U.pq || '').trim().toLowerCase(); if(!q) return true;
+  return l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q);
+}
+function provListHTML(){
+  const all = provLines(), clk = provisionClock(S), tot = provTotals(clk), lines = all.filter(provMatch), filtering = !!(U.pq || '').trim();
+  if(!all.length) return '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>';
+  if(!lines.length) return `<p class="hint">Aucune ligne ne correspond à « ${esc(U.pq.trim())} ».</p>`;
+  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr data-line="${esc(l.id)}"><td data-label="Ligne">${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
+    <td data-label="Mensualité" data-cell="mens:${l.id}">${money(p.mens)}</td>
+    <td data-label="Coût ou objectif" data-cell="goal:${l.id}">${money(p.goal)}</td>
+    <td data-label="Somme en cours" data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
+    <td data-label="Reste ou dépassement" data-cell="rest:${l.id}" class="${restClass(p)}">${restCell(p)}</td>
+    <td data-label="Date de départ"><input class="inp provdate" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
+    <td data-label="Date de fin" data-cell="next:${l.id}">${nextText(p)}</td>
+    <td class="provact"><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="${p.paid > 0 ? 'Compléter' : 'Marquer comme payé'} : ${esc(l.name)}">${p.paid > 0 ? 'Compléter' : 'Payé'}</button></td></tr>`; }).join('');
+  return `${filtering ? `<p class="hint" style="margin-bottom:6px">${lines.length} ligne${lines.length > 1 ? 's' : ''} sur ${all.length}</p>` : ''}<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td>Total${filtering ? ' <small class="muted">(toutes les lignes)</small>' : ''}</td><td data-label="Mensualité" data-cell="tot:mens">${money(tot.mens)}</td><td data-label="Coût ou objectif" data-cell="tot:goal">${money(tot.goal)}</td><td data-label="Somme en cours" data-cell="tot:res">${money(tot.res)}</td><td data-label="Reste ou dépassement" data-cell="tot:rest">${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}</td><td colspan="3" class="provpad"></td></tr></tfoot></table></div>`;
+}
+function refreshProvList(){ const l = $('#provlist'); if(l) l.innerHTML = provListHTML(); }
 function viewProvisions(){
-  const lines = provLines(), clk = provisionClock(S), tot = provTotals(clk);
-  const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr data-line="${esc(l.id)}"><td>${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
-    <td data-cell="mens:${l.id}">${money(p.mens)}</td>
-    <td data-cell="goal:${l.id}">${money(p.goal)}</td>
-    <td data-cell="sum:${l.id}">${dashIf(p, p.reserved)}</td>
-    <td data-cell="rest:${l.id}" class="${restClass(p)}">${restCell(p)}</td>
-    <td><input class="inp" style="width:140px" type="date" data-b="prov:${l.id}:lastDate" value="${esc(l.lastDate||'')}" aria-label="Date de départ (dernier paiement) de ${esc(l.name)}"></td>
-    <td data-cell="next:${l.id}">${nextText(p)}</td>
-    <td><button class="btn small" data-act="paid" data-id="${l.id}" aria-label="${p.paid > 0 ? 'Compléter' : 'Marquer comme payé'} : ${esc(l.name)}">${p.paid > 0 ? 'Compléter' : 'Payé'}</button></td></tr>`; }).join('');
   return backBarHTML() + `<section class="card"><h2>Provisions ${H('provisions')}</h2>
     <p class="hint" style="margin-bottom:10px">La somme en cours se calcule toute seule. Appuie sur « Payé » quand une dépense est réglée.</p>
-    ${lines.length ? `<div class="tw"><table class="provtable"><thead><tr><th>Ligne</th><th>Mensualité</th><th>Coût ou objectif</th><th>Somme en cours</th><th>Reste ou dépassement</th><th>Date de départ</th><th>Date de fin</th><th></th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td>Total</td><td data-cell="tot:mens">${money(tot.mens)}</td><td data-cell="tot:goal">${money(tot.goal)}</td><td data-cell="tot:res">${money(tot.res)}</td><td data-cell="tot:rest">${money(tot.rest)}${tot.over >= 1 ? `<br><small class="credit">dont +${money(tot.over)} de dépassement</small>` : ''}</td><td colspan="3"></td></tr></tfoot></table></div>`
-      : '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>'}</section>`;
+    ${provLines().length ? `<div class="toolbar" style="margin-bottom:8px"><input class="inp grow" id="pq" type="search" placeholder="Rechercher une ligne…" value="${esc(U.pq || '')}" aria-label="Rechercher dans les provisions"></div>` : ''}
+    <div id="provlist">${provListHTML()}</div></section>`;
 }
 function patchProv(id){
   const l = S.lines.find(x => x.id === id); if(!l) return;
@@ -4982,7 +5058,7 @@ document.addEventListener('click', async e => {
   const a = t.dataset.act, id = t.dataset.id;
   if(a === 'edit-line' && e.target.closest('.sw')) return;
   switch(a){
-    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese'){ if(reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleChanged = Date.now(); } U.tab = t.dataset.tab; U.back = null; render(); window.scrollTo(0,0); break;
+    case 'tab': if(t.dataset.tab === 'synthese' && U.tab !== 'synthese'){ if(reducedMotion()) U.bubbleIdx = (U.bubbleIdx || 0) + 1; U.bubbleChanged = Date.now(); } U.tab = t.dataset.tab; U.back = null; if(U.tab !== 'provisions') U.pq = ''; render(); window.scrollTo(0,0); break;
     case 'add-idea': {
       const idea = IDEAS.find(x => x.id === id); if(!idea) break;
       openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
@@ -4990,7 +5066,7 @@ document.addEventListener('click', async e => {
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
     case 'acc-open': U.openAcc = (U.openAcc === id) ? null : id; render(); break;
     case 'goto-line': gotoLine(id); break;
-    case 'back-synth': U.tab = 'synthese'; U.back = null; render(); window.scrollTo(0, 0); break;
+    case 'back-synth': U.tab = 'synthese'; U.back = null; U.pq = ''; render(); window.scrollTo(0, 0); break;
     case 'cat-open': U.openCat = (U.openCat === id) ? null : id; render(); break;
     case 'help': openPop(t, id); break;
     case 'update-check': checkUpdate(); break;
@@ -5039,6 +5115,9 @@ document.addEventListener('click', async e => {
     case 'kid-tab': U.kid.tab = t.dataset.tab; render(); window.scrollTo(0, 0); break;
     case 'kid-got': kidOpenGot(); break;
     case 'kid-spent': kidOpenSpent(); break;
+    case 'kid-card': kidOpenCard(); break;
+    case 'kid-card-save': { const m = kidMember(), k = ensureKid(m), a = Math.abs(num($('#kd-amount').value)); const r = kidCardPay(k, a, isoToday(), $('#kd-cat').value, $('#kd-note').value);
+      if(!r.ok){ const e = $('#kd-refuse'); if(e){ e.textContent = 'Paiement refusé. ' + kidCardRefusal(r); e.hidden = false; } break; } $('#dlg').close(); touch(); toast(`Paiement accepté : ${money(a)}. Il te reste ${money(r.balance)}.`); break; }
     case 'kid-give': kidOpenGive(); break;
     case 'kid-count': kidOpenCount(); break;
     case 'kid-newgoal': kidOpenNewGoal(); break;
@@ -5252,6 +5331,7 @@ document.addEventListener('input', e => {
   if(t.dataset && t.dataset.w && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio'){ onWizardField(t); return; }
   if(t.dataset && t.dataset.kw && t.tagName === 'INPUT' && t.type !== 'checkbox'){ kwField(t); return; }
   if(e.target.id === 'q'){ U.q = e.target.value; refreshBudgetList(); return; }
+  if(e.target.id === 'pq'){ U.pq = e.target.value; refreshProvList(); return; }
   if(e.target.id === 'pf-amount' && $('#pf-info') && U.potCtx && U.potCtx.kind === 'spend'){ const a = Math.abs(num(e.target.value)), t = potTotal(S); $('#pf-info').innerHTML = !(a > 0) ? 'Saisis le montant pour voir ce qu’il restera.' : (a > t + 0.005 ? `Il y a seulement <b>${money(Math.max(0, t))}</b> : la cagnotte passera à <b class="debit">−${money(a - t)}</b> (manque).` : `Il restera <b>${money(t - a)}</b> dans la cagnotte.`); }
   if(e.target.id === 'ne-name'){ neRefresh(); return; }
   if(e.target.id === 'ne-fund' || e.target.id === 'ne-amount'){ neFundRefresh(); return; }
