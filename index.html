@@ -788,8 +788,23 @@ function perYear(c){
 function isMonthlyExact(l){ return l.cycle.unit === 'month' && l.cycle.every === 1; }
 function activeMonthsOf(l){ return (l.months && l.months.length) ? l.months : [1,2,3,4,5,6,7,8,9,10,11,12]; }
 
+/* Paiement en plusieurs fois : un achat unique réparti sur n mois consécutifs. Il pèse dans les mois concernés,
+   jamais dans la moyenne mensuelle ni le total annuel (c'est un achat ponctuel, pas une charge récurrente). */
+const planIdx = ym => (+ym.slice(0, 4)) * 12 + (+ym.slice(5, 7)) - 1;
+function planAmounts(p){
+  const n = Math.max(1, p.n | 0), cents = Math.round(((+p.total || 0) + (+p.fees || 0)) * 100), base = Math.floor(cents / n);
+  return Array.from({length:n}, (_, i) => (i === n - 1 ? cents - base * (n - 1) : base) / 100);   // la dernière échéance absorbe l'arrondi
+}
+/* Numéro (0..n-1) de l'échéance qui tombe au mois m (1..12), vu depuis aujourd'hui (fenêtre : 5 mois avant, 6 mois après), ou -1 */
+function planIndexIn(l, m, now){
+  if(!l.plan) return -1; const d = now || new Date(), nowIdx = d.getFullYear() * 12 + d.getMonth();
+  let off = (((m - 1 - d.getMonth()) % 12) + 12) % 12; if(off > 6) off -= 12;
+  const i = nowIdx + off - planIdx(l.plan.start); return (i >= 0 && i < l.plan.n) ? i : -1;
+}
+const planDoneN = l => (l.plan && l.plan.done ? l.plan.done.length : 0);
 /* Montant total sur une année pour une ligne (avec ses mois actifs éventuels) */
 function annualTotal(l){
+  if(l.plan) return 0;
   const c = l.cycle;
   if(isMonthlyExact(l)) return l.amount * (c.times||1) * activeMonthsOf(l).length;
   return l.amount * perYear(c);
@@ -803,8 +818,9 @@ function smoothOf(l){
   return !isMonthlyExact(l);
 }
 /* Montant pris en compte pour le mois m (1..12) */
-function amountInMonth(l, m){
+function amountInMonth(l, m, now){
   if(!l.active) return 0;
+  if(l.plan){ const i = planIndexIn(l, m, now); return i < 0 ? 0 : planAmounts(l.plan)[i]; }
   if(smoothOf(l)) return annualTotal(l) / 12;
   const c = l.cycle;
   if(isMonthlyExact(l)) return activeMonthsOf(l).includes(m) ? l.amount * (c.times||1) : 0;
@@ -819,6 +835,8 @@ function monthlyAverage(l){ return l.active ? annualTotal(l)/12 : 0; }
 /* Résumé d'affichage : ce que la ligne représente vraiment, sans diluer sur les mois où elle n'est pas due
    ('smoothed' lissée, 'monthly' mensuelle, 'partial' mensuelle sur une partie de l'année, 'occurrence' à l'échéance) */
 function lineSummary(l){
+  if(l.plan){ const a = planAmounts(l.plan), done = new Set(l.plan.done || []);
+    return {mode:'plan', n:l.plan.n, first:a[0], last:a[a.length - 1], total:round2(a.reduce((x, y) => x + y, 0)), start:l.plan.start, paid:done.size, rest:round2(a.reduce((x, y, i) => x + (done.has(i) ? 0 : y), 0)), fees:+l.plan.fees || 0}; }
   if(!(l.amount > 0)) return {mode:'none'};
   const per = l.amount * (l.cycle.times || 1), annual = annualTotal(l);
   if(smoothOf(l)) return {mode:'smoothed', monthly:annual/12, annual};
@@ -982,6 +1000,7 @@ function normalize(d){
       envelope: !!x.envelope && x.kind !== 'credit', zero: !!x.zero,
       funds: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.funds)) ? x.funds.map(f => ({id:String((f && f.id) || uid()), date:String((f && f.date) || ''), amount:Math.round((+(f && f.amount) || 0) * 100) / 100, from:(f && f.from) === 'pot' ? 'pot' : 'free', potId:(f && f.potId) ? String(f.potId) : null, label:String((f && f.label) || '')})).filter(f => Math.abs(f.amount) > 0.0049 && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) : [],
       closures: (!!x.envelope && x.kind !== 'credit' && Array.isArray(x.closures)) ? x.closures.map(c => ({id:String((c && c.id) || uid()), ym:String((c && c.ym) || ''), amount:Math.round((+(c && c.amount) || 0) * 100) / 100, to:(c && c.to) === 'pot' ? 'pot' : 'reserve', date:String((c && c.date) || ''), refId:(c && c.refId) ? String(c.refId) : ''})).filter(c => c.amount > 0.0049 && /^\d{4}-\d{2}$/.test(c.ym)) : [],
+      plan: normPlan(x.plan, x.kind),
       paid: Array.isArray(x.paid) ? x.paid.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], topups: Array.isArray(x.topups) ? x.topups.map(p => ({id:String((p && p.id) || uid()), date:String((p && p.date) || ''), amount:Math.abs(+(p && p.amount)) || 0, note:String((p && p.note) || '')})).filter(p => p.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) : [], split: Array.isArray(x.split) ? x.split.map(p => ({ownerId:(p && p.ownerId) || 'common', accountId:(p && p.accountId) || null, pct:Math.max(0, +(p && p.pct) || 0)})) : null,
     };
   });
@@ -991,6 +1010,10 @@ function normalize(d){
     if(l.ownerId !== 'common' && !memberIds.has(l.ownerId)) l.ownerId = 'common';
     if(l.accountId && !accIds.has(l.accountId)) l.accountId = null;
     if(!l.catId || !catIds.has(l.catId)) l.catId = ensureCategory(S, 'Divers').id;
+    if(l.plan){   // un paiement en plusieurs fois est une dépense mensuelle sur n mois : le reste est imposé
+      l.cycle = {every:1, unit:'month', times:1}; l.months = null; l.startMonth = null; l.smooth = null; l.goal = null; l.reserved = null; l.lastDate = null; l.day = null;
+      l.zero = false; l.envelope = false; l.funds = []; l.closures = []; l.amount = planAmounts(l.plan)[0];
+    }
     if(l.zero) l.amount = 0;
     if(l.envelope && l.zero) l.zero = false;
     if(l.split){
@@ -1014,12 +1037,19 @@ function ensureCategory(S, name){
   if(!c){ c = {id:uid(), name, color:CAT_COLORS[S.categories.length % CAT_COLORS.length]}; S.categories.push(c); }
   return c;
 }
+function normPlan(p, kind){
+  if(!p || typeof p !== 'object' || kind === 'credit') return null;
+  const total = Math.round(Math.abs(+p.total) * 100) / 100, n = Math.min(12, Math.max(2, parseInt(p.n) || 0));
+  if(!(total > 0) || !/^\d{4}-(0[1-9]|1[0-2])$/.test(p.start || '') || !(parseInt(p.n) >= 2)) return null;
+  const done = [...new Set((Array.isArray(p.done) ? p.done : []).map(Number).filter(i => Number.isInteger(i) && i >= 0 && i < n))].sort((a, b) => a - b);
+  return {total, n, start:p.start, fees:Math.round(Math.abs(+p.fees || 0) * 100) / 100, done};
+}
 function newLine(S, o={}){
   return Object.assign({
     id:uid(), name:'', catId:(S.categories[0]||{}).id||null, kind:'debit', amount:0,
     cycle:{every:1, unit:'month', times:1}, day:null, startMonth:null, months:null,
     method:'prelevement', accountId:S.settings.commonAccountId||null, ownerId:'common',
-    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], closures:[], paid:[], topups:[]
+    active:true, smooth:null, goal:null, reserved:null, lastDate:null, note:'', auto:null, forMember:null, zero:false, split:null, envelope:false, funds:[], closures:[], paid:[], topups:[], plan:null
   }, o);
 }
 function defaultAccountFor(S, ownerId){
@@ -2275,7 +2305,7 @@ function mergeStates(base, mine, theirs, choices){
   return {merged:result, conflicts};
 }
 
-if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember, kidBankAllowed, kidCardPay, kidCardMonthSpent};
+if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember, kidBankAllowed, kidCardPay, kidCardMonthSpent, planAmounts, planIndexIn, normPlan};
 
 </script>
 <script>
@@ -2293,7 +2323,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.30', APP_DATE = '18 octobre 2026', APP_BUILD = '81e1e1';
+const APP_VERSION = '2.31', APP_DATE = '19 octobre 2026', APP_BUILD = '52b02d';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -4178,6 +4208,7 @@ function viewSynthese(){
   return `
     ${nothing ? `<div class="banner"><span>La tirelire est vide pour l’instant. Commence par les salaires dans l’onglet Foyer, puis les montants dans l’onglet Budget.</span><button class="btn small" data-act="tab" data-tab="foyer">Ouvrir Foyer</button></div>` : ''}
     <div class="monthbar">${todayBtn}<div class="chips" role="group" aria-label="Période">${chips}</div></div>
+    ${U.month === 0 && S.lines.some(l => l.active && l.plan) ? `<p class="hint" style="margin:-4px 2px 8px">Moyenne hors paiements en plusieurs fois (${S.lines.filter(l => l.active && l.plan).map(l => esc(l.name)).join(', ')}) : ils comptent dans les mois concernés.</p>` : ''}
     <section class="hero" aria-label="Reste à vivre du foyer">
       <div class="hero-txt"><p class="hero-k">Reste à vivre du foyer, ${esc(title.toLowerCase())} ${H('rav', 'light')}</p><p class="hero-v">${money(R.totals.rest)}</p></div>
       <div class="hero-pig" data-mood="${bubbleMood()}">${bubbleHTML()}</div>
@@ -4312,7 +4343,7 @@ function catBarsHTML(R){
   return rows.map(({c,v}) => {
     const open = U.openCat === c.id;
     const lines = open ? `<ul class="leaders catlines">${catLinesFor(R, c.id).map(x =>
-      `<li class="golink" data-act="goto-line" data-id="${esc(x.l.id)}" role="button" tabindex="0" aria-label="Ouvrir la ligne ${esc(x.l.name)}"><span>${esc(x.l.name)}</span><i class="dots"></i><b>${money(x.v)}</b></li>`).join('')}</ul>` : '';
+      `<li class="golink" data-act="goto-line" data-id="${esc(x.l.id)}" role="button" tabindex="0" aria-label="Ouvrir la ligne ${esc(x.l.name)}"><span>${esc(x.l.name)}${x.l.plan && R.m ? ` <small class="muted">· échéance ${planIndexIn(x.l, R.m) + 1} sur ${x.l.plan.n}</small>` : ''}</span><i class="dots"></i><b>${money(x.v)}</b></li>`).join('')}</ul>` : '';
     return `<div class="catitem ${open ? 'open' : ''}"><button class="catrow" data-act="cat-open" data-id="${esc(c.id)}" aria-expanded="${open}">
       <span class="cn"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<i class="chev" aria-hidden="true"></i></span><b>${money(v.common+v.personal)}</b>
       <span class="bar"><i style="width:${(v.common/max*100).toFixed(1)}%;background:var(--brand)"></i><i style="width:${(v.personal/max*100).toFixed(1)}%;background:var(--slate)"></i></span></button>${lines}</div>`;
@@ -4588,7 +4619,7 @@ function listHTML(){
   });
   if(!S.categories.length) html = '<p class="empty">Aucune catégorie : en créer dans Réglages.</p>';
   if(filtering && !shown) html = '<p class="empty">Aucune ligne ne correspond aux filtres.</p>';
-  else if(filtering) html += `<p class="note">Lignes affichées : débits ${money(sumD)} par mois, crédits ${money(sumC)} par mois (moyennes lissées).</p>`;
+  else if(filtering) html += `<p class="note">Lignes affichées : débits ${money(sumD)} par mois, crédits ${money(sumC)} par mois (moyennes lissées, hors paiements en plusieurs fois).</p>`;
   return html;
 }
 function summaryNote(sum){
@@ -4597,6 +4628,7 @@ function summaryNote(sum){
     case 'monthly':   return `${money(sum.monthly)}/mois`;
     case 'partial':   return `${money(sum.monthly)}/mois (${sum.months.length} mois/an)`;
     case 'occurrence':return `${money(sum.amount)} à l’échéance`;
+    case 'plan': return sum.paid >= sum.n ? 'Terminé' : `${sum.paid} sur ${sum.n} payées`;
     default: return '';
   }
 }
@@ -4608,9 +4640,9 @@ function splitText(l){
 let ENV_CAND = new Set();
 function lineRow(l){
   const c = l.cycle, parts = Array.isArray(l.split) && l.split.length > 1;
-  const metas = [cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method),
+  const metas = [l.plan ? '' : cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method),
     parts ? splitText(l) : (l.accountId ? accName(l.accountId) : ''), !parts && l.ownerId !== 'common' ? memberName(l.ownerId) : '',
-    l.zero ? 'montant nul à chaque échéance' : '', l.envelope ? 'enveloppe' : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
+    l.zero ? 'montant nul à chaque échéance' : '', l.envelope ? 'enveloppe' : '', l.plan ? `en ${l.plan.n} fois · ${planYM(l.plan.start, 0).toLowerCase()} → ${planYM(l.plan.start, l.plan.n - 1).toLowerCase()}` : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
     .filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('') + (ENV_CAND.has(l.id) ? `<button type="button" class="linklike" data-act="env-convert" data-id="${esc(l.id)}">Suivre au fil du mois</button>` : '');
   const empty = l.amount === 0 && !l.zero && !l.envelope, tbd = l.amount === 0 && !!l.envelope, fixedL = tbd && (l.funds || []).length > 0, sum = (l.amount === 0 || !l.active) ? null : lineSummary(l);
   return `<div class="line ${l.active?'':'off'}" data-act="edit-line" data-id="${l.id}" role="button" tabindex="0" aria-label="Modifier ${esc(l.name)}">
@@ -4821,9 +4853,15 @@ function lineFormHTML(l, isNew){
     <label class="field">Nom<input class="inp" id="f-name" value="${esc(l.name)}" placeholder="Ex. Assurance habitation" autocomplete="off"></label>
     <div class="grid2">
       <div class="field">Type<div class="seg" role="radiogroup" aria-label="Type"><label><input type="radio" name="f-kind" value="debit" ${l.kind==='debit'?'checked':''}>Débit</label><label><input type="radio" name="f-kind" value="credit" ${l.kind==='credit'?'checked':''}>Crédit</label></div></div>
-      <label class="field">Montant à chaque échéance<input class="inp" id="f-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${l.amount || ''}" placeholder="0,00" ${l.zero ? 'disabled' : ''}></label>
+      <label class="field" id="r-amount">Montant à chaque échéance<input class="inp" id="f-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${l.amount || ''}" placeholder="0,00" ${l.zero ? 'disabled' : ''}></label>
     </div>
     <label class="check" id="r-zero"><input type="checkbox" id="f-zero" ${l.zero ? 'checked' : ''}> <span>Montant nul à chaque échéance <small class="muted">(ex. frais de carte remboursés par la banque)</small></span></label>
+    <label class="check" id="r-planon"><input type="checkbox" id="f-planOn" ${l.plan ? 'checked' : ''}> <span>Paiement en plusieurs fois <small class="muted">(un achat unique réparti sur plusieurs mois)</small></span></label>
+    <div id="r-plan" class="${l.plan ? '' : 'hidden'}"><div class="grid2"><label class="field">Prix total<input class="inp" id="f-ptotal" type="number" step="0.01" min="0" inputmode="decimal" value="${l.plan ? l.plan.total : ''}" placeholder="0,00"></label>
+      <label class="field">Nombre d’échéances<select class="inp" id="f-pn">${Array.from({length:11}, (_, i) => i + 2).map(n => opt(n, n + ' fois', (l.plan ? l.plan.n : 4) === n)).join('')}</select></label></div>
+      <div class="grid2"><label class="field">Première échéance<input class="inp" id="f-pstart" type="month" value="${l.plan ? l.plan.start : isoOf(new Date()).slice(0, 7)}"></label>
+      <label class="field">Frais <small class="muted">(facultatif)</small><input class="inp" id="f-pfees" type="number" step="0.01" min="0" inputmode="decimal" value="${l.plan && l.plan.fees ? l.plan.fees : ''}" placeholder="0,00"></label></div>
+      <div id="f-pdone" data-sig="">${l.plan ? planDoneHTML(l.plan, new Set(l.plan.done)) : ''}</div></div>
     <div class="field" id="r-vartype">Type de dépense<div class="seg" role="radiogroup" aria-label="Type de dépense"><label><input type="radio" name="f-var" value="fixed" ${l.envelope ? '' : 'checked'}>Fixe</label><label><input type="radio" name="f-var" value="variable" ${l.envelope ? 'checked' : ''}>Variable</label></div><small class="muted" id="f-vartext"></small></div>
     <div class="grid2">
       <label class="field">Catégorie<select class="inp" id="f-cat">${byName(S.categories).map(c => opt(c.id, c.name, l.catId===c.id)).join('')}${opt('__new','＋ Nouvelle catégorie…',false)}</select></label>
@@ -4856,6 +4894,11 @@ function lineFormHTML(l, isNew){
   <div class="dlg-f">${isNew ? '<span></span>' : '<div><button class="btn danger" data-act="del-line">Supprimer</button> <button class="btn" data-act="dup-line">Dupliquer</button></div>'}
     <div class="r"><button class="btn" data-act="close-dlg">Annuler</button><button class="btn primary" data-act="save-line">Enregistrer</button></div></div>`;
 }
+const planYM = (ym, i) => { const idx = planIdx(ym) + i, y = Math.floor(idx / 12), m = idx % 12; return `${cap(MONTHS[m])} ${y}`; };
+function planDoneHTML(plan, done){
+  const a = planAmounts(plan);
+  return `<h3 class="who">Échéances <small class="muted">(coche celles qui sont payées)</small></h3><ul class="leaders">${a.map((v, i) => `<li><span><label class="check"><input type="checkbox" data-i="${i}" ${done.has(i) ? 'checked' : ''}> <span>${esc(planYM(plan.start, i))}</span></label></span><i class="dots"></i><b>${money(v)}</b></li>`).join('')}</ul>`;
+}
 function readLineForm(){
   const g = id => $('#' + id, $('#dlg')), pid = g('f-cycle').value;
   let cycle;
@@ -4869,15 +4912,19 @@ function readLineForm(){
   const kindV = $('input[name=f-kind]:checked', $('#dlg')).value, variable = kindV === 'debit' && $('input[name=f-var]:checked', $('#dlg')).value === 'variable';
   if(variable) cycle = cycleOf('monthly');
   const parts = g('f-splitOn').checked ? readSplit() : null, zero = variable ? false : g('f-zero').checked;
-  return {
+  const planOn = kindV === 'debit' && !variable && g('f-planOn').checked;
+  const plan = planOn ? normPlan({total:num(g('f-ptotal').value), n:g('f-pn').value, start:g('f-pstart').value || isoOf(new Date()).slice(0, 7), fees:num(g('f-pfees').value), done:$$('#f-pdone input:checked', $('#dlg')).map(i => +i.dataset.i)}, 'debit') : null;
+  const out = {
     id:(U.editing||{}).id, name:g('f-name').value.trim(), catId:g('f-cat').value, kind:$('input[name=f-kind]:checked', $('#dlg')).value,
     amount:zero ? 0 : Math.abs(num(g('f-amount').value)), cycle, day:variable ? null : (parseInt(g('f-day').value) || null), startMonth:variable ? null : (parseInt(g('f-start').value) || null), months:variable ? null : months,
     method:g('f-method').value || null, accountId:(parts && parts.length) ? parts[0].accountId : (g('f-account').value || null), ownerId:(parts && parts.length) ? parts[0].ownerId : g('f-owner').value,
     split:parts && parts.length > 1 ? parts : null, zero, envelope:variable,
     active:g('f-active').checked, smooth: variable ? null : (sm === 'yes' ? true : sm === 'no' ? false : null),
     goal:(!variable && g('f-goal').value !== '') ? Math.abs(num(g('f-goal').value)) : null, reserved:cur.reserved ?? null, paid:cur.paid || [], topups:cur.topups || [], funds:variable ? (cur.funds || []) : [], closures:variable ? (cur.closures || []) : [],
-    lastDate:variable ? null : (g('f-last').value || null), note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null,
+    lastDate:variable ? null : (g('f-last').value || null), note:g('f-note').value.trim(), auto:cur.auto || null, forMember:cur.forMember || null, plan,
   };
+  if(plan) Object.assign(out, {amount:planAmounts(plan)[0], cycle:cycleOf('monthly'), months:null, startMonth:null, day:null, smooth:null, goal:null, lastDate:null, zero:false, envelope:false, funds:[], closures:[]});
+  return out;
 }
 function refreshLineForm(){
   const dlg = $('#dlg'); if(!dlg.open) return;
@@ -4896,6 +4943,14 @@ function refreshLineForm(){
   show('r-vartype', isDebit);
   ['r-cycle', 'r-prov', 'r-zero'].forEach(id => show(id, !variable));
   if(variable) ['r-custom', 'r-day', 'r-start', 'r-months', 'r-smooth'].forEach(id => show(id, false));
+  const planOn = isDebit && !variable && $('#f-planOn', dlg).checked;
+  show('r-planon', isDebit && !variable); show('r-plan', planOn);
+  if(planOn){
+    ['r-amount', 'r-cycle', 'r-prov', 'r-zero', 'r-vartype', 'r-smooth', 'r-months', 'r-day', 'r-start', 'r-custom'].forEach(id => show(id, false));
+    const box = $('#f-pdone', dlg), draft = {total:Math.abs(num($('#f-ptotal', dlg).value)), n:parseInt($('#f-pn', dlg).value) || 4, start:$('#f-pstart', dlg).value || isoOf(new Date()).slice(0, 7), fees:Math.abs(num($('#f-pfees', dlg).value))};
+    const sig = JSON.stringify([planAmounts(draft), draft.start]);
+    if(box.dataset.sig !== sig){ const keep = new Set($$('input:checked', box).map(i => +i.dataset.i)); box.dataset.sig = sig; box.innerHTML = draft.total > 0 ? planDoneHTML(draft, keep) : ''; }
+  }
   $('#f-vartext', dlg).textContent = variable ? 'Variable : une somme prévue pour le mois, que tu déclares au fil des dépenses (courses, essence…).' : 'Fixe : prélevée à une date précise (loyer, assurance…).';
   let split = '';
   if(on && l.split){
@@ -4903,7 +4958,7 @@ function refreshLineForm(){
     $('#f-splitsum', dlg).textContent = Math.abs(tot - 100) < 0.01 ? 'Total : 100 %' : `Total : ${Math.round(tot * 100) / 100} % (ramené à 100 %)`;
     if(l.amount > 0 && tot > 0) split = '<br>' + l.split.map(p => `${esc(p.accountId ? accName(p.accountId) : memberName(p.ownerId))} : <b>${money(l.amount * p.pct / tot)}</b>`).join(' · ') + ' à chaque échéance.';
   } else if(on) $('#f-splitsum', dlg).textContent = '';
-  $('#f-preview', dlg).innerHTML = (variable ? (l.amount > 0 ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à payer au fil des dépenses (bouton « Payer » dans la Synthèse).` : ((l.funds || []).length ? 'Enveloppe à <b>somme fixe</b> : aucune mensualité, la réserve sert jusqu’à épuisement. Fixe une mensualité pour la rendre mensuelle.' : 'Enveloppe : <b>mensualité à définir</b> (0 € pour l’instant). Tu peux la fixer plus tard.')) : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l)))) + split;
+  $('#f-preview', dlg).innerHTML = (variable ? (l.amount > 0 ? `Enveloppe : <b>${money(l.amount)}</b> prévus par mois, à payer au fil des dépenses (bouton « Payer » dans la Synthèse).` : ((l.funds || []).length ? 'Enveloppe à <b>somme fixe</b> : aucune mensualité, la réserve sert jusqu’à épuisement. Fixe une mensualité pour la rendre mensuelle.' : 'Enveloppe : <b>mensualité à définir</b> (0 € pour l’instant). Tu peux la fixer plus tard.')) : (l.plan ? previewText(lineSummary(l)) : (l.zero ? 'Montant nul à chaque échéance : la ligne reste suivie mais ne pèse pas sur le budget.' : previewText(lineSummary(l))))) + split;
 }
 function previewText(sum){
   switch(sum.mode){
@@ -4914,6 +4969,7 @@ function previewText(sum){
       return `<b>${money(sum.monthly)}</b> par mois, ${sum.months.length} mois sur 12 (${list}), soit <b>${money(sum.annual)}</b> par an. Les autres mois, cette ligne n’apparaît pas dans le budget.`;
     }
     case 'occurrence': return `<b>${money(sum.amount)}</b> à chaque échéance (${sum.cycle}), soit <b>${money(sum.annual)}</b> par an.`;
+    case 'plan': return `<b>${sum.n} échéances</b> de <b>${money(sum.first)}</b>${Math.abs(sum.last - sum.first) > 0.004 ? ` (la dernière : ${money(sum.last)})` : ''}, entre ${esc(planYM(sum.start, 0).toLowerCase())} et ${esc(planYM(sum.start, sum.n - 1).toLowerCase())}, soit <b>${money(sum.total)}</b> au total${sum.fees > 0 ? ` dont ${money(sum.fees)} de frais` : ''}. Un achat unique : cette ligne compte dans les mois concernés, pas dans la moyenne mensuelle ni le total annuel.`;
     default: return 'Renseigner le montant pour voir l’équivalent mensuel.';
   }
 }
