@@ -296,6 +296,7 @@ dialog::backdrop{background:rgba(10,25,24,.55)}
 .bankcard{display:grid;gap:14px;max-width:320px;margin:8px 0 10px;padding:14px 16px;border-radius:16px;color:#fff;background:linear-gradient(135deg,var(--brand),#2c3e50);box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .bankcard .bc-top{display:flex;justify-content:space-between;align-items:center}.bankcard .bc-name{font-weight:700;letter-spacing:.04em;text-transform:uppercase}.bankcard .bc-st{font-size:.8rem;opacity:.9}
 .bankcard.frozen{background:linear-gradient(135deg,#7b8794,#4b5563);filter:saturate(.6)}
+.ldate{font-weight:700;color:var(--brand)}.ldate.soon{color:var(--debit)}.ldate.late{color:#fff;background:var(--debit);border-radius:6px;padding:0 6px}.ldate.var{color:var(--muted);font-weight:600}
 .golink{cursor:pointer;border-radius:6px}.golink:hover span{text-decoration:underline;text-underline-offset:3px}.golink:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .catlines li.mv span{font-style:italic}
 .accbtn{appearance:none;background:none;border:0;padding:0;font:inherit;color:inherit;font-weight:700;text-align:left;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
@@ -1955,6 +1956,39 @@ function recalage(S, real, date, now){
 }
 /* Lignes concernées par le suivi de provision */
 function provisionCandidates(S){ return S.lines.filter(l => l.active && l.kind === 'debit' && (l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l)) && !l.zero); }
+/* Prochaine date de paiement d'une ligne, à partir d'aujourd'hui.
+   kind : 'exact' (jour connu), 'month' (mois seul), 'prov' (échéance d'une provision), 'plan' (prochaine échéance non payée),
+          'variable' (enveloppe), 'off' (désactivée), 'done' (terminée), 'none' (pas de date). late = date dépassée. key = date de tri. */
+function lineNextDate(l, now, clock){
+  now = now || new Date(); const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), nowIdx = t0.getFullYear() * 12 + t0.getMonth();
+  const none = kind => ({kind, date:null, key:null, precise:false, late:false});
+  if(!l.active) return none('off');
+  if(l.envelope) return none('variable');
+  if(!(l.amount > 0) && !l.zero) return none('none');
+  const monthOnly = (y, m, kind) => { const date = new Date(y, m - 1, 1), cur = (y * 12 + m - 1) === nowIdx; return {kind, date, key:cur ? t0 : date, precise:false, late:false}; };
+  if(l.plan){
+    const done = new Set(l.plan.done || []);
+    for(let i = 0; i < l.plan.n; i++){ if(done.has(i)) continue; const idx = planIdx(l.plan.start) + i, r = monthOnly(Math.floor(idx / 12), idx % 12 + 1, 'plan'); r.late = idx < nowIdx; r.i = i; r.n = l.plan.n; return r; }
+    return none('done');
+  }
+  if((l.goal != null || !isMonthlyExact(l)) && !(l.smooth === false && !isMonthlyExact(l)) && !l.zero && l.lastDate && clock){
+    const p = provisionLine(l, now, clock);
+    if(p.monthlyGoal && p.done) return none('done');
+    if(p.end) return {kind:'prov', date:p.end, key:p.end, precise:true, late:!p.monthlyGoal && p.end < t0};
+  }
+  let on = null;
+  const c = l.cycle;
+  if(isMonthlyExact(l)){ const ms = activeMonthsOf(l); on = m => ms.includes(m); }
+  else if(c.unit === 'month' && c.every > 1){ const s0 = l.startMonth || 1; on = m => (((m - s0) % c.every) + c.every) % c.every === 0; }
+  else if(c.unit === 'year' && c.every === 1 && l.startMonth){ on = m => m === l.startMonth; }
+  if(!on) return none('none');
+  for(let off = 0; off <= 13; off++){
+    const dt = new Date(t0.getFullYear(), t0.getMonth() + off, 1), y = dt.getFullYear(), m = dt.getMonth() + 1; if(!on(m)) continue;
+    if(l.day){ const date = new Date(y, m - 1, Math.min(l.day, dimOf(y, m))); if(date < t0) continue; return {kind:'exact', date, key:date, precise:true, late:false}; }
+    return monthOnly(y, m, 'month');
+  }
+  return none('none');
+}
 /* Vue compacte pour l'onglet Provisions */
 function provisionInfo(l, now, clock){
   const p = provisionLine(l, now, clock);
@@ -2305,7 +2339,7 @@ function mergeStates(base, mine, theirs, choices){
   return {merged:result, conflicts};
 }
 
-if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember, kidBankAllowed, kidCardPay, kidCardMonthSpent, planAmounts, planIndexIn, normPlan};
+if(typeof module !== 'undefined') module.exports = {stateKey, describeDiff, logAppend, mergeStates, sameJson, computeMonth, distribute, levelShares, normalize, buildTemplate, annualTotal, amountInMonth, cycleOf, presetIdOf, syncAllPockets, setSalary, newLine, ensureCategory, emptyState, uid, lineSummary, monthlyAverage, isMonthlyExact, activeMonthsOf, smoothOf, provisionCandidates, provisionInfo, provisionLine, provisionSummary, provisionClock, projectProvisions, computeAdvice, advNorm, linePartsOf, commonFraction, syncPocket, buildHousehold, fillTemplate, envelopeStats, envelopeCandidates, spentIn, addSpend, potTotal, potAdd, payPartial, payFinal, recalage, SKINS, SKIN_DARK_ONLY, SKIN_LIGHT_ONLY, KID_SKIN_DEFAULTS, KID_WHO, kidDefaultSkin, MASCOT_IDS, KID_JARS, KID_BADGES, KID_RANKS, kidDefaults, normKid, ensureKid, kidJars, kidTotal, kidFree, kidAllowanceAmount, kidSplitAmount, kidDueDates, kidCredit, kidRunAllowance, kidSpend, kidGive, kidAddGoal, kidPct, kidAllocate, kidBuy, kidDeleteGoal, kidSavePace, kidGoalEta, kidCountCoins, kidSavedEver, kidRank, kidStreak, kidBadges, kidMonth, isoOf, kidBoostLeft, kidBoostUsed, kidSaveBalanceAt, kidRunInterest, kidAddWish, kidWishInfo, kidDecideWish, kidRunWishes, kidAvoided, KID_CHALLENGES, kidChallengeDef, kidActiveChallenge, kidStartChallenge, kidChallengeState, kidRunChallenges, kidDismissNews, kidPushNews, kidReport, kidTalk, envelopeFund, envelopeAddFund, envelopeClosable, envelopeClose, envelopeUnclose, envelopeReturnToPot, buildDemoHousehold, DEMO_AMOUNTS, KID_ENV_CATS, KID_ENV_LABEL, kidEnvOn, kidSubsMonthly, kidAddSub, kidRunSubs, kidEnvStats, kidMonthlyIncome, simSavings, simSub, simPerUse, kidBulletin, seedFirstBudget, KID_LESSONS, KID_ACC, kidLessonsFor, kidLessonsDone, kidAnswerLesson, kidAccessories, kidEquip, kidAge, kidSetAge, kidSyncLevel, kidStage, kidLevelFromAge, kidMascotSize, kidSkinFor, KID_AGE_MIN, KID_AGE_MAX, buildKidSpace, exportKidFile, mergeKid, importKidInto, newKidMember, kidBankAllowed, kidCardPay, kidCardMonthSpent, planAmounts, planIndexIn, normPlan, lineNextDate};
 
 </script>
 <script>
@@ -2323,7 +2357,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.31', APP_DATE = '19 octobre 2026', APP_BUILD = '52b02d';
+const APP_VERSION = '2.32', APP_DATE = '22 octobre 2026', APP_BUILD = '590203';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2957,7 +2991,7 @@ function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHT
 
 /* ---------- Rendu ---------- */
 const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
-const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['foyer','Foyer'],['provisions','Provisions'],['reglages','Réglages']];
+const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['provisions','Provisions'],['foyer','Foyer'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
   if(S && (U.prevId !== S.id || U.prev == null)){ U.prev = stateKey(S); U.prevId = S.id; }
@@ -4590,6 +4624,7 @@ function viewBudget(){
       <select class="inp" id="flt-owner" style="width:auto" aria-label="Filtrer par propriétaire">${owners.map(([v,l]) => `<option value="${esc(v)}" ${U.owner===v?'selected':''}>${esc(l)}</option>`).join('')}</select>
       <select class="inp" id="flt-kind" style="width:auto" aria-label="Filtrer par type"><option value="all" ${U.kind==='all'?'selected':''}>Débits et crédits</option><option value="debit" ${U.kind==='debit'?'selected':''}>Débits</option><option value="credit" ${U.kind==='credit'?'selected':''}>Crédits</option></select>
       <button class="chip" data-act="todo" aria-pressed="${U.todo}">À compléter (${todoCount})</button>
+      <div class="chips" role="group" aria-label="Tri"><button class="chip" data-act="sort" data-v="cat" aria-pressed="${U.sort !== 'date'}">Catégories</button><button class="chip" data-act="sort" data-v="date" aria-pressed="${U.sort === 'date'}">Dates</button></div>
       <button class="btn primary" data-act="add-line">Ajouter une ligne</button>
     </section>
     <div id="clearbar">${clearBarHTML()}</div>
@@ -4601,11 +4636,13 @@ function clearBarHTML(){
 }
 function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.innerHTML = listHTML(); if(c) c.innerHTML = clearBarHTML(); const t = $('[data-act=todo]'); if(t) t.setAttribute('aria-pressed', U.todo); }
 function listHTML(){
+  NX_CLK = provisionClock(S);
   const q = U.q.trim().toLowerCase(), filtering = activeFilters() > 0;
   const match = l => (U.owner === 'all' || lineOwners(l).includes(U.owner)) && (U.kind === 'all' || l.kind === U.kind) && (!U.cat || U.cat === 'all' || l.catId === U.cat) &&
     (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   ENV_CAND = new Set(envelopeCandidates(S).map(l => l.id));
+  if(U.sort === 'date') return dateListHTML(match, filtering);
   byName(S.categories).forEach(c => {
     const all = S.lines.filter(l => l.catId === c.id), lines = all.filter(match);
     if(filtering && !lines.length) return;
@@ -4615,12 +4652,32 @@ function listHTML(){
     html += `<section class="catbox"><div class="cathead"><button class="tog" data-act="toggle-cat" data-id="${c.id}" aria-expanded="${open}"><span class="sw-dot" style="background:${esc(c.color)}"></span>${esc(c.name)} <span class="muted" style="font-weight:500">(${lines.length})</span></button>
       <span class="tot ${net<0?'debit':net>0?'credit':''}">${net ? money(net) + '/mois' : ''}</span>
       <button class="btn small" data-act="add-line" data-cat="${c.id}" aria-label="Ajouter une ligne dans ${esc(c.name)}">＋</button></div>
-      ${open ? (lines.length ? lines.map(lineRow).join('') : '<p class="empty">Aucune ligne dans cette catégorie.</p>') : ''}</section>`;
+      ${open ? (lines.length ? lines.map(x => lineRow(x)).join('') : '<p class="empty">Aucune ligne dans cette catégorie.</p>') : ''}</section>`;
   });
   if(!S.categories.length) html = '<p class="empty">Aucune catégorie : en créer dans Réglages.</p>';
   if(filtering && !shown) html = '<p class="empty">Aucune ligne ne correspond aux filtres.</p>';
   else if(filtering) html += `<p class="note">Lignes affichées : débits ${money(sumD)} par mois, crédits ${money(sumC)} par mois (moyennes lissées, hors paiements en plusieurs fois).</p>`;
   return html;
+}
+function dateListHTML(match, filtering){
+  const items = S.lines.filter(match).map(l => ({l, ni:nextInfo(l)}));
+  if(!items.length) return filtering ? '<p class="empty">Aucune ligne ne correspond aux filtres.</p>' : '<p class="empty">Aucune ligne.</p>';
+  const occ = ({l, ni}) => (l.kind === 'credit' ? 1 : -1) * (ni.nx.kind === 'plan' ? l.amount : (l.goal != null ? l.goal : l.amount * (l.cycle.times || 1)));
+  const byKey = (a, b) => a.ni.nx.key - b.ni.nx.key || a.l.name.localeCompare(b.l.name, 'fr');
+  const sect = (title, arr, withTot) => {
+    if(!arr.length) return '';
+    const net = arr.reduce((a, x) => a + occ(x), 0);
+    return `<section class="catbox"><div class="cathead"><span class="tog" style="cursor:default"><b>${esc(title)}</b> <span class="muted" style="font-weight:500">(${arr.length})</span></span>${withTot ? `<span class="tot ${net < 0 ? 'debit' : net > 0 ? 'credit' : ''}">${money(net)}</span>` : ''}</div>${arr.map(x => lineRow(x.l, true)).join('')}</section>`;
+  };
+  const dated = items.filter(x => x.ni.nx.date && x.l.active).sort(byKey), late = dated.filter(x => x.ni.nx.late);
+  const groups = {}; dated.filter(x => !x.ni.nx.late).forEach(x => { const d = x.ni.nx.date, k = d.getFullYear() * 12 + d.getMonth(); (groups[k] = groups[k] || []).push(x); });
+  let html = sect('En retard', late, true);
+  Object.keys(groups).map(Number).sort((a, b) => a - b).forEach(k => { html += sect(cap(MONTHS[k % 12]) + ' ' + Math.floor(k / 12), groups[k], true); });
+  html += sect('Variables, sans date fixe', items.filter(x => x.l.active && x.ni.nx.kind === 'variable').sort(byKey), false);
+  html += sect('Sans date précise', items.filter(x => x.l.active && !x.ni.nx.date && !['variable', 'done'].includes(x.ni.nx.kind)).sort(byKey), false);
+  html += sect('Terminées', items.filter(x => x.l.active && x.ni.nx.kind === 'done'), false);
+  html += sect('Désactivées', items.filter(x => !x.l.active).sort(byKey), false);
+  return html + `<p class="note">Triées de la plus proche à la plus éloignée à partir d’aujourd’hui. Pour une provision, la date est son échéance prévue. Total d’un mois : montant de chaque échéance, hors lissage.</p>`;
 }
 function summaryNote(sum){
   switch(sum.mode){
@@ -4638,18 +4695,33 @@ function splitText(l){
   return l.split.map(p => `${Math.round(p.pct * 100 / tot)} % ${p.accountId ? accName(p.accountId) : memberName(p.ownerId)}`).join(' · ');
 }
 let ENV_CAND = new Set();
-function lineRow(l){
+function nextInfo(l){
+  const nx = lineNextDate(l, new Date(), NX_CLK || provisionClock(S)); let txt = '', cls = '';
+  if(nx.kind === 'variable') return {nx, txt:'Variable', cls:'var'};
+  if(!nx.date) return {nx, txt:'', cls:''};
+  const d = nx.date, yr = d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '', mo = MONTHS_SHORT[d.getMonth()];
+  const when = nx.precise ? `${d.getDate()} ${mo}${yr}` : `${mo}${yr}`;
+  if(nx.late){ txt = `En retard · ${when}`; cls = 'late'; }
+  else {
+    txt = nx.kind === 'prov' ? `Échéance ${when}` : nx.kind === 'plan' ? `Échéance ${nx.i + 1}/${nx.n} · ${when}` : nx.kind === 'month' ? `En ${when}` : when;
+    const days = (nx.key - new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())) / 864e5; if(nx.precise && days <= 7) cls = 'soon';
+  }
+  return {nx, txt, cls};
+}
+let NX_CLK = null;
+function lineRow(l, showCat){
   const c = l.cycle, parts = Array.isArray(l.split) && l.split.length > 1;
   const metas = [l.plan ? '' : cycleLabel(c) + (l.day && c.unit !== 'day' && c.unit !== 'week' ? `, le ${l.day}` : ''), methodLabel(l.method),
     parts ? splitText(l) : (l.accountId ? accName(l.accountId) : ''), !parts && l.ownerId !== 'common' ? memberName(l.ownerId) : '',
     l.zero ? 'montant nul à chaque échéance' : '', l.envelope ? 'enveloppe' : '', l.plan ? `en ${l.plan.n} fois · ${planYM(l.plan.start, 0).toLowerCase()} → ${planYM(l.plan.start, l.plan.n - 1).toLowerCase()}` : '', l.auto === 'pocket' ? 'géré dans Foyer' : '']
     .filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('') + (ENV_CAND.has(l.id) ? `<button type="button" class="linklike" data-act="env-convert" data-id="${esc(l.id)}">Suivre au fil du mois</button>` : '');
+  const ni = nextInfo(l), dateChip = ni.txt ? `<span class="ldate ${ni.cls}">${esc(ni.txt)}</span>` : '';
   const empty = l.amount === 0 && !l.zero && !l.envelope, tbd = l.amount === 0 && !!l.envelope, fixedL = tbd && (l.funds || []).length > 0, sum = (l.amount === 0 || !l.active) ? null : lineSummary(l);
   return `<div class="line ${l.active?'':'off'}" data-act="edit-line" data-id="${l.id}" role="button" tabindex="0" aria-label="Modifier ${esc(l.name)}">
     <label class="sw" title="Inclure dans le calcul"><input type="checkbox" data-b="line:${l.id}:active" ${l.active?'checked':''} aria-label="Inclure ${esc(l.name)} dans le calcul"></label>
     <div class="lmain"><span class="lname">${esc(l.name)}</span><i class="dots"></i></div>
     <div class="amt"><b class="${empty ? 'todo' : (tbd ? 'tbd' : l.kind)}">${empty ? 'à renseigner' : (tbd ? (fixedL ? 'sans mensualité' : 'à définir') : (l.zero ? money(0) : signed(l.kind, l.amount)))}</b>${sum ? `<small>${summaryNote(sum)}</small>` : ''}</div>
-    <div class="meta">${metas}</div></div>`;
+    <div class="meta">${dateChip}${showCat ? `<span>${esc(catById(l.catId).name)}</span>` : ''}${metas}</div></div>`;
 }
 
 /* ----- Foyer ----- */
@@ -5120,6 +5192,7 @@ document.addEventListener('click', async e => {
       openLine(null, ideaCat(idea), {name:idea.name, amount:idea.amount, cycle:{...idea.cycle}, method:idea.method, kind:'debit', note: idea.life ? `Durée de vie estimée : ${idea.life}.` : ''});
       break; }
     case 'ideas-all': U.ideasAll = !U.ideasAll; render(); break;
+    case 'sort': U.sort = t.dataset.v === 'date' ? 'date' : 'cat'; render(); break;
     case 'acc-open': U.openAcc = (U.openAcc === id) ? null : id; render(); break;
     case 'goto-line': gotoLine(id); break;
     case 'back-synth': U.tab = 'synthese'; U.back = null; U.pq = ''; render(); window.scrollTo(0, 0); break;
