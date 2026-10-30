@@ -2076,16 +2076,16 @@ function provisionSummary(S, now){
     const cf = commonFraction(l, S); if(!(cf > 0)) return;
     const v = amountInMonth(l, curM) * cf; if(!(v > 0) && !env) return;
     const spread = !l.day || l.method === 'cb' || l.method === 'especes' || l.cycle.unit === 'day' || l.cycle.unit === 'week';
-    let spentEff = 0, closedEff = 0;
+    let spentEff = 0, closedEff = 0, closedPotEff = 0;
     if(env){
       const sp = spentIn(S, l.id, curY, curM, dayJ), F = envelopeFund(S, l, curY, curM), draw = Math.min(sp, F.draw);
-      spentEff = (sp - draw) * cf; envReserve += F.potLeft * cf; closedEff = envClosuresOf(S, l, `${curY}-${pad2(curM)}`).reduce((a, c) => a + c.amount, 0) * cf;   // la réserve issue de la cagnotte reste de l'argent du compte : on la garde dans l'état
+      spentEff = (sp - draw) * cf; envReserve += F.potLeft * cf; const CLs = envClosuresOf(S, l, `${curY}-${pad2(curM)}`); closedEff = CLs.reduce((a, c) => a + c.amount, 0) * cf; closedPotEff = CLs.filter(c => c.to === 'pot').reduce((a, c) => a + c.amount, 0) * cf;   // la réserve issue de la cagnotte reste de l'argent du compte : on la garde dans l'état
     }
-    mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread, env, spent:spentEff, closed:closedEff});
+    mlines.push({name:l.name, v, sign:l.kind === 'credit' ? 1 : -1, day:spread ? null : Math.min(l.day, dimM), spread, env, spent:spentEff, closed:closedEff, closedPot:closedPotEff});
   });
   let execDeb = 0, execCr = 0, remD = 0, remC = 0, envOver = 0;
   mlines.forEach(x => {
-    const done = x.env ? x.spent : (x.spread ? x.v * Math.min(dayJ, dimM) / dimM : (x.day <= dayJ ? x.v : 0));
+    const done = x.env ? x.spent + (x.closedPot || 0) : (x.spread ? x.v * Math.min(dayJ, dimM) / dimM : (x.day <= dayJ ? x.v : 0));
     const rem = x.env ? Math.max(0, x.v - x.spent - (x.closed || 0)) : (x.v - done);
     if(x.env) envOver += Math.max(0, x.spent - x.v);
     if(x.sign < 0){ execDeb += done; remD += rem; } else { execCr += done; remC += rem; }
@@ -2361,7 +2361,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.36', APP_DATE = '31 octobre 2026', APP_BUILD = 'ca88f7';
+const APP_VERSION = '2.37', APP_DATE = '31 octobre 2026', APP_BUILD = '6dedda';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
