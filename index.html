@@ -2361,7 +2361,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.35', APP_DATE = '31 octobre 2026', APP_BUILD = 'd705e2';
+const APP_VERSION = '2.36', APP_DATE = '31 octobre 2026', APP_BUILD = 'ca88f7';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3087,7 +3087,7 @@ function payConsequence(){
   }
   if(mode === 'partial'){
     const left = Math.max(0, p.toPay - amt);
-    return left > 0.005 ? `Il restera <b>${money(left)}</b> à payer sur ${money(p.goal)} prévus. Tu pourras compléter plus tard.` : `Le montant couvre déjà tout ce qui restait : choisis plutôt « Paiement final ».`;
+    return left > 0.005 ? `Il restera <b>${money(left)}</b> à payer sur ${money(p.goal)} prévus. Tu pourras compléter plus tard. <span class="muted">Payé moins cher que prévu ? Choisis « Solder » : ${money(left)} iront dans la cagnotte.</span>` : `Le montant couvre déjà tout ce qui restait : choisis plutôt « Paiement final ».`;
   }
   const delta = p.gross - (p.paid + amt), cv = payCover();
   if(p.noStart) return 'La dépense est soldée et le suivi démarre à la date du paiement.';
@@ -3109,7 +3109,7 @@ function openPay(lineId){
   dlg.innerHTML = dlgShell(`Paiement · ${esc(l.name)}`, `<p class="envmini">Prévu ${money(p.goal)}${p.paid > 0 ? ` · déjà payé ${money(p.paid)} · reste ${money(p.toPay)}` : ''}${p.noStart ? '' : ` · provisionné ${money(p.gross)}`}</p>
     <label class="field">Montant payé<input class="inp bigamt" id="py-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${dflt || ''}" enterkeyhint="done"></label>
     <div class="grid2"><label class="field">Date<input class="inp" id="py-date" type="date" value="${isoToday()}"></label><label class="field">Note (facultatif)<input class="inp" id="py-note" placeholder="Ex. photo du fils" autocomplete="off" enterkeyhint="done"></label></div>
-    <div class="field">Ce paiement est<div class="seg" role="radiogroup" aria-label="Type de paiement"><label><input type="radio" name="py-mode" value="partial">Partiel</label><label><input type="radio" name="py-mode" value="final" checked>Final</label></div></div>
+    <div class="field">Ce paiement est<div class="seg" role="radiogroup" aria-label="Type de paiement"><label><input type="radio" name="py-mode" value="partial">Partiel : il reste à payer</label><label><input type="radio" name="py-mode" value="final" checked>Solder : l’écart va dans la cagnotte</label></div></div>
     <div class="field" id="py-rest-box" hidden>Le reste à payer<div class="seg" role="radiogroup" aria-label="Le reste à payer"><label><input type="radio" name="py-rest" value="later" checked>Plus tard</label><label><input type="radio" name="py-rest" value="pocket">De ma poche, solder</label></div></div>
     <div class="field" id="py-cover-box" hidden>Le dépassement est complété<div class="seg" role="radiogroup" aria-label="Origine du complément"><label><input type="radio" name="py-cover" value="pocket" checked>De ma poche</label><label><input type="radio" name="py-cover" value="pot">Par la cagnotte</label></div></div>
     <div class="preview" id="py-info" aria-live="polite"></div>${hist}${(l.topups || []).length ? `<h3 class="who">Compléments de ta poche</h3><ul class="leaders">${l.topups.map(x => `<li><span>${fmtShort(x.date)}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></li>`).join('')}</ul>` : ''}`,
@@ -3120,7 +3120,7 @@ function paySync(fromAmount){
   const c = U.payCtx; if(!c) return;
   if(fromAmount && !c.modeTouched){   // tant que l'utilisateur n'a pas choisi, un montant inférieur au reste suggère « partiel »
     const info = payInfo(c.lineId, $('#py-date').value), amt = Math.abs(num($('#py-amount').value));
-    const r = $(`input[name=py-mode][value=${info && amt > 0 && amt < info.p.toPay - 0.005 ? 'partial' : 'final'}]`); if(r) r.checked = true;
+    const r = $(`input[name=py-mode][value=${info && amt > 0 && amt < info.p.toPay * 0.9 - 0.005 ? 'partial' : 'final'}]`); if(r) r.checked = true;
   }
   payCoverShow(); $('#py-info').innerHTML = payConsequence();
 }
