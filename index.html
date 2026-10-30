@@ -428,6 +428,7 @@ details.method[open] summary{margin-bottom:6px}
 .env-bar i.ok{background:var(--brand)} .env-bar i.warn{background:var(--amber)} .env-bar i.bad{background:var(--debit)}
 .env-sub{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;color:var(--muted)}
 .env-plus{min-width:44px;height:44px;padding:0 16px;font-size:.95rem;font-weight:700;border-radius:22px;border-color:var(--brand);color:var(--brand)}
+.env-done{min-width:44px;height:44px;display:inline-flex;align-items:center;padding:0 14px;font-size:.85rem;font-weight:700;border-radius:22px;border:1px dashed var(--line);color:var(--muted)}
 .env-plus:hover{background:var(--brand);color:var(--on-brand)}
 .envtotal{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px;margin-top:2px;font-weight:700;font-size:.92rem}
 .envguide{background:var(--surface2);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:grid;gap:8px}
@@ -1772,7 +1773,7 @@ function envelopeStats(S, y, m, now){
     const CL = envClosuresOf(S, l, `${y}-${pad2(m)}`), closed = Math.round(CL.reduce((a, c) => a + c.amount, 0) * 100) / 100, closedTo = CL.length && CL.every(c => c.to === 'pot') ? 'pot' : (CL.length && CL.every(c => c.to !== 'pot') ? 'reserve' : 'mixed');
     const avail = Math.round((planned + F.before - closed) * 100) / 100;   // somme réellement disponible : le reste clôturé n'en fait plus partie
     const left = Math.max(0, Math.round((avail - spent) * 100) / 100), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, hasFund = (l.funds || []).length > 0, noMonthly = !(l.amount > 0), fixed = noMonthly && hasFund, tbd = noMonthly && !hasFund;   // fixed : somme fixe (0 € + réserve) ; tbd : mensualité encore inconnue (0 € sans réserve)
-    return {id:l.id, name:l.name, planned, spent, avail, left, closed, closedTo, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund, tbd, fixed,
+    return {id:l.id, name:l.name, planned, spent, avail, left, closed, closedTo, done:closed > 0.004 && left < 0.005 && spent <= avail + 0.005, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund, tbd, fixed,
       pct:avail > 0 ? spent / avail : (spent > 0 ? 1 : 0), perDay:daysLeft > 0 && planned > 0 ? left / daysLeft : 0, elapsed:dim ? dayJ / dim : 0};
   });
   const sum = f => items.reduce((a, x) => a + f(x), 0);
@@ -2360,7 +2361,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.34', APP_DATE = '31 octobre 2026', APP_BUILD = '8f3abc';
+const APP_VERSION = '2.35', APP_DATE = '31 octobre 2026', APP_BUILD = 'd705e2';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3416,7 +3417,7 @@ function envelopeCardHTML(){
         <span class="env-top"><b>${esc(x.name)}</b><span class="env-amt">${amt}</span></span>
         <span class="env-bar" role="img" aria-label="${w} % dépensé"><i class="${envBarClass(x)}" style="width:${w}%"></i></span>
         <span class="env-sub">${sub}</span>${res}</button>
-      <button type="button" class="btn env-plus" data-act="env-add" data-id="${esc(x.id)}" aria-label="Payer : ${esc(x.name)}">Payer</button></div>`;
+      ${x.done ? `<span class="env-done" title="Reste clôturé : annule la clôture pour noter une dépense">Clôturée</span>` : `<button type="button" class="btn env-plus" data-act="env-add" data-id="${esc(x.id)}" aria-label="Payer : ${esc(x.name)}">Payer</button>`}</div>`;
   }).join('');
   const total = E.items.length > 1 ? `<div class="envtotal"><span>Total : ${money(E.spent)} sur ${money(E.avail)}</span>${E.over > 0.005 ? `<span class="debit">Dépassement +${money(E.over)}</span>` : ''}</div>` : '';
   const empty = !E.items.length && !showGuide ? `<p class="hint">Aucune enveloppe pour l’instant. Une enveloppe est une somme prévue pour le mois (courses, essence…), que tu déclares au fil des achats.</p>` : '';
@@ -3466,7 +3467,7 @@ function openEnvelope(lineId){
     ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Payer » pour noter un achat.</p>'}
     ${(() => { const cl = (l.closures || []).filter(c => envClosuresOf(S, l, c.ym).some(z => z.id === c.id)).sort((a, b) => b.ym.localeCompare(a.ym)); return cl.length ? `<h3 class="who">Restes clôturés</h3><ul class="leaders spendlist">${cl.map(c => `<li><span class="spend-row fixed"><span>${MONTHS[+c.ym.slice(5) - 1]} ${c.ym.slice(0, 4)} <small>${c.to === 'pot' ? 'versé à la cagnotte' : 'reporté dans la réserve'}</small></span><i class="dots"></i><b>${money(c.amount)}</b><button type="button" class="btn small ghost" data-act="env-unclose" data-id="${esc(c.id)}" data-line="${esc(lineId)}" aria-label="Annuler la clôture de ${MONTHS[+c.ym.slice(5) - 1]}">Annuler</button></span></li>`).join('')}</ul>` : ''; })()}
     ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.label ? esc(f.label) : f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
-    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Mettre de côté</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button><button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Payer</button></div>`);
+    `<div class="envfoot"><button type="button" class="btn" data-act="env-edit-line" data-id="${esc(lineId)}">Modifier l’enveloppe</button><button type="button" class="btn" data-act="env-fund" data-id="${esc(lineId)}">Mettre de côté</button>${(() => { const C = envelopeClosable(S, l, y, m), ok = y * 12 + m <= new Date().getFullYear() * 12 + new Date().getMonth() + 1; return ok && C.amount > 0.004 ? `<button type="button" class="btn primary" data-act="env-close" data-id="${esc(lineId)}">Clôturer ${MONTHS[m - 1]} (${money(C.amount)})</button>` : ''; })()}${it.potLeft > 0.004 ? `<button type="button" class="btn" data-act="env-return" data-id="${esc(lineId)}">Remettre ${money(it.potLeft)} dans la cagnotte</button>` : ''}</div><div class="r"><button type="button" class="btn" data-act="close-dlg">Fermer</button>${it.done ? '' : `<button type="button" class="btn primary" data-act="env-add" data-id="${esc(lineId)}">Payer</button>`}</div>`);
   dlg.showModal();
 }
 /* Choix de l'origine d'une somme : cagnotte ou non */
