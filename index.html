@@ -1768,8 +1768,9 @@ function envelopeStats(S, y, m, now){
   const dayJ = isCur ? now.getDate() : (past ? dim : 0);
   const items = S.lines.filter(l => l.active && l.envelope && l.kind === 'debit').map(l => {
     const planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m), F = envelopeFund(S, l, y, m), avail = planned + F.before;
-    const left = Math.max(0, avail - spent), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, hasFund = (l.funds || []).length > 0, noMonthly = !(l.amount > 0), fixed = noMonthly && hasFund, tbd = noMonthly && !hasFund;   // fixed : somme fixe (0 € + réserve) ; tbd : mensualité encore inconnue (0 € sans réserve)
-    return {id:l.id, name:l.name, planned, spent, avail, left, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund, tbd, fixed,
+    const CL = envClosuresOf(S, l, `${y}-${pad2(m)}`), closed = Math.round(CL.reduce((a, c) => a + c.amount, 0) * 100) / 100, closedTo = CL.length && CL.every(c => c.to === 'pot') ? 'pot' : (CL.length && CL.every(c => c.to !== 'pot') ? 'reserve' : 'mixed');
+    const left = Math.max(0, Math.round((avail - spent - closed) * 100) / 100), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, hasFund = (l.funds || []).length > 0, noMonthly = !(l.amount > 0), fixed = noMonthly && hasFund, tbd = noMonthly && !hasFund;   // fixed : somme fixe (0 € + réserve) ; tbd : mensualité encore inconnue (0 € sans réserve)
+    return {id:l.id, name:l.name, planned, spent, avail, left, closed, closedTo, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund, tbd, fixed,
       pct:avail > 0 ? spent / avail : (spent > 0 ? 1 : 0), perDay:daysLeft > 0 && planned > 0 ? left / daysLeft : 0, elapsed:dim ? dayJ / dim : 0};
   });
   const sum = f => items.reduce((a, x) => a + f(x), 0);
@@ -2357,7 +2358,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.32', APP_DATE = '22 octobre 2026', APP_BUILD = '590203';
+const APP_VERSION = '2.33', APP_DATE = '30 octobre 2026', APP_BUILD = '60de40';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3406,7 +3407,7 @@ function envelopeCardHTML(){
     const w = Math.min(100, Math.round(x.pct * 100)), idle = x.tbd && !(x.spent > 0);
     const sub = idle ? `<span class="tbdnote">Mensualité à définir</span>`
       : (x.fixed ? (x.over > 0.005 ? `<span class="debit">Réserve épuisée · dépassement +${money(x.over)}</span>` : `<span>Il reste ${money(x.left)} sur la réserve</span>`)
-      : (x.over > 0.005 ? `<span class="debit">Dépassement +${money(x.over)}</span>` : `<span>Reste ${money(x.left)}${E.isCur && x.perDay > 0 ? ` · ≈ ${money(x.perDay)} par jour` : ''}</span>`));
+      : (x.over > 0.005 ? `<span class="debit">Dépassement +${money(x.over)}</span>` : `<span>Reste ${money(x.left)}${E.isCur && x.perDay > 0 && !x.closed ? ` · ≈ ${money(x.perDay)} par jour` : ''}${x.closed > 0.004 ? ` · <b>clôturé</b> : ${money(x.closed)} ${x.closedTo === 'pot' ? 'versés à la cagnotte' : (x.closedTo === 'reserve' ? 'reportés en réserve' : 'placés')}` : ''}</span>`));
     const res = !x.fixed && (x.fundBefore > 0.005 || x.fundAfter > 0.005) ? `<span class="env-res">dont réserve ${money(x.fundBefore)} · il en reste ${money(x.fundAfter)}</span>` : '';
     const amt = x.fixed ? `${money(x.spent)} <small>dépensé</small>` : `${money(x.spent)} <small>sur ${money(x.avail)}</small>`;
     return `<div class="envrow"><button type="button" class="env-main" data-act="env-open" data-id="${esc(x.id)}" aria-label="Voir les dépenses : ${esc(x.name)}">
@@ -3431,7 +3432,7 @@ function openSpend(lineId, spendId){
   const E = envelopeStats(S, y, m), it = E.items.find(x => x.id === lineId);
   const dflt = (y === new Date().getFullYear() && m === new Date().getMonth() + 1) ? isoToday() : `${y}-${String(m).padStart(2, '0')}-01`;
   U.spendCtx = {lineId, spendId:spendId || null};
-  const mini = it ? `<p class="envmini">${money(it.spent)} dépensés sur ${money(it.planned)} · ${it.over > 0.005 ? `<span class="debit">dépassement +${money(it.over)}</span>` : `reste ${money(it.left)}`}</p>` : '';
+  const mini = it ? `<p class="envmini">${money(it.spent)} dépensés sur ${money(it.planned)} · ${it.over > 0.005 ? `<span class="debit">dépassement +${money(it.over)}</span>` : `reste ${money(it.left)}${it.closed > 0.004 ? ' (clôturé)' : ''}`}</p>` : '';
   const dlg = $('#dlg'); U.editing = null;
   dlg.innerHTML = dlgShell(`${sp ? 'Modifier la dépense' : 'Payer'} · ${esc(l.name)}`, `${mini}
     <label class="field">Montant<input class="inp bigamt" id="sp-amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00" value="${sp ? sp.amount : ''}" enterkeyhint="done"></label>
@@ -3459,7 +3460,7 @@ function openEnvelope(lineId){
   const funds = (l.funds || []).slice().sort((a, b) => b.date.localeCompare(a.date));
   const dlg = $('#dlg'); U.editing = null; U.spendCtx = null;
   dlg.innerHTML = dlgShell(`${esc(l.name)} · ${MONTHS[m - 1]}`, `<dl class="legend"><div><dt>Mensualité</dt><dd>${it.fixed ? 'aucune (somme fixe)' : (it.tbd ? 'à définir' : money(it.planned))}</dd></div>${it.fundBefore > 0.005 || it.fundAfter > 0.005 ? `<div><dt>Réserve en début de mois ${H('env-reserve')}</dt><dd>${money(it.fundBefore)}</dd></div>` : ''}<div><dt>Dépensé</dt><dd>${money(it.spent)}</dd></div>
-      ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}${it.fundAfter > 0.005 ? `<div><dt>Réserve restante</dt><dd>${money(it.fundAfter)}</dd></div>` : ''}</dl>
+      ${it.over > 0.005 ? `<div><dt>Dépassement</dt><dd class="debit">+${money(it.over)}</dd></div>` : `<div><dt>Reste</dt><dd>${money(it.left)}</dd></div>`}${it.closed > 0.004 ? `<div><dt>Clôturé</dt><dd>${money(it.closed)} ${it.closedTo === 'pot' ? '→ cagnotte' : (it.closedTo === 'reserve' ? '→ réserve du mois suivant' : '')}</dd></div>` : ''}${it.fundAfter > 0.005 ? `<div><dt>Réserve restante</dt><dd>${money(it.fundAfter)}</dd></div>` : ''}</dl>
     ${list.length ? `<ul class="leaders spendlist">${list.map(x => `<li><button type="button" class="spend-row" data-act="spend-edit" data-id="${esc(x.id)}" aria-label="Modifier la dépense du ${esc(x.date)}"><span>${new Date(x.date + 'T00:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'short'})}${x.note ? ` <small>${esc(x.note)}</small>` : ''}</span><i class="dots"></i><b>${money(x.amount)}</b></button></li>`).join('')}</ul>` : '<p class="hint">Aucune dépense déclarée ce mois-ci. Appuie sur « Payer » pour noter un achat.</p>'}
     ${(() => { const cl = (l.closures || []).filter(c => envClosuresOf(S, l, c.ym).some(z => z.id === c.id)).sort((a, b) => b.ym.localeCompare(a.ym)); return cl.length ? `<h3 class="who">Restes clôturés</h3><ul class="leaders spendlist">${cl.map(c => `<li><span class="spend-row fixed"><span>${MONTHS[+c.ym.slice(5) - 1]} ${c.ym.slice(0, 4)} <small>${c.to === 'pot' ? 'versé à la cagnotte' : 'reporté dans la réserve'}</small></span><i class="dots"></i><b>${money(c.amount)}</b><button type="button" class="btn small ghost" data-act="env-unclose" data-id="${esc(c.id)}" data-line="${esc(lineId)}" aria-label="Annuler la clôture de ${MONTHS[+c.ym.slice(5) - 1]}">Annuler</button></span></li>`).join('')}</ul>` : ''; })()}
     ${funds.length ? `<h3 class="who">Sommes mises de côté</h3><ul class="leaders spendlist">${funds.map(f => `<li><span class="spend-row fixed"><span>${fmtShort(f.date)} <small>${f.label ? esc(f.label) : f.amount < 0 ? 'Remis dans la cagnotte' : (f.from === 'pot' ? 'Prise dans la cagnotte' : 'Hors cagnotte')}</small></span><i class="dots"></i><b class="${f.amount < 0 ? 'debit' : 'credit'}">${potSigned(f.amount)}</b></span></li>`).join('')}</ul>` : ''}`,
@@ -4637,9 +4638,9 @@ function clearBarHTML(){
 function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.innerHTML = listHTML(); if(c) c.innerHTML = clearBarHTML(); const t = $('[data-act=todo]'); if(t) t.setAttribute('aria-pressed', U.todo); }
 function listHTML(){
   NX_CLK = provisionClock(S);
-  const q = U.q.trim().toLowerCase(), filtering = activeFilters() > 0;
+  const q = advNorm(U.q), filtering = activeFilters() > 0;
   const match = l => (U.owner === 'all' || lineOwners(l).includes(U.owner)) && (U.kind === 'all' || l.kind === U.kind) && (!U.cat || U.cat === 'all' || l.catId === U.cat) &&
-    (!q || l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
+    (!q || advNorm(l.name).includes(q) || advNorm(catById(l.catId).name).includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   ENV_CAND = new Set(envelopeCandidates(S).map(l => l.id));
   if(U.sort === 'date') return dateListHTML(match, filtering);
@@ -4799,8 +4800,8 @@ function provTotals(clk){
   return provLines().reduce((a, l) => { const p = provInfo(l, undefined, clk); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; a.over += p.over; a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, over:0, mens:0});
 }
 function provMatch(l){
-  const q = (U.pq || '').trim().toLowerCase(); if(!q) return true;
-  return l.name.toLowerCase().includes(q) || catById(l.catId).name.toLowerCase().includes(q);
+  const q = advNorm(U.pq); if(!q) return true;
+  return advNorm(l.name).includes(q) || advNorm(catById(l.catId).name).includes(q);
 }
 function provListHTML(){
   const all = provLines(), clk = provisionClock(S), tot = provTotals(clk), lines = all.filter(provMatch), filtering = !!(U.pq || '').trim();
