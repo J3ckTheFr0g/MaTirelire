@@ -1767,9 +1767,10 @@ function envelopeStats(S, y, m, now){
   const isCur = (y === ty && m === tm), past = (y < ty || (y === ty && m < tm));
   const dayJ = isCur ? now.getDate() : (past ? dim : 0);
   const items = S.lines.filter(l => l.active && l.envelope && l.kind === 'debit').map(l => {
-    const planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m), F = envelopeFund(S, l, y, m), avail = planned + F.before;
+    const planned = amountInMonth(l, m), spent = spentIn(S, l.id, y, m), F = envelopeFund(S, l, y, m);
     const CL = envClosuresOf(S, l, `${y}-${pad2(m)}`), closed = Math.round(CL.reduce((a, c) => a + c.amount, 0) * 100) / 100, closedTo = CL.length && CL.every(c => c.to === 'pot') ? 'pot' : (CL.length && CL.every(c => c.to !== 'pot') ? 'reserve' : 'mixed');
-    const left = Math.max(0, Math.round((avail - spent - closed) * 100) / 100), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, hasFund = (l.funds || []).length > 0, noMonthly = !(l.amount > 0), fixed = noMonthly && hasFund, tbd = noMonthly && !hasFund;   // fixed : somme fixe (0 € + réserve) ; tbd : mensualité encore inconnue (0 € sans réserve)
+    const avail = Math.round((planned + F.before - closed) * 100) / 100;   // somme réellement disponible : le reste clôturé n'en fait plus partie
+    const left = Math.max(0, Math.round((avail - spent) * 100) / 100), over = Math.max(0, spent - avail), daysLeft = isCur ? dim - dayJ + 1 : 0, hasFund = (l.funds || []).length > 0, noMonthly = !(l.amount > 0), fixed = noMonthly && hasFund, tbd = noMonthly && !hasFund;   // fixed : somme fixe (0 € + réserve) ; tbd : mensualité encore inconnue (0 € sans réserve)
     return {id:l.id, name:l.name, planned, spent, avail, left, closed, closedTo, over, fundBefore:F.before, fundAfter:F.after, fundDraw:F.draw, potLeft:F.potLeft, hasFund, tbd, fixed,
       pct:avail > 0 ? spent / avail : (spent > 0 ? 1 : 0), perDay:daysLeft > 0 && planned > 0 ? left / daysLeft : 0, elapsed:dim ? dayJ / dim : 0};
   });
@@ -2358,7 +2359,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.33', APP_DATE = '30 octobre 2026', APP_BUILD = '60de40';
+const APP_VERSION = '2.33', APP_DATE = '31 octobre 2026', APP_BUILD = '536d4b';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
