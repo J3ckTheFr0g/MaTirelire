@@ -942,7 +942,7 @@ function computeMonth(S, m){
 
 /* ---------- Données ---------- */
 function defaultSettings(){
-  return {currency:'EUR', commonAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false, skin:'tirelire', mode:'auto', mascot:'pig', icon:'follow', parentPin:null,
+  return {currency:'EUR', commonAccountId:null, potAccountId:null, backup:true, provisionBlock:true, envGuideHidden:false, skin:'tirelire', mode:'auto', mascot:'pig', icon:'follow', parentPin:null,
           distribution:{mode:'equal_remainder', includePersonal:false, custom:{}},
           methods: DEFAULT_METHODS.map(x=>({...x}))};
 }
@@ -1026,6 +1026,7 @@ function normalize(d){
     }
   });
   if(S.settings.commonAccountId && !accIds.has(S.settings.commonAccountId)) S.settings.commonAccountId = null;
+  if(S.settings.potAccountId && !accIds.has(S.settings.potAccountId)) S.settings.potAccountId = null;
   const lineIds = new Set(S.lines.map(l => l.id));
   S.spends = arr(d.spends).map(x => ({id:String((x && x.id) || uid()), lineId:String((x && x.lineId) || ''), date:String((x && x.date) || ''), amount:Math.abs(+(x && x.amount)) || 0, note:String((x && x.note) || '')}))
     .filter(x => lineIds.has(x.lineId) && x.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
@@ -1922,6 +1923,8 @@ function provisionLine(l, now, clock){
   return out;
 }
 /* ---------- Cagnotte : écarts des provisions (reliquats, manques, épargne, recalage) ---------- */
+/* compte où se trouve l'argent de la cagnotte : celui du réglage, sinon le compte de provision */
+function potAccountOf(S){ return S.settings.potAccountId || S.settings.commonAccountId || null; }
 function potTotal(S){ return (S.pot || []).reduce((a, x) => a + x.amount, 0); }
 function potAdd(S, kind, amount, date, label, extra){
   const e = Object.assign({id:uid(), date, amount:+amount || 0, kind, label:String(label || ''), note:'', dest:null, lineId:null}, extra || {});
@@ -2358,10 +2361,10 @@ const num = v => { const n = parseFloat(String(v).replace(',', '.')); return Num
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 let S = null;
-const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false,
+const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false, late:false, plate:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.37', APP_DATE = '31 octobre 2026', APP_BUILD = '6dedda';
+const APP_VERSION = '2.38', APP_DATE = '4 novembre 2026', APP_BUILD = 'cbb47b';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3159,8 +3162,10 @@ function potEntryRow(x){
 function potDone(msg){ touch(); openPot(); toast(msg); }
 function openPot(){
   const tot = potTotal(S), dlg = $('#dlg'); U.editing = null;
+  const potAcc = `<label class="field potacc">Compte de la cagnotte<select class="inp" id="pot-acc"><option value="">— le compte de provision${S.settings.commonAccountId ? ' (' + esc(accName(S.settings.commonAccountId)) + ')' : ''} —</option>${byName(S.accounts).map(a => `<option value="${esc(a.id)}" ${S.settings.potAccountId === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>`;
   const list = (S.pot || []).slice().sort((a, b) => b.date.localeCompare(a.date) || 0);
   dlg.innerHTML = dlgShell(`Cagnotte ${H('pot')}`, `<div class="rest"><b class="${tot < -0.005 ? 'neg' : ''}">${tot < -0.005 ? '−' : ''}${money(Math.abs(tot))}</b><span>${tot < -0.005 ? 'manque dans les provisions' : 'écart disponible dans les provisions'}</span></div>
+    ${potAcc}
     ${list.length ? `<ul class="leaders spendlist">${list.map(potEntryRow).join('')}</ul>` : '<p class="hint">La cagnotte est vide. Elle reçoit les reliquats quand tu paies moins que prévu, et le manque quand tu paies plus sans compléter de ta poche.</p>'}`,
     `<div class="potacts"><button type="button" class="btn primary" data-act="pot-spend" ${tot > 0.005 ? '' : 'disabled'}>Dépenser</button><button type="button" class="btn" data-act="pot-save" ${tot > 0.005 ? '' : 'disabled'}>Épargner</button><button type="button" class="btn" data-act="pot-adjust">Ajuster</button><button type="button" class="btn" data-act="pot-fix">Fixer à…</button></div><div class="r"><button type="button" class="btn primary" data-act="close-dlg">Fermer</button></div>`);
   dlg.showModal();
@@ -3171,7 +3176,7 @@ function openPotForm(kind, entryId){
   let title, body, ok = 'Valider';
   if(kind === 'save'){
     title = 'Mettre de côté en épargne'; ok = 'Épargner';
-    body = `<p class="hint">Retire un montant de la cagnotte, donc des provisions et de l’état du compte. Il reste un virement à faire vers ton épargne.</p>
+    body = `<p class="hint">Retire un montant de la cagnotte, donc des provisions et de l’état du compte. Il reste un virement à faire${potAccountOf(S) ? ` depuis ${esc(accName(potAccountOf(S)))}` : ''} vers ton épargne.</p>
       <label class="field">Montant à épargner (cagnotte : ${money(tot)})<input class="inp bigamt" id="pf-amount" type="number" step="0.01" min="0" inputmode="decimal" value="${tot > 0.005 ? Math.round(tot * 100) / 100 : ''}" enterkeyhint="done"></label>
       <div class="grid2"><label class="field">Destination<select class="inp" id="pf-dest"><option value="">— à préciser —</option>${acc}</select></label><label class="field">Date<input class="inp" id="pf-date" type="date" value="${isoToday()}"></label></div>
       <label class="field">Note (facultatif)<input class="inp" id="pf-note" placeholder="Ex. Livret A" autocomplete="off" enterkeyhint="done"></label>`;
@@ -4212,7 +4217,7 @@ function provisionCardHTML(){
   ].filter(Boolean).map(t => `<p class="note" style="margin-top:8px">${esc(t)}</p>`).join('');
   return `<section class="card joint"><header><h2>Compte provisions ${H('prov-block')}</h2><span class="badge">attendu</span></header>
     <div class="rest"><b>${money(C.state)}</b><span>état du compte au ${fmtDay(objOf(now))}</span></div>
-    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div>${Math.abs(C.pot) > 0.004 || (S.pot || []).length ? `<div><dt>dont cagnotte ${H('pot')}</dt><dd class="${C.pot < -0.004 ? 'debit' : ''}">${C.pot < -0.004 ? '−' : ''}${money(Math.abs(C.pot))}${C.pot < -0.004 ? ' <small class="muted">manque</small>' : ''}</dd></div>` : ''}${C.envReserve > 0.004 ? `<div><dt>dont réserve des enveloppes ${H('env-reserve')}</dt><dd>${money(C.envReserve)}</dd></div>` : ''}<div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
+    <dl class="legend" style="margin-top:2px"><div><dt>dont provisions</dt><dd>${money(C.provisions)}</dd></div>${Math.abs(C.pot) > 0.004 || (S.pot || []).length ? `<div><dt>dont cagnotte ${H('pot')}${potAccountOf(S) && potAccountOf(S) !== S.settings.commonAccountId ? ` <small class="muted">sur ${esc(accName(potAccountOf(S)))}</small>` : ''}</dt><dd class="${C.pot < -0.004 ? 'debit' : ''}">${C.pot < -0.004 ? '−' : ''}${money(Math.abs(C.pot))}${C.pot < -0.004 ? ' <small class="muted">manque</small>' : ''}</dd></div>` : ''}${C.envReserve > 0.004 ? `<div><dt>dont réserve des enveloppes ${H('env-reserve')}</dt><dd>${money(C.envReserve)}</dd></div>` : ''}<div><dt>dont trésorerie du mois</dt><dd>${money(C.treasury)}</dd></div></dl>${over}${pend}
     ${nxt}${due}${flow}${traj}
     <dl class="legend" style="margin-top:12px"><div><dt>Provision mensuelle totale</dt><dd>${money(P.mens)}</dd></div>${tr}</dl>${notes}
     <div class="toolbar" style="margin-top:10px"><button class="btn small" data-act="rc-open">Recaler sur mon solde réel</button><button class="btn small" data-act="pot-open">Cagnotte</button><button class="btn small" data-act="tab" data-tab="provisions">Détail par ligne</button></div></section>`;
@@ -4468,7 +4473,7 @@ function gotoLine(id){
   const l = S.lines.find(x => x.id === id); if(!l) return;
   const inProv = provLines().some(x => x.id === id);
   U.back = U.tab; U.tab = inProv ? 'provisions' : 'budget'; if(inProv) U.pq = '';
-  if(!inProv){ U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; }
+  if(!inProv){ U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.late = false; }
   render(); window.scrollTo(0, 0);
   setTimeout(() => {
     const el = document.querySelector(`[data-line="${CSS.escape(id)}"], .line[data-id="${CSS.escape(id)}"]`);
@@ -4623,18 +4628,19 @@ function viewConseils(){
 }
 
 /* ----- Budget : liste des lignes ----- */
-const activeFilters = () => (U.q.trim() ? 1 : 0) + (U.owner !== 'all' ? 1 : 0) + (U.kind !== 'all' ? 1 : 0) + ((U.cat && U.cat !== 'all') ? 1 : 0) + (U.todo ? 1 : 0);
+const activeFilters = () => (U.q.trim() ? 1 : 0) + (U.owner !== 'all' ? 1 : 0) + (U.kind !== 'all' ? 1 : 0) + ((U.cat && U.cat !== 'all') ? 1 : 0) + (U.todo ? 1 : 0) + (U.late ? 1 : 0);
 const lineOwners = l => linePartsOf(l).map(p => p.ownerId);
 function viewBudget(){
   const owners = [['all','Tout le monde'],['common','Commun'],...byName(S.members).map(m => [m.id, m.name])];
   if(U.cat && U.cat !== 'all' && !S.categories.some(c => c.id === U.cat)) U.cat = 'all';
-  const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope).length, nf = activeFilters();
+  NX_CLK = provisionClock(S); const todoCount = S.lines.filter(l => l.active && l.amount === 0 && !l.zero && !l.envelope).length, lateCount = S.lines.filter(isLateLine).length, nf = activeFilters();
   return backBarHTML() + `<div class="pagehead"><h2>Budget ${H('budget')}</h2></div><section class="toolbar">
       <input class="inp grow" id="q" type="search" placeholder="Rechercher une ligne…" value="${esc(U.q)}" aria-label="Rechercher">
       <select class="inp" id="flt-cat" style="width:auto" aria-label="Filtrer par catégorie"><option value="all">Toutes les catégories</option>${byName(S.categories).map(c => `<option value="${esc(c.id)}" ${U.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
       <select class="inp" id="flt-owner" style="width:auto" aria-label="Filtrer par propriétaire">${owners.map(([v,l]) => `<option value="${esc(v)}" ${U.owner===v?'selected':''}>${esc(l)}</option>`).join('')}</select>
       <select class="inp" id="flt-kind" style="width:auto" aria-label="Filtrer par type"><option value="all" ${U.kind==='all'?'selected':''}>Débits et crédits</option><option value="debit" ${U.kind==='debit'?'selected':''}>Débits</option><option value="credit" ${U.kind==='credit'?'selected':''}>Crédits</option></select>
       <button class="chip" data-act="todo" aria-pressed="${U.todo}">À compléter (${todoCount})</button>
+      <button class="chip" data-act="late" aria-pressed="${U.late}">Échéances dépassées (${lateCount})</button>
       <div class="chips" role="group" aria-label="Tri"><button class="chip" data-act="sort" data-v="cat" aria-pressed="${U.sort !== 'date'}">Catégories</button><button class="chip" data-act="sort" data-v="date" aria-pressed="${U.sort === 'date'}">Dates</button></div>
       <button class="btn primary" data-act="add-line">Ajouter une ligne</button>
     </section>
@@ -4645,12 +4651,14 @@ function clearBarHTML(){
   const n = activeFilters();
   return n ? `<div class="clearbar"><span class="muted">${n} filtre${n > 1 ? 's' : ''} actif${n > 1 ? 's' : ''}</span><button class="btn small" data-act="clear-filters">Effacer les filtres</button></div>` : '';
 }
-function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.innerHTML = listHTML(); if(c) c.innerHTML = clearBarHTML(); const t = $('[data-act=todo]'); if(t) t.setAttribute('aria-pressed', U.todo); }
+function refreshBudgetList(){ const l = $('#list'), c = $('#clearbar'); if(l) l.innerHTML = listHTML(); if(c) c.innerHTML = clearBarHTML(); const t = $('[data-act=todo]'); if(t) t.setAttribute('aria-pressed', U.todo); const d = $('[data-act=late]'); if(d) d.setAttribute('aria-pressed', U.late); }
+/* ligne dont la prochaine échéance est dépassée (même calcul que la date affichée dans le Budget) */
+function isLateLine(l){ if(!l.active) return false; return !!lineNextDate(l, new Date(), NX_CLK).late; }
 function listHTML(){
   NX_CLK = provisionClock(S);
   const q = advNorm(U.q), filtering = activeFilters() > 0;
   const match = l => (U.owner === 'all' || lineOwners(l).includes(U.owner)) && (U.kind === 'all' || l.kind === U.kind) && (!U.cat || U.cat === 'all' || l.catId === U.cat) &&
-    (!q || advNorm(l.name).includes(q) || advNorm(catById(l.catId).name).includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope));
+    (!q || advNorm(l.name).includes(q) || advNorm(catById(l.catId).name).includes(q)) && (!U.todo || (l.active && l.amount === 0 && !l.zero && !l.envelope)) && (!U.late || isLateLine(l));
   let html = '', shown = 0, sumD = 0, sumC = 0;
   ENV_CAND = new Set(envelopeCandidates(S).map(l => l.id));
   if(U.sort === 'date') return dateListHTML(match, filtering);
@@ -4810,13 +4818,14 @@ function provTotals(clk){
   return provLines().reduce((a, l) => { const p = provInfo(l, undefined, clk); if(!p.noStart){ a.goal += p.goal; a.res += p.reserved; a.rest += p.rest; a.over += p.over; a.mens += p.mens; } return a; }, {goal:0, res:0, rest:0, over:0, mens:0});
 }
 function provMatch(l){
+  if(U.plate && !isLateLine(l)) return false;
   const q = advNorm(U.pq); if(!q) return true;
   return advNorm(l.name).includes(q) || advNorm(catById(l.catId).name).includes(q);
 }
 function provListHTML(){
-  const all = provLines(), clk = provisionClock(S), tot = provTotals(clk), lines = all.filter(provMatch), filtering = !!(U.pq || '').trim();
+  const all = provLines(), clk = provisionClock(S), tot = provTotals(clk); NX_CLK = clk; const lines = all.filter(provMatch), filtering = !!(U.pq || '').trim() || U.plate;
   if(!all.length) return '<p class="hint">Aucune ligne concernée. Les lignes annuelles, trimestrielles, etc. apparaissent ici automatiquement.</p>';
-  if(!lines.length) return `<p class="hint">Aucune ligne ne correspond à « ${esc(U.pq.trim())} ».</p>`;
+  if(!lines.length) return U.plate && !(U.pq || '').trim() ? '<p class="hint">Aucune échéance dépassée : tout est à jour.</p>' : `<p class="hint">Aucune ligne ne correspond aux filtres.</p>`;
   const rows = lines.map(l => { const p = provInfo(l, undefined, clk); return `<tr data-line="${esc(l.id)}"><td data-label="Ligne">${esc(l.name)}<br><small class="muted">${esc(cycleLabel(l.cycle))}${p.paid > 0 ? ` · <span class="debit">partiel : ${money(p.paid)} payés, reste ${money(p.toPay)}</span>` : ''}</small></td>
     <td data-label="Mensualité" data-cell="mens:${l.id}">${money(p.mens)}</td>
     <td data-label="Coût ou objectif" data-cell="goal:${l.id}">${money(p.goal)}</td>
@@ -4832,7 +4841,7 @@ function refreshProvList(){ const l = $('#provlist'); if(l) l.innerHTML = provLi
 function viewProvisions(){
   return backBarHTML() + `<section class="card"><h2>Provisions ${H('provisions')}</h2>
     <p class="hint" style="margin-bottom:10px">La somme en cours se calcule toute seule. Appuie sur « Payé » quand une dépense est réglée.</p>
-    ${provLines().length ? `<div class="toolbar" style="margin-bottom:8px"><input class="inp grow" id="pq" type="search" placeholder="Rechercher une ligne…" value="${esc(U.pq || '')}" aria-label="Rechercher dans les provisions"></div>` : ''}
+    ${provLines().length ? `<div class="toolbar" style="margin-bottom:8px"><input class="inp grow" id="pq" type="search" placeholder="Rechercher une ligne…" value="${esc(U.pq || '')}" aria-label="Rechercher dans les provisions"><button class="chip" data-act="prov-late" aria-pressed="${U.plate}">Échéances dépassées</button></div>` : ''}
     <div id="provlist">${provListHTML()}</div></section>`;
 }
 function patchProv(id){
@@ -4889,6 +4898,7 @@ function viewReglages(){
     </div></section>
     <section class="card"><h2>Comptes ${H('comptes')}</h2><p class="hint" style="margin-bottom:10px">Le compte de provision reçoit les virements de chacun.</p>
       <label class="field" style="margin-bottom:12px">Compte de provision (reçoit les virements)<select class="inp" data-b="set:_:commonAccountId"><option value="">— aucun —</option>${byName(S.accounts).map(a => `<option value="${a.id}" ${S.settings.commonAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
+      <label class="field" style="margin-bottom:12px">Compte de la cagnotte (où se trouve l’argent)<select class="inp" data-b="set:_:potAccountId"><option value="">— le compte de provision —</option>${byName(S.accounts).map(a => `<option value="${a.id}" ${S.settings.potAccountId===a.id?'selected':''}>${esc(a.name)}</option>`).join('')}</select><small class="muted">Par défaut, la cagnotte est sur le compte de provision. Choisis un autre compte (un livret, par exemple) si l’argent de la cagnotte est ailleurs.</small></label>
       <div class="rowlist">${accounts}</div><div style="margin-top:10px"><button class="btn" data-act="add-acc">Ajouter un compte</button></div></section>
     <section class="card"><h2>Compte provisions ${H('prov-reglage')}</h2><div class="form">
       <label class="check"><input type="checkbox" data-b="set:_:provisionBlock" ${provisionOn() ? 'checked' : ''}> Afficher le bloc « Compte provisions » dans la Synthèse</label>
@@ -4945,6 +4955,11 @@ function lineFormHTML(l, isNew){
       <div class="grid2"><label class="field">Première échéance<input class="inp" id="f-pstart" type="month" value="${l.plan ? l.plan.start : isoOf(new Date()).slice(0, 7)}"></label>
       <label class="field">Frais <small class="muted">(facultatif)</small><input class="inp" id="f-pfees" type="number" step="0.01" min="0" inputmode="decimal" value="${l.plan && l.plan.fees ? l.plan.fees : ''}" placeholder="0,00"></label></div>
       <div id="f-pdone" data-sig="">${l.plan ? planDoneHTML(l.plan, new Set(l.plan.done)) : ''}</div></div>
+    <details id="r-calc"><summary style="cursor:pointer;font-weight:600">Calculer la mensualité depuis un total annuel</summary>
+      <div class="grid2" style="margin-top:10px"><label class="field">Total annuel<input class="inp" id="f-ctotal" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></label>
+        <label class="field">Nombre de mensualités<select class="inp" id="f-cn">${Array.from({length:24}, (_, i) => i + 1).map(n => opt(n, n + (n === 1 ? ' fois' : ' mois'), n === (monthsOn.size && monthsOn.size < 12 && Array.isArray(l.months) ? monthsOn.size : 12))).join('')}</select></label></div>
+      <div class="preview" id="f-cprev" aria-live="polite">Saisis le total annuel (contrat, avenant, devis) pour calculer la mensualité.</div>
+      <div class="toolbar" style="margin-top:8px"><button type="button" class="btn small" data-act="calc-apply" id="f-capply" disabled>Appliquer comme montant</button></div></details>
     <div class="field" id="r-vartype">Type de dépense<div class="seg" role="radiogroup" aria-label="Type de dépense"><label><input type="radio" name="f-var" value="fixed" ${l.envelope ? '' : 'checked'}>Fixe</label><label><input type="radio" name="f-var" value="variable" ${l.envelope ? 'checked' : ''}>Variable</label></div><small class="muted" id="f-vartext"></small></div>
     <div class="grid2">
       <label class="field">Catégorie<select class="inp" id="f-cat">${byName(S.categories).map(c => opt(c.id, c.name, l.catId===c.id)).join('')}${opt('__new','＋ Nouvelle catégorie…',false)}</select></label>
@@ -5024,12 +5039,17 @@ function refreshLineForm(){
   $('#f-amount', dlg).disabled = l.zero;
   const isDebit = l.kind === 'debit', variable = isDebit && l.envelope;
   show('r-vartype', isDebit);
-  ['r-cycle', 'r-prov', 'r-zero'].forEach(id => show(id, !variable));
+  ['r-cycle', 'r-prov', 'r-zero', 'r-calc'].forEach(id => show(id, !variable));
+  { const ct = Math.abs(num($('#f-ctotal', dlg).value)), cn = parseInt($('#f-cn', dlg).value) || 12, ap = $('#f-capply', dlg), cp = $('#f-cprev', dlg);
+    if(ct > 0){ const m = Math.round(ct / cn * 100) / 100, cur = l.amount || 0, gap = Math.round((ct - m * cn) * 100) / 100, diff = Math.round((m - cur) * 100) / 100;
+      cp.innerHTML = `<b>${money(ct)}</b> ÷ ${cn} = <b>${money(m)}</b> par mois${Math.abs(gap) >= 0.005 ? ` <small class="muted">(arrondi : ${gap > 0 ? '+' : '−'}${money(Math.abs(gap))} sur le total)</small>` : ''}.<br>${cur > 0 ? `Montant actuel : ${money(cur)}, soit ${money(cur * cn)} sur ${cn} ${cn === 1 ? 'fois' : 'mois'} : ${Math.abs(diff) < 0.005 ? '<b>identique</b>' : `<b class="${diff > 0 ? 'debit' : 'credit'}">${diff > 0 ? '+' : '−'}${money(Math.abs(diff))} par mois</b> (${diff > 0 ? '+' : '−'}${money(Math.abs(diff * cn))} sur la période)`}.` : 'Aucun montant renseigné pour l’instant.'}${cn < 12 && l.cycle.unit === 'month' && l.cycle.every === 1 ? '<br><small class="muted">Pense à cocher les ' + cn + ' mois de paiement.</small>' : ''}`;
+      ap.disabled = false; ap.dataset.v = m; }
+    else { cp.textContent = 'Saisis le total annuel (contrat, avenant, devis) pour calculer la mensualité.'; ap.disabled = true; } }
   if(variable) ['r-custom', 'r-day', 'r-start', 'r-months', 'r-smooth'].forEach(id => show(id, false));
   const planOn = isDebit && !variable && $('#f-planOn', dlg).checked;
   show('r-planon', isDebit && !variable); show('r-plan', planOn);
   if(planOn){
-    ['r-amount', 'r-cycle', 'r-prov', 'r-zero', 'r-vartype', 'r-smooth', 'r-months', 'r-day', 'r-start', 'r-custom'].forEach(id => show(id, false));
+    ['r-amount', 'r-calc', 'r-cycle', 'r-prov', 'r-zero', 'r-vartype', 'r-smooth', 'r-months', 'r-day', 'r-start', 'r-custom'].forEach(id => show(id, false));
     const box = $('#f-pdone', dlg), draft = {total:Math.abs(num($('#f-ptotal', dlg).value)), n:parseInt($('#f-pn', dlg).value) || 4, start:$('#f-pstart', dlg).value || isoOf(new Date()).slice(0, 7), fees:Math.abs(num($('#f-pfees', dlg).value))};
     const sig = JSON.stringify([planAmounts(draft), draft.start]);
     if(box.dataset.sig !== sig){ const keep = new Set($$('input:checked', box).map(i => +i.dataset.i)); box.dataset.sig = sig; box.innerHTML = draft.total > 0 ? planDoneHTML(draft, keep) : ''; }
@@ -5187,7 +5207,7 @@ function finishWizard(){
     var seeded = seedFirstBudget(S, m0.id, m0.kid, {income:num(w.seedIncome)}); m0.kid.subs = []; m0.kid.env = {}; m0.kid.income = 0;   // ils vivent maintenant dans le budget
   }
   U.kid = null; U.wizard = null; U.fileHandle = null; U.fileName = null; U.pending = null; U.notice = null; U.tab = 'foyer'; U.dirty = true;
-  U.collapsed = {}; U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.bubbleIdx = 0; U.bubbleChanged = 0;
+  U.collapsed = {}; U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.late = false; U.plate = false; U.bubbleIdx = 0; U.bubbleChanged = 0;
   touch(); window.scrollTo(0, 0); toast(w.seed ? `Ton foyer est créé, ${S.members[0].name} : ton historique t’attend dans Foyer${seeded && (seeded.income + seeded.subs + seeded.env) ? `, et ${seeded.income + seeded.subs + seeded.env} ligne${seeded.income + seeded.subs + seeded.env > 1 ? 's' : ''} de budget sont déjà prêtes` : ''}.` : 'Foyer créé ! Commence par les salaires, puis les montants dans Budget.');
 }
 
@@ -5352,7 +5372,9 @@ document.addEventListener('click', async e => {
     case 'month': U.month = +t.dataset.m; render(); break;
     case 'mode': S.settings.distribution.mode = t.dataset.mode; touch(); break;
     case 'todo': U.todo = !U.todo; refreshBudgetList(); break;
-    case 'clear-filters': U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; render(); break;
+    case 'late': U.late = !U.late; refreshBudgetList(); break;
+    case 'prov-late': U.plate = !U.plate; { const b = $('[data-act=prov-late]'); if(b) b.setAttribute('aria-pressed', U.plate); } refreshProvList(); break;
+    case 'clear-filters': U.q = ''; U.owner = 'all'; U.kind = 'all'; U.cat = 'all'; U.todo = false; U.late = false; render(); break;
     case 'toggle-cat': U.collapsed[id] = !U.collapsed[id]; $('#list').innerHTML = listHTML(); break;
     case 'add-line': openLine(null, t.dataset.cat); break;
     case 'edit-line': openLine(id); break;
@@ -5363,6 +5385,7 @@ document.addEventListener('click', async e => {
       S.lines.push(c); $('#dlg').close(); touch(); toast('Ligne dupliquée'); break; }
     case 'del-line':
       if(confirm('Supprimer cette ligne ?')){ const lid = U.editing.id, back = envelopeReturnToPotPreview(lid); if(back > 0.004 && confirm(`Il reste ${money(back)} de réserve issue de la cagnotte. Les remettre dans la cagnotte ?`)) envelopeReturnToPot(S, lid); S.lines = S.lines.filter(l => l.id !== U.editing.id); S.spends = (S.spends || []).filter(x => x.lineId !== U.editing.id); $('#dlg').close(); touch(); toast('Ligne supprimée'); } break;
+    case 'calc-apply': { const v = parseFloat(t.dataset.v); if(v > 0){ const z = $('#f-zero'); if(z && z.checked) z.checked = false; $('#f-amount').value = v; refreshLineForm(); toast('Montant mis à jour : ' + money(v) + ' (pense à enregistrer).'); } break; }
     case 'split-add': { const parts = readSplit(); const used = new Set(parts.map(p => p.ownerId)); const nxt = ['common', ...S.members.map(m => m.id)].find(o => !used.has(o)) || 'common';
       parts.push({ownerId:nxt, accountId:defaultAccountFor(S, nxt) || null, pct:0}); const eq = Math.round(10000 / parts.length) / 100; writeSplit(parts.map(p => ({...p, pct:eq}))); refreshLineForm(); break; }
     case 'split-del': { const parts = readSplit(); parts.splice(+t.dataset.i, 1);
@@ -5424,6 +5447,7 @@ document.addEventListener('click', async e => {
       if(!confirm('Supprimer ce compte ? Les lignes qui l’utilisent n’auront plus de compte cible.')) break;
       S.lines.forEach(l => { if(l.accountId === id) l.accountId = null; });
       if(S.settings.commonAccountId === id) S.settings.commonAccountId = null;
+      if(S.settings.potAccountId === id) S.settings.potAccountId = null;
       S.accounts = S.accounts.filter(a => a.id !== id); touch(); break;
     case 'add-cat': S.categories.push({id:uid(), name:'Nouvelle catégorie', color:CAT_COLORS[S.categories.length % CAT_COLORS.length]}); touch(); break;
     case 'del-cat': {
@@ -5494,6 +5518,7 @@ document.addEventListener('change', e => {
   if(el.name === 'py-cover' || el.name === 'py-rest'){ paySync(false); return; }
   if(el.name === 'py-mode'){ if(U.payCtx) U.payCtx.modeTouched = true; paySync(false); return; }
   if(el.dataset && el.dataset.kp){ kidPanelChange(el); return; }
+  if(el.id === 'pot-acc'){ S.settings.potAccountId = el.value || null; touch(); openPot(); toast(el.value ? 'Cagnotte rattachée à « ' + accName(el.value) + ' ».' : 'Cagnotte rattachée au compte de provision.'); return; }
   if(el.closest('#dlg')){ onDialogChange(el); return; }
   if(el.id === 'flt-cat'){ U.cat = el.value; refreshBudgetList(); return; }
   if(el.id === 'flt-owner'){ U.owner = el.value; refreshBudgetList(); return; }
@@ -5545,7 +5570,7 @@ function onBind(el, b){
     touch();
   }
   else if(k === 'distc'){ S.settings.distribution.custom[id] = Math.max(0, num(v)); touch(false); }
-  else if(k === 'set'){ if(f === 'backup' && !v) removeLocalCopy(S.id); S.settings[f] = f === 'commonAccountId' ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' || f === 'provisionBlock' ? true : false); }
+  else if(k === 'set'){ if(f === 'backup' && !v) removeLocalCopy(S.id); S.settings[f] = (f === 'commonAccountId' || f === 'potAccountId') ? (v || null) : v; touch(f === 'currency' || f === 'commonAccountId' || f === 'potAccountId' || f === 'provisionBlock' ? true : false); }
   else if(k === 'acc'){
     const a = accById(id); if(!a) return;
     a[f] = f === 'ownerId' ? (v || null) : String(v).trim(); touch(f === 'ownerId');
