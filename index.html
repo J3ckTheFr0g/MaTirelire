@@ -709,6 +709,228 @@ svg.pig{overflow:visible}
 .spend-row.fixed{display:flex;gap:8px;align-items:baseline;width:100%;padding:6px 0;cursor:default}
 .envfoot{display:flex;gap:8px;flex-wrap:wrap}
 .hidden{display:none !important}
+
+/* ===== Refonte visuelle v2.40 (surcouche, s'appuie sur les variables des skins) ===== */
+:root{
+  --radius:22px;
+  --b-border:color-mix(in srgb,var(--line) 60%,transparent);
+  --b-tint:color-mix(in srgb,var(--brand) 6%,var(--surface));
+  --b-ring:color-mix(in srgb,var(--brand) 30%,transparent);
+  --b-track:color-mix(in srgb,var(--ink) 7%,transparent);
+  --b-glow1:color-mix(in srgb,var(--brand) 13%,transparent);
+  --b-glow2:color-mix(in srgb,var(--pig) 32%,transparent);
+  --b-sh:0 1px 2px rgba(16,24,40,.04),0 8px 24px -12px color-mix(in srgb,var(--ink) 22%,transparent);
+  --b-sh-hi:0 2px 4px rgba(16,24,40,.05),0 18px 36px -16px color-mix(in srgb,var(--ink) 30%,transparent);
+  --b-grad:linear-gradient(135deg,var(--brand),var(--brand-strong));
+}
+:root[data-theme=dark]{
+  --b-glow2:color-mix(in srgb,var(--brand) 9%,transparent);
+  --b-sh:inset 0 1px 0 rgba(255,255,255,.04),0 10px 28px -14px rgba(0,0,0,.7);
+  --b-sh-hi:inset 0 1px 0 rgba(255,255,255,.06),0 18px 40px -16px rgba(0,0,0,.8);
+  --b-grad:linear-gradient(135deg,var(--brand-strong),var(--brand));
+}
+:root[data-skin=contraste]{--b-border:var(--line);--b-glow1:transparent;--b-glow2:transparent;--b-sh:none;--b-sh-hi:none;--b-grad:var(--brand)}
+
+/* Fond et typographie */
+:is(html:not([data-age]),html[data-age=""]) body{
+  background-image:radial-gradient(1100px 620px at 105% -8%,var(--b-glow1),transparent 62%),radial-gradient(900px 560px at -12% 4%,var(--b-glow2),transparent 60%);
+  background-attachment:fixed;background-size:auto}
+body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{letter-spacing:-.02em}
+::selection{background:var(--b-ring)}
+
+/* Barre du haut : verre dépoli (le flou est sur un pseudo-élément pour ne pas capturer la barre d'onglets fixe) */
+.top{background:transparent;border-bottom:1px solid var(--b-border)}
+.top::before{content:"";position:absolute;inset:0;z-index:-1;background:color-mix(in srgb,var(--surface) 74%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5)}
+.topin{padding-top:10px;padding-bottom:10px}
+.top h1{font-size:1.35rem;font-weight:850;gap:8px}
+.top h1 .pig{filter:drop-shadow(0 3px 6px color-mix(in srgb,var(--pig-strong) 45%,transparent))}
+.brand span,.welcome h1{background:linear-gradient(120deg,var(--brand) 10%,var(--pig-strong) 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+:root[data-skin=contraste] .brand span,:root[data-skin=contraste] .welcome h1{background:none;color:var(--ink)}
+.status{font-size:.76rem}
+
+/* Onglets : dock flottant sur mobile, pastilles sur grand écran */
+nav.tabs{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-bottom:0;border:1px solid var(--b-border);border-radius:26px;background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 14px 34px -12px rgba(0,0,0,.32)}
+nav.tabs .wrap{padding:6px;gap:3px}
+nav.tabs button{border-radius:20px;padding:11px 2px;font-weight:700;transition:background-color .2s,color .2s,box-shadow .2s}
+nav.tabs button[aria-current=page]{background:var(--b-grad);color:var(--on-brand);box-shadow:0 8px 16px -8px var(--brand)}
+.navdot{box-shadow:0 0 0 2px var(--surface)}
+@media(min-width:760px){
+  body{padding-bottom:40px}
+  nav.tabs{border:0;border-radius:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+  nav.tabs .wrap{gap:6px;padding:0 16px 10px}
+  nav.tabs button{padding:8px 18px;font-size:.92rem}
+  nav.tabs button:not([aria-current]):hover{background:color-mix(in srgb,var(--brand) 9%,transparent);color:var(--ink)}
+}
+.toast{bottom:calc(104px + env(safe-area-inset-bottom,0px));border-radius:14px;padding:12px 18px;box-shadow:0 16px 36px -12px rgba(0,0,0,.45)}
+@media(min-width:760px){.toast{bottom:24px}}
+
+/* Boutons (les gros boutons enfants .kbtn gardent leur style) */
+.btn:where(:not(.kbtn)){border-width:1px;font-weight:650;box-shadow:0 1px 2px rgba(16,24,40,.06);transition:transform .15s ease,box-shadow .2s,background-color .2s,border-color .2s}
+.btn.primary:where(:not(.kbtn)),.btn.primary:where(:not(.kbtn)):hover{background:var(--b-grad);border-color:transparent;box-shadow:0 8px 18px -10px var(--brand),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn.ghost{box-shadow:none}
+.btn.ghost:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);border-color:transparent}
+@media(prefers-reduced-motion:no-preference){
+  .btn.primary:where(:not(.kbtn)):hover{transform:translateY(-1px);box-shadow:0 12px 22px -10px var(--brand),inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn:where(:not(.kbtn)):active{transform:scale(.98)}
+}
+
+/* Cartes */
+main{padding-top:22px}
+main > * + *{margin-top:18px}
+.card,.wz-card{border-color:var(--b-border);box-shadow:var(--b-sh);padding:20px}
+@media(max-width:560px){.card,.wz-card{padding:16px}}
+.card > h2,.sect > h2{display:flex;align-items:center;gap:9px;font-size:1.1rem;margin-bottom:14px}
+.card > h2::before,.sect > h2::before{content:"";flex:0 0 auto;width:4px;height:1.05em;border-radius:4px;background:linear-gradient(180deg,var(--brand),var(--pig-strong))}
+.cards{gap:18px}
+.split{gap:18px}
+.mcard header{margin-bottom:2px}
+.mcard h3{font-size:1.1rem;font-weight:800}
+.badge{border-color:transparent;background:var(--b-track);font-weight:650;padding:2px 10px}
+.rest b{font-size:2.3rem;font-weight:850;letter-spacing:-.035em}
+.hint{line-height:1.5}
+
+/* Encart principal */
+.hero{isolation:isolate;padding:22px;border-radius:calc(var(--radius) + 4px);background:radial-gradient(120% 140% at 100% 0%,rgba(255,255,255,.2),transparent 48%),radial-gradient(90% 120% at 0% 100%,rgba(0,0,0,.14),transparent 62%),var(--hero-bg);box-shadow:0 26px 50px -28px color-mix(in srgb,var(--hero) 80%,#000),inset 0 1px 0 rgba(255,255,255,.18)}
+.hero::before{content:"";position:absolute;z-index:-1;width:360px;height:360px;right:-130px;top:-170px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 46px rgba(255,255,255,.05),0 0 0 92px rgba(255,255,255,.035);pointer-events:none}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background-image:radial-gradient(rgba(255,255,255,.16) 1px,transparent 1.3px);background-size:16px 16px;-webkit-mask-image:linear-gradient(115deg,transparent 35%,#000);mask-image:linear-gradient(115deg,transparent 35%,#000);pointer-events:none}
+.hero-k{font-size:.9rem;font-weight:650;opacity:.88}
+.hero-v{font-size:clamp(2.3rem,9.5vw,3.7rem);font-weight:850;letter-spacing:-.04em;line-height:1.05;margin-top:2px;text-shadow:0 2px 14px rgba(0,0,0,.12)}
+.hero-d{border-top:0;padding-top:6px;gap:10px}
+.hero-d > div{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:10px 14px}
+.hero-d dd{font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
+.hero-pay{border-top:0;margin-top:10px;padding:12px 14px;border-radius:16px;background:rgba(0,0,0,.1)}
+.bubble{border-radius:18px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.2))}
+.bubble:hover{filter:drop-shadow(0 8px 14px rgba(0,0,0,.2)) brightness(.97)}
+@media(min-width:560px){.hero{padding:28px 30px}}
+:root[data-skin=contraste] .hero::before,:root[data-skin=contraste] .hero::after{display:none}
+
+/* Puces de période et filtres */
+.chips{scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 14px),transparent);padding:2px 10px 6px 6px}
+.chips::-webkit-scrollbar{display:none}
+.wrapchips{-webkit-mask-image:none;mask-image:none;padding:0}
+.chip{border-color:transparent;background:color-mix(in srgb,var(--surface) 75%,transparent);box-shadow:inset 0 0 0 1px var(--b-border);padding:7px 14px;transition:background-color .2s,color .2s,box-shadow .2s}
+.chip:hover{background:var(--surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 40%,var(--line))}
+.chip[aria-pressed=true]{background:var(--b-grad);box-shadow:0 6px 14px -8px var(--brand)}
+.todaybtn{border-radius:14px;border-width:1px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.todaybtn[aria-pressed=true]{background:var(--b-grad);border-color:transparent}
+
+/* Barres de progression */
+.flow{height:14px;gap:3px;border:0;border-radius:999px;background:var(--b-track)}
+.flow i{border-radius:999px}
+.catrow .bar,.env-bar{height:8px;border:0;border-radius:999px;background:var(--b-track)}
+.catrow .bar i,.env-bar i{border-radius:999px}
+.catrow{transition:background-color .15s}
+.catrow:hover{background:var(--b-tint)}
+.sw-dot{border-radius:50%}
+.spark-area{opacity:.18}
+
+/* Tableaux */
+thead th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:750}
+th,td{border-bottom-color:var(--b-border);padding:9px 10px}
+tbody tr:hover > td{background:var(--b-tint)}
+tbody tr.sel > td{background:var(--amber-soft)}
+
+/* Budget */
+.catbox{border-color:var(--b-border);box-shadow:var(--b-sh)}
+.cathead{background:linear-gradient(180deg,var(--surface2),var(--surface));border-bottom-color:var(--b-border);padding:12px 16px}
+.line{padding:11px 16px;border-bottom-color:var(--b-border);transition:background-color .15s}
+.line:hover{background:var(--b-tint)}
+.line .meta span{border-color:transparent;background:var(--b-track);border-radius:999px;padding:1px 8px}
+.clearbar,.banner{border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:linear-gradient(135deg,var(--amber-soft),color-mix(in srgb,var(--amber-soft) 55%,var(--surface)))}
+.banner{border-radius:18px;padding:13px 16px}
+.banner.slim{border-radius:14px}
+
+/* Formulaires */
+.inp,select.inp,input.inp{border-color:var(--b-border);background:var(--surface2);border-radius:12px;min-height:42px;padding:9px 12px;transition:border-color .15s,box-shadow .15s,background-color .15s}
+.inp:hover{border-color:color-mix(in srgb,var(--brand) 35%,var(--line))}
+.inp:focus{border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 4px var(--b-ring)}
+.inp:focus-visible{outline:none}
+:root[data-skin=contraste] .inp:focus-visible{outline:3px solid var(--focus)}
+.field{font-size:.84rem;font-weight:650}
+.rowitem,.opt{border-color:var(--b-border);border-radius:16px}
+.opt:has(input:checked){border-color:var(--brand);box-shadow:0 0 0 3px var(--b-ring)}
+.seg{border:0;border-radius:14px;padding:4px;gap:4px;background:var(--b-track)}
+.seg label{border-radius:10px;background:transparent;transition:background-color .2s,color .2s}
+.seg label:has(input:checked){background:var(--b-grad);box-shadow:0 6px 14px -8px var(--brand)}
+.mchip span{border-radius:999px;border-color:var(--b-border);padding:5px 12px}
+.mchip input:checked + span{background:var(--b-grad);border-color:transparent}
+.preview,.method,.envguide,.catlines{border-color:var(--b-border)}
+.method,.envguide{border-style:solid;background:var(--b-tint);border-radius:18px}
+
+/* Conseils : bandeau de couleur à gauche et léger dégradé selon la gravité */
+.advice{--sev:var(--line);position:relative;overflow:hidden;border:1px solid var(--b-border);border-radius:18px;padding:14px 16px 14px 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--sev) 10%,var(--surface)),var(--surface) 60%);box-shadow:var(--b-sh);transition:transform .15s ease,box-shadow .2s}
+.advice::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--sev)}
+.advice.sev-alert{--sev:var(--debit)} .advice.sev-warn{--sev:var(--amber)} .advice.sev-info{--sev:var(--slate)} .advice.sev-good{--sev:var(--credit)} .advice.sev-idea{--sev:var(--brand)}
+.advice.click:hover{background:linear-gradient(90deg,color-mix(in srgb,var(--sev) 14%,var(--surface)),var(--surface) 70%);box-shadow:var(--b-sh-hi)}
+@media(prefers-reduced-motion:no-preference){.advice.click:hover{transform:translateY(-1px)}}
+.advice h3{font-size:1rem;font-weight:800}
+.conseils-head .pig{filter:drop-shadow(0 6px 10px color-mix(in srgb,var(--pig-strong) 40%,transparent))}
+
+/* Enveloppes */
+.envrow{border-top-color:var(--b-border);padding:10px 0}
+.env-plus{border-width:1.5px}
+
+/* Boîte de dialogue : feuille qui monte du bas sur mobile */
+dialog{border:1px solid var(--b-border);border-radius:24px;box-shadow:0 30px 80px -24px rgba(0,0,0,.55)}
+dialog::backdrop{background:rgba(10,18,28,.42);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.dlg-h,.dlg-f{background:color-mix(in srgb,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-color:var(--b-border)}
+.dlg-h{padding:16px 20px}
+.dlg-h h2{font-size:1.15rem;font-weight:800}
+.dlg-b{padding:18px 20px}
+@media(max-width:560px){dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:26px 26px 0 0;border-bottom:0;max-height:calc(100dvh - 36px)}}
+@media(prefers-reduced-motion:no-preference){dialog[open]{animation:b-sheet .24s cubic-bezier(.2,.8,.2,1)}@keyframes b-sheet{from{opacity:0;transform:translateY(28px)}}}
+.pop{border-color:var(--b-border);border-radius:16px;box-shadow:0 18px 40px -14px rgba(0,0,0,.35)}
+
+/* Accueil */
+.welcome{isolation:isolate;margin-top:4vh;gap:16px}
+.welcome h1{font-size:clamp(2.6rem,11vw,3.8rem);font-weight:850;letter-spacing:-.04em;padding-bottom:.06em}
+.welcome .w-tag{font-size:1.25rem}
+.w-pig{position:relative}
+.w-pig::before{content:"";position:absolute;inset:8% 4%;z-index:-1;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--pig) 55%,transparent),transparent 68%);filter:blur(18px)}
+.door,.space{border:1px solid var(--b-border);box-shadow:var(--b-sh);transition:transform .2s ease,box-shadow .2s,border-color .2s}
+.door{border-radius:26px;padding:22px 14px;gap:8px;min-height:170px}
+.door:hover,.space:hover{border-color:color-mix(in srgb,var(--brand) 45%,var(--line));box-shadow:var(--b-sh-hi)}
+@media(prefers-reduced-motion:no-preference){.door:hover,.space:hover{transform:translateY(-3px)}}
+.door-ico{display:grid;place-items:center;width:62px;height:62px;border-radius:20px;background:var(--b-tint);font-size:2rem;box-shadow:inset 0 0 0 1px var(--b-border)}
+.door.kidsdoor{background:linear-gradient(165deg,color-mix(in srgb,var(--pig) 26%,var(--surface)),var(--surface) 70%);border-color:color-mix(in srgb,var(--pig-strong) 45%,transparent)}
+.door.kidsdoor .door-ico{background:color-mix(in srgb,var(--pig) 35%,var(--surface))}
+.space{border-radius:20px}
+.sp-ico{width:48px;height:48px;border-radius:16px;background:var(--b-tint)}
+
+/* Assistant, apparence */
+.wz-steps li{border-color:var(--b-border);box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.wz-steps li[aria-current=step]{background:var(--b-grad);border-color:transparent;box-shadow:0 8px 16px -10px var(--brand)}
+.look-tile{border-width:1px;border-color:var(--b-border);border-radius:18px;box-shadow:var(--b-sh);transition:transform .15s ease,box-shadow .2s}
+.look-tile[aria-pressed=true]{border-color:var(--brand);box-shadow:0 0 0 3px var(--b-ring)}
+@media(prefers-reduced-motion:no-preference){.look-tile:hover{transform:translateY(-2px)}}
+.bankcard{border-radius:20px;box-shadow:0 18px 34px -16px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.2)}
+.foot{opacity:.85}
+
+/* Emojis et mascottes Noto animés. Image fixe au repos ; l'animation Lottie se pose par-dessus (.on) */
+.fe,.pign{position:relative;display:inline-block;flex:0 0 auto;-webkit-user-drag:none;user-select:none}
+.fe{width:1.25em;height:1.25em;vertical-align:-.25em}
+.fe img,.pign img{display:block;width:100%;height:100%;object-fit:contain}
+.fe > svg,.pign > svg{position:absolute;inset:0}
+.fe.on img,.pign.on img{visibility:hidden}
+.door-ico .fe{width:42px;height:42px}
+.demobtn .fe{width:1.5em;height:1.5em;vertical-align:-.4em}
+.pign{width:var(--s);height:var(--s)}
+.pign.m-worried{filter:saturate(.55);transform:rotate(-9deg)}
+.hero-pig .pign{--s:104px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.18))}
+.hero-pig .pign.m-worried{filter:drop-shadow(0 8px 10px rgba(0,0,0,.18)) saturate(.55)}
+.top h1 .pign{--s:36px}
+.w-pig .pign{--s:min(52vw,190px)}
+.mpic .pign{--s:46px}
+.sp-ico .pign{--s:36px}
+.ks-mascot .pign{display:block}
+@media(min-width:560px){.hero-pig .pign{--s:124px}}
+@media(prefers-reduced-motion:no-preference){
+  .pign.drop{animation:b-drop .7s cubic-bezier(.3,1.5,.5,1) .15s both}
+  .pign.still{animation:b-sway 3.2s ease-in-out infinite}   /* mascotte sans animation Lottie (perroquet) : léger balancement */
+  @keyframes b-drop{from{opacity:0;transform:translateY(-26px) scale(.9)}}
+  @keyframes b-sway{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-4px)}}
+}
 </style>
 </head>
 <body>
@@ -2364,7 +2586,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false, late:false, plate:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.38', APP_DATE = '4 novembre 2026', APP_BUILD = 'cbb47b';
+const APP_VERSION = '2.40', APP_DATE = '4 novembre 2026', APP_BUILD = '128b31';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -2468,9 +2690,14 @@ function accOverlay(mascotId, acc){
   return ['neck', 'head', 'face'].map(sl => acc[sl] && ACC_DRAW[acc[sl]] ? `<g class="acc acc-${acc[sl]}">${ACC_DRAW[acc[sl]](A)}</g>` : '').join('');
 }
 const kidAccNow = () => { const m = typeof kidMember === 'function' ? kidMember() : null; return m && m.kid ? m.kid.acc : null; };
+/* Mascottes Noto Emoji animées (Google). Image fixe au repos, animation posée par le script de fin de page. Pas de toucan : perroquet (fixe). */
+const MASCN = {pig:'1f416', toucan:'1f99c', squirrel:'1f43f', owl:'1f989', fox:'1f98a'};
+const masc3d = (id, size, cls = '', mood = 'happy') => { const c = MASCN[id] || MASCN.pig; return `<span class="pig pign ${cls} m-${mood}" data-noto="${c}" style="--s:${size}px" aria-hidden="true"><img src="img/noto/${c}.svg" alt="" draggable="false"></span>`; };
 function piggy(mood = 'happy', size = 96, cls = '', accOverride){
   const id = MASC[currentLook().mascot] ? currentLook().mascot : 'pig', m = MASC[id], inner = m[mood] || m.happy, acc = accOverride !== undefined ? accOverride : ((U.kid && !/\bnoacc\b/.test(cls)) ? kidAccNow() : null);
-  return `<svg class="pig ${cls}" viewBox="0 0 160 140" width="${size}" height="${Math.round(size*140/160)}" aria-hidden="true" focusable="false">${inner}${accOverlay(id, acc)}</svg>`;
+  const over = accOverlay(id, acc);
+  if(!over) return masc3d(id, size, cls, mood);   // les accessoires sont calés sur les dessins SVG : on garde le SVG quand l'enfant en porte
+  return `<svg class="pig ${cls}" viewBox="0 0 160 140" width="${size}" height="${Math.round(size*140/160)}" aria-hidden="true" focusable="false">${inner}${over}</svg>`;
 }
 
 /* ---------- Formats ---------- */
@@ -3048,7 +3275,7 @@ function shareFileCan(){ try{ return !!(navigator.share && navigator.canShare &&
 function spacesHTML(){
   const list = readSpaces().sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
   if(!list.length) return '';
-  return `<div class="spaces-wrap"><h2 class="spaces-h">Mes espaces ${H('espaces')}</h2><ul class="spaces">${list.map(e => `<li><button type="button" class="space" data-act="space-open" data-id="${esc(e.id)}"><span class="sp-ico" aria-hidden="true">${e.kind === 'kid' && MASC[e.mascot] ? `<svg viewBox="0 0 160 140" width="46" height="40" focusable="false">${MASC[e.mascot].happy}</svg>` : '🏠'}</span><span class="sp-main"><b>${esc(e.name)}</b><small>${e.kind === 'kid' ? 'Espace enfant' : 'Foyer'}${e.lock ? ' · protégé par un code' : ''}</small></span><span class="sp-go" aria-hidden="true">${e.lock ? '🔒' : '›'}</span></button><button type="button" class="space-del" data-act="space-del" data-id="${esc(e.id)}" aria-label="Supprimer l’espace ${esc(e.name)}">Supprimer</button></li>`).join('')}</ul></div>`;
+  return `<div class="spaces-wrap"><h2 class="spaces-h">Mes espaces ${H('espaces')}</h2><ul class="spaces">${list.map(e => `<li><button type="button" class="space" data-act="space-open" data-id="${esc(e.id)}"><span class="sp-ico" aria-hidden="true">${e.kind === 'kid' && MASC[e.mascot] ? masc3d(e.mascot, 40) : '🏠'}</span><span class="sp-main"><b>${esc(e.name)}</b><small>${e.kind === 'kid' ? 'Espace enfant' : 'Foyer'}${e.lock ? ' · protégé par un code' : ''}</small></span><span class="sp-go" aria-hidden="true">${e.lock ? '🔒' : '›'}</span></button><button type="button" class="space-del" data-act="space-del" data-id="${esc(e.id)}" aria-label="Supprimer l’espace ${esc(e.name)}">Supprimer</button></li>`).join('')}</ul></div>`;
 }
 function welcome(){
   return `<section class="welcome">
@@ -3807,7 +4034,7 @@ function kidMeHTML(m, k, lv, T){
     <h2 class="kh">Mon fichier ${H('kid-fichier')}</h2><section class="kcard"><p class="khint">${esc(kidFileStatus())}</p><div class="kactions"><button type="button" class="btn kbtn" data-act="save">Enregistrer</button><button type="button" class="btn kbtn" data-act="export">Exporter</button></div>${srcInfo() ? '<div class="kactions one"><button type="button" class="btn kbtn" data-act="src-reload">Recharger depuis le fichier</button></div>' : ''}</section>
     <div class="kactions one"><button type="button" class="btn kbtn" data-act="spaces">Changer d’espace</button></div>` : '';
   return `<h2 class="kh">${T.me}</h2><section class="kcard"><p class="kc-v small">${esc(m.name)}</p><p class="khint">Niveau ${R.n} · ${esc(R.name)}</p></section>
-    <h2 class="kh">Choisir ma mascotte</h2><div class="look-grid" role="group" aria-label="Ma mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-mascot" data-id="${id}" aria-pressed="${cur === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}</button>`).join('')}</div>
+    <h2 class="kh">Choisir ma mascotte</h2><div class="look-grid" role="group" aria-label="Ma mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kid-mascot" data-id="${id}" aria-pressed="${cur === id}"><span class="mpic">${masc3d(id, 52)}</span>${esc(i.name)}</button>`).join('')}</div>
     <div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-bulletin">Mon bulletin d’épargne</button></div>
     ${accHTML}${S.kind === 'kid' ? own : colors}<p class="khint verline">${versionLine()}</p><div class="kactions one"><button type="button" class="btn kbtn" data-act="kid-parent"><span aria-hidden="true">🔒</span> Espace parent</button></div>`;
 }
@@ -4094,7 +4321,7 @@ function kwStep(){
     <div class="field">Tu es…<div class="whorow" role="radiogroup" aria-label="Tu es">${[['f', 'Une fille'], ['m', 'Un garçon'], ['x', 'Je ne veux pas dire']].map(([id, l]) => `<button type="button" class="whochip" data-act="kw-who" data-id="${id}" role="radio" aria-checked="${w.who === id}" aria-pressed="${w.who === id}">${l}</button>`).join('')}</div>
       <small class="muted">Cela sert seulement à te proposer des couleurs. Tu pourras en changer quand tu veux.</small></div>`;
   if(w.step === 2) return `<h1>Choisis ta mascotte ${H('kid-mascotte')}</h1><p class="hint">Elle t’accompagne partout. Tu pourras en changer quand tu veux.</p>
-    <div class="look-grid" role="group" aria-label="Ta mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kw-mascot" data-id="${id}" aria-pressed="${w.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${MASC[id].happy}</svg></span>${esc(i.name)}<small>${esc(i.tag)}</small></button>`).join('')}</div>
+    <div class="look-grid" role="group" aria-label="Ta mascotte">${Object.entries(MASCOT_INFO).map(([id, i]) => `<button type="button" class="look-tile" data-act="kw-mascot" data-id="${id}" aria-pressed="${w.mascot === id}"><span class="mpic">${masc3d(id, 52)}</span>${esc(i.name)}<small>${esc(i.tag)}</small></button>`).join('')}</div>
     <div class="field">Ta couleur<div class="look-grid" role="group" aria-label="Ta couleur">${Object.entries(SKIN_INFO).filter(([, i]) => i.kid).map(([id, i]) => { const cur = w.skin || kidDefaultSkin({who:w.who, level:w.level}); return `<button type="button" class="look-tile" data-act="kw-skin" data-id="${id}" aria-pressed="${cur === id}"><span class="sw3">${i.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(i.name)}</button>`; }).join('')}</div><small class="muted">Une couleur t’est proposée. Prends celle que tu préfères.</small></div>`;
   if(w.step === 3) return `<h1>Ton argent de poche</h1><p class="hint">Combien reçois-tu, et quand ? Si tu ne sais pas, ce n’est pas grave : tu pourras le noter plus tard.</p>
     <label class="check"><input type="checkbox" data-kw="unknown" ${w.unknown ? 'checked' : ''}> <span>Je ne sais pas encore</span></label>
@@ -4886,11 +5113,12 @@ function viewReglages(){
     <section class="card" id="apropos"><h2>À propos ${H('apropos')}</h2><div class="form">
       <dl class="legend"><div><dt>Version</dt><dd>${esc(APP_VERSION)}</dd></div><div><dt>Date</dt><dd>${esc(APP_DATE)}</dd></div><div><dt>Build</dt><dd><code>${esc(APP_BUILD)}</code></dd></div></dl>
       ${U.updateAvail ? `<p class="note"><b>Une version plus récente existe</b> (build <code>${esc(U.updateAvail)}</code>). Tes données ne sont pas touchées.</p><div class="toolbar"><button type="button" class="btn primary small" data-act="update-go">Mettre à jour</button></div>` : '<div class="toolbar"><button type="button" class="btn small" data-act="update-check">Rechercher une mise à jour</button></div>'}
+      <p class="note">Emojis et mascottes : <a href="https://googlefonts.github.io/noto-emoji-animation/" target="_blank" rel="noopener">Noto Emoji</a> de Google (animations sous licence CC BY 4.0, images sous licence Apache 2.0). Animations jouées avec lottie-web (licence MIT).</p>
     </div></section>
     <section class="card"><h2>Apparence ${H('apparence')}</h2><div class="form">
       <div class="field">Skin<div class="look-grid" role="group" aria-label="Skin">${Object.entries(SKIN_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-skin" data-id="${id}" aria-pressed="${L.skin === id}"><span class="sw3">${k.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>${esc(k.name)}</button>`).join('')}</div></div>
       <div class="field">Mode<div class="chips wrapchips" role="group" aria-label="Mode">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(([id, l]) => `<button type="button" class="chip" data-act="set-mode" data-id="${id}" aria-pressed="${L.mode === id}" ${SKIN_DARK_ONLY.includes(L.skin) || SKIN_LIGHT_ONLY.includes(L.skin) ? 'disabled' : ''}>${l}</button>`).join('')}</div>${SKIN_DARK_ONLY.includes(L.skin) || SKIN_LIGHT_ONLY.includes(L.skin) ? `<small class="muted">Ce skin est toujours ${SKIN_DARK_ONLY.includes(L.skin) ? 'sombre' : 'clair'}.</small>` : '<small class="muted">Automatique suit le réglage de ton appareil.</small>'}</div>
-      <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic"><svg viewBox="0 0 160 140" aria-hidden="true" focusable="false">${(MASC[id] || MASC.pig).happy}</svg></span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
+      <div class="field">Mascotte <small class="muted">(indépendante du skin)</small><div class="look-grid" role="group" aria-label="Mascotte">${Object.entries(MASCOT_INFO).map(([id, k]) => `<button type="button" class="look-tile" data-act="set-mascot" data-id="${id}" aria-pressed="${L.mascot === id}"><span class="mpic">${masc3d(id, 52)}</span>${esc(k.name)}<small>${esc(k.tag)}</small></button>`).join('')}</div></div>
       <div class="field">Icône de l’écran d’accueil ${H('icone')}<div class="iconrow"><span class="icon-prev" aria-hidden="true">${iconSVG(L.icon === 'pig' ? 'pig' : L.mascot, L.icon === 'pig' ? 'tirelire' : L.skin, 72)}</span>
         <div class="chips wrapchips" role="group" aria-label="Icône">${[['follow', 'Suit la mascotte'], ['pig', 'Reste le cochon']].map(([id, l]) => `<button type="button" class="chip" data-act="set-icon" data-id="${id}" aria-pressed="${L.icon === id}">${l}</button>`).join('')}</div></div>
         <div class="toolbar"><button type="button" class="btn" data-act="icon-regen">Régénérer l’icône</button></div>
@@ -5608,6 +5836,99 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 window.addEventListener('beforeunload', e => { if(S && !U.demo && U.dirty && !U.fileHandle && !S.settings.backup){ e.preventDefault(); e.returnValue = ''; } });
 
+</script>
+<script>
+/* Emojis et mascottes Noto Emoji animés (Google : images Apache 2.0, animations CC BY 4.0, voir img/noto/LICENSE.md).
+   Les emojis affichés sont remplacés par l'image fixe Noto ; l'animation Lottie (vendor/lottie_svg.min.js) est chargée
+   à la demande : en boucle pour les grandes mascottes, une fois au survol ou au toucher ailleurs.
+   Données chargées par <script> (et non fetch) pour marcher aussi quand la page est ouverte depuis un fichier. */
+(function(){
+  const FE = {'⭐':'2b50','🍎':'1f34e','🐷':'1f437','🪙':'1fa99','🎁':'1f381','⏳':'23f3','🌱':'1f331','🏷':'1f3f7','📅':'1f4c5','📺':'1f4fa','📈':'1f4c8','🔎':'1f50e','📢':'1f4e3','🎉':'1f389','👑':'1f451','🎓':'1f393','🎧':'1f3b6','😎':'1f60e','🧣':'1f9e3','🎀':'1f380','👕':'1f455','🎢':'1f3a2','🧸':'1f43b','🏠':'1f3e0','🔒':'1f512','🎒':'1f392','👀':'1f440','💳':'1f4b3','🎮':'1f47e','🍿':'1f37f','🔐':'1f510','🎤':'1f3b6','🎨':'1f3a8','👟':'1f45f','⛺':'1f3d5','🚲':'1f6b2','⚽':'26bd','🎸':'1f3b8','📚':'1f4da','🛹':'1f6f9','📷':'1f4f7','🐶':'1f415','🎯':'1f3af'};
+  const ANIM = new Set('1f331 1f34e 1f37f 1f381 1f389 1f393 1f3a2 1f3af 1f3b6 1f3b8 1f3d5 1f3e0 1f415 1f416 1f43b 1f43f 1f440 1f451 1f45f 1f47e 1f4c8 1f4da 1f4e3 1f4f7 1f4fa 1f50e 1f512 1f60e 1f6b2 1f6f9 1f989 1f98a 1fa99 23f3 26bd 2b50'.split(' '));
+  const LOOP = '.hero-pig,.w-pig,.ks-mascot,.ap-pic,.conseils-head';   // mascottes qui bougent en continu
+  const HOST = 'button,a,label,[data-act],.advice,.kgoal,.kbadge,.acctile,.brand,.wz-brand,.foot,.mpic';
+  const RE = new RegExp('(' + Object.keys(FE).join('|') + ')️?', 'gu');
+  const SKIP = /^(SCRIPT|STYLE|TEXTAREA|OPTION|SELECT|TITLE|NOSCRIPT)$/;
+  const BAD = new Set();   // images introuvables : on n'y retouche plus, sinon l'emoji remis en texte serait remplacé en boucle
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+
+  function icon(ch){
+    if(BAD.has(ch)) return document.createTextNode(ch);
+    const s = document.createElement('span'), i = document.createElement('img');
+    s.className = 'fe'; s.dataset.noto = FE[ch];
+    i.src = 'img/noto/' + FE[ch] + '.svg'; i.alt = ch; i.draggable = false; i.decoding = 'async';
+    i.onerror = () => { BAD.add(ch); s.replaceWith(document.createTextNode(ch)); };
+    s.appendChild(i); return s;
+  }
+  function swapText(t){
+    const p = t.parentNode, s = t.nodeValue;
+    if(!p || !s || SKIP.test(p.nodeName) || (p.closest && p.closest('svg'))) return;
+    if(![...s.matchAll(RE)].some(m => !BAD.has(m[1]))) return;
+    const f = document.createDocumentFragment(); let last = 0;
+    for(const m of s.matchAll(RE)){
+      if(m.index > last) f.appendChild(document.createTextNode(s.slice(last, m.index)));
+      f.appendChild(icon(m[1])); last = m.index + m[0].length;
+    }
+    if(last < s.length) f.appendChild(document.createTextNode(s.slice(last)));
+    p.replaceChild(f, t);
+  }
+
+  /* ----- Chargement à la demande : lecteur Lottie et données ----- */
+  const once = new Map();
+  function load(src){
+    if(!once.has(src)) once.set(src, new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { once.delete(src); ko(); }; document.head.appendChild(s); }));
+    return once.get(src);
+  }
+  const DATA = new Map();   // code -> JSON en texte (Lottie modifie les données qu'on lui donne : on repart du texte à chaque fois)
+  window.__noto = (code, json) => DATA.set(code, json);
+  const live = new Set();
+
+  async function play(el, loop){
+    const code = el.dataset.noto;
+    if(calm.matches || !ANIM.has(code)) return;
+    if(el._lot){ if(!loop && el._lot.isPaused) el._lot.goToAndPlay(0, true); return; }
+    if(el._busy) return; el._busy = true;
+    try{
+      await Promise.all([load('vendor/lottie_svg.min.js'), load('img/noto/' + code + '.js')]);
+      if(!el.isConnected || el._lot || !window.lottie) return;
+      const a = lottie.loadAnimation({container:el, renderer:'svg', loop, autoplay:true, animationData:JSON.parse(DATA.get(code)), rendererSettings:{preserveAspectRatio:'xMidYMid meet'}});
+      el._lot = a; live.add(el);
+      a.addEventListener('DOMLoaded', () => el.classList.add('on'));
+      if(!loop) a.addEventListener('complete', () => a.goToAndStop(0, true));
+    }catch{ /* pas d'animation : l'image fixe reste */ }
+    finally{ el._busy = false; }
+  }
+  function startLoops(root){
+    if(root.nodeType !== 1) return;
+    root.querySelectorAll('.pign').forEach(el => {
+      if(!el.closest(LOOP)) return;
+      if(ANIM.has(el.dataset.noto)) play(el, true); else el.classList.add('still');
+    });
+  }
+  function sweep(){ live.forEach(el => { if(!el.isConnected){ el._lot.destroy(); live.delete(el); } }); }
+
+  document.addEventListener('pointerover', e => {
+    const t = e.target.closest ? e.target : e.target.parentElement; if(!t) return;
+    const host = t.closest(HOST);   // le bouton, le conseil… survolé anime ses icônes ; ailleurs, seulement l'icône elle-même
+    if(host) host.querySelectorAll('.fe,.pign').forEach(el => { if(!el.closest(LOOP)) play(el, false); });
+    const own = t.closest('.fe,.pign'); if(own && !own.closest(LOOP)) play(own, false);
+  }, {passive:true});
+
+  function swap(root){
+    if(root.nodeType === 3) return swapText(root);
+    if(root.nodeType !== 1 || SKIP.test(root.nodeName)) return;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [];
+    while(w.nextNode()) list.push(w.currentNode);
+    list.forEach(swapText);
+    startLoops(root);
+  }
+  new MutationObserver(ms => {
+    let removed = false;
+    for(const m of ms){ if(m.type === 'characterData') swapText(m.target); else { m.addedNodes.forEach(swap); if(m.removedNodes.length) removed = true; } }
+    if(removed) sweep();
+  }).observe(document.body, {childList:true, subtree:true, characterData:true});
+  swap(document.body);
+})();
 </script>
 </body>
 </html>
