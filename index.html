@@ -2586,7 +2586,7 @@ let S = null;
 const U = {tab:'synthese', month:new Date().getMonth()+1, collapsed:{}, q:'', owner:'all', kind:'all', cat:'all', todo:false, late:false, plate:false,
            fileHandle:null, fileName:null, lastSaved:null, dirty:false, pending:null, needPerm:false, editing:null, notice:null};
 const FSA = typeof window.showOpenFilePicker === 'function';
-const APP_VERSION = '2.40', APP_DATE = '4 novembre 2026', APP_BUILD = 'abbc35';
+const APP_VERSION = '2.40', APP_DATE = '4 novembre 2026', APP_BUILD = 'ca945c';
 const LS_KEY = 'budget-foyer:sauvegarde';
 const JSON_TYPES = [{description:'MaTirelire (JSON)', accept:{'application/json':['.json']}}];
 
@@ -3227,7 +3227,7 @@ function updateStatus(){ const el = $('.topact'); if(el) el.innerHTML = statusHT
 
 /* ---------- Rendu ---------- */
 const TABSHORT = {provisions:'Prov.', reglages:'Régl.'};
-const TABS = [['synthese','Synthèse'],['conseils','Conseils'],['budget','Budget'],['provisions','Provisions'],['foyer','Foyer'],['reglages','Réglages']];
+const TABS = [['synthese','Synthèse'],['budget','Budget'],['provisions','Provisions'],['foyer','Foyer'],['conseils','Conseils'],['reglages','Réglages']];
 function render(){
   const y = window.scrollY;
   if(S && (U.prevId !== S.id || U.prev == null)){ U.prev = stateKey(S); U.prevId = S.id; }
