@@ -1,6 +1,6 @@
 {
   "name": "matirelire-mobile",
-  "version": "2.52.0",
+  "version": "2.53.0",
   "description": "MaTirelire : applis Android et iOS (Capacitor) construites depuis ../index.html",
   "scripts": {
     "copy-web": "node scripts/copy-web.mjs",
