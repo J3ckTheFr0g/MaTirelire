@@ -751,15 +751,15 @@ h1,h2,h3{letter-spacing:-.02em}
 :root[data-skin=contraste] .brand span,:root[data-skin=contraste] .welcome h1{background:none;color:var(--ink)}
 .status{font-size:.76rem}
 
-/* Onglets : dock flottant sur mobile, pastilles sur grand écran */
-nav.tabs{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-bottom:0;border:1px solid var(--b-border);border-radius:26px;background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 14px 34px -12px rgba(0,0,0,.32)}
+/* Onglets : barre calée au bas de l'écran, pleine largeur et opaque sur mobile (rien ne se voit dessous), pastilles sur grand écran */
+nav.tabs{left:0;right:0;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);border:0;border-top:1px solid var(--b-border);border-radius:0;background:var(--surface);box-shadow:none}
 nav.tabs .wrap{padding:6px;gap:3px}
 nav.tabs button{border-radius:20px;padding:11px 2px;font-weight:700;transition:background-color .2s,color .2s,box-shadow .2s}
 nav.tabs button[aria-current=page]{background:var(--b-grad);color:var(--on-brand);box-shadow:0 8px 16px -8px var(--brand)}
 .navdot{box-shadow:0 0 0 2px var(--surface)}
 @media(min-width:760px){
   body{padding-bottom:40px}
-  nav.tabs{border:0;border-radius:0;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+  nav.tabs{border:0;border-radius:0;background:transparent;padding-bottom:0;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
   nav.tabs .wrap{gap:6px;padding:0 16px 10px}
   nav.tabs button{padding:8px 18px;font-size:.92rem}
   nav.tabs button:not([aria-current]):hover{background:color-mix(in srgb,var(--brand) 9%,transparent);color:var(--ink)}
